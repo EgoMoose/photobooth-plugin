@@ -1,0 +1,16 @@
+{
+	"name": "photobooth-plugin",
+	"tree": {
+		"$className": "Folder",
+		"$path": "default.project.json",
+		"Packages": {
+			"$path": "Packages"
+		},
+		"Runner": {
+			"$className": "Script",
+			"$properties": {
+				"Source": "if plugin then require(script.Parent.Builds.Plugin).build(plugin) end"
+			}
+		}
+	}
+}

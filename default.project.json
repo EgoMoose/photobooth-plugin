@@ -1,0 +1,6 @@
+{
+	"name": "photobooth-plugin",
+	"tree": {
+		"$path": "src"
+	}
+}

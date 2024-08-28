@@ -1,0 +1,9 @@
+/ServerPackages
+/DevPackages
+/Packages
+/placefiles
+
+/lune/**/*.png
+
+sourcemap.json
+*.ds_store

@@ -1,0 +1,44 @@
+--!strict
+
+local Captures = require(script.Parent.Captures)
+
+export type Configuration = {
+	ScaleOS: Vector2,
+	BindingsEnabled: boolean,
+	ViewportCaptureType: Captures.ViewportCaptureTypes,
+	UserInterfaceCaptureType: Captures.UICaptureTypes,
+}
+
+local Configuration = {}
+
+-- Private
+
+local configurationChanged = Instance.new("BindableEvent")
+local configurationCurrent: Configuration = {
+	ScaleOS = Vector2.new(1, 1),
+	BindingsEnabled = false,
+	ViewportCaptureType = Captures.Viewport.Default,
+	UserInterfaceCaptureType = Captures.UserInterface.Default,
+}
+
+-- Public
+
+function Configuration.get()
+	return table.clone(configurationCurrent)
+end
+
+function Configuration.set(configuration: Configuration)
+	configurationCurrent = table.clone(configuration)
+	configurationChanged:Fire()
+end
+
+function Configuration.onChanged(callback: () -> ())
+	local connection = configurationChanged.Event:Connect(callback)
+	return function()
+		connection:Disconnect()
+	end
+end
+
+--
+
+return Configuration

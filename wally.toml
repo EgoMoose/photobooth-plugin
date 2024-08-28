@@ -1,0 +1,17 @@
+[package]
+name = "egomoose/photobooth-plugin"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+private = true
+
+[dependencies]
+Sift = "csqrl/sift@0.0.9"
+Deque = "egomoose/deque@0.2.1"
+Trove = "sleitnick/trove@1.5.0"
+GreenTea = "corecii/greentea@0.4.11"
+
+React = "jsdotlua/react@17.2.1"
+ReactRoblox = "jsdotlua/react-roblox@17.2.1"
+StudioComponents = "sircfenner/studiocomponents@1.2.0"
+Lucide = "virtualbutfake/lucide-roblox@1.1.3"
