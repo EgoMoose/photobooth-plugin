@@ -7,7 +7,11 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local StarterGui = game:GetService("StarterGui")
 
-local PLAYER_GUI: PlayerGui? = Players.LocalPlayer and Players.LocalPlayer.PlayerGui
+local PLAYER_GUI: PlayerGui?
+pcall(function()
+	-- team create can cause there to be a player with no player gui
+	PLAYER_GUI = Players.LocalPlayer and Players.LocalPlayer.PlayerGui
+end)
 
 local UIHiderClass = {}
 UIHiderClass.__index = UIHiderClass
