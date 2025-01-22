@@ -13,7 +13,7 @@
 			"Properties": {
 				"Thickness": 100000,
 				"Transparency": 0.6,
-				"Color": { "Color3uint8": [0, 0, 0] }
+				"Color": { "Color3": [0, 0, 0] }
 			}
 		},
 		{
@@ -29,7 +29,7 @@
 					"ClassName": "UIStroke",
 					"Properties": {
 						"Thickness": 4,
-						"Color": { "Color3uint8": [0, 162, 255] }
+						"Color": { "Color3": [0, 0.6352941176470588, 1] }
 					}
 				},
 				{
@@ -40,7 +40,7 @@
 						"AnchorPoint": [1, 0],
 						"Position": { "UDim2": [[1, 0], [1, 8]] },
 						"Size": { "UDim2": [[1, 0], [0, 14]] },
-						"TextColor3": { "Color3uint8": [255, 255, 255] },
+						"TextColor3": { "Color3": [1, 1, 1] },
 						"TextXAlignment": "Right",
 						"TextYAlignment": "Top",
 						"TextScaled": true,
