@@ -119,7 +119,7 @@ local captureTypes = {
 	},
 	Viewport = {
 		Unmodified = wrap(require(script.Viewport.Unmodified)),
-		NoSkybox = wrap(require(script.Viewport.ReverseBlend)),
+		NoSkybox = wrap(require(script.Viewport.ReverseBlend2)),
 
 		-- FogAlpha = wrap(require(script.Viewport.FogAlpha)),
 		-- ReverseBlend = wrap(require(script.Viewport.ReverseBlend)),

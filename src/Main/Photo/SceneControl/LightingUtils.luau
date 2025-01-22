@@ -19,13 +19,42 @@ function LightingUtils.getTonemapperPreset()
 	end)
 
 	for i = #gradingEffects, 1, -1 do
-		local lastEffect = gradingEffects[#gradingEffects]
+		local lastEffect = gradingEffects[i]
 		if lastEffect:IsA("ColorGradingEffect") and lastEffect.Enabled then
 			return lastEffect.TonemapperPreset
 		end
 	end
 
 	return Enum.TonemapperPreset.Default
+end
+
+function LightingUtils.getColorCorrection()
+	local colorCorrectionEffects = SceneUtils.filterInstances(Lighting:GetChildren(), function(child)
+		return SceneUtils.isAny(child, {
+			"ColorCorrectionEffect",
+		})
+	end)
+
+	for i = #colorCorrectionEffects, 1, -1 do
+		local lastEffect = colorCorrectionEffects[i]
+		if lastEffect:IsA("ColorCorrectionEffect") and lastEffect.Enabled then
+			return lastEffect:Clone()
+		end
+	end
+
+	return Instance.new("ColorCorrectionEffect")
+end
+
+function LightingUtils.removeColorCorrection()
+	local colorCorrectionEffects = SceneUtils.filterInstances(Lighting:GetChildren(), function(child)
+		return SceneUtils.isAny(child, {
+			"ColorCorrectionEffect",
+		})
+	end)
+
+	return SceneUtils.oneTimeCallback(SceneUtils.setTemporaryProperties(colorCorrectionEffects, {
+		Parent = Sift.None,
+	}))
 end
 
 function LightingUtils.applyRetroColorGrading()
