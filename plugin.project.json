@@ -6,6 +6,9 @@
 		"Packages": {
 			"$path": "Packages"
 		},
+		"Wally": {
+			"$path": "wally.toml"
+		},
 		"Runner": {
 			"$className": "Script",
 			"$properties": {
