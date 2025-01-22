@@ -176,7 +176,7 @@ local function Viewport(props: Props)
 							local isDiagonal = directionAbsSum >= 2
 
 							if isDiagonal then
-								local projectionAxis = prevSize.Unit
+								local projectionAxis = (prevSize * direction).Unit
 								delta2 = delta2:Dot(projectionAxis) * projectionAxis
 							end
 						end
