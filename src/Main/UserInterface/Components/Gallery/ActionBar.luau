@@ -7,7 +7,8 @@ local React = require(pluginRoot.Packages.React)
 
 local Image = require(pluginRoot.Utilities.Image)
 
-local UPLOADING_ENABLED = false
+local uiRoot = script:FindFirstAncestor("UserInterface")
+local Hooks = require(uiRoot.Hooks)
 
 export type UploadInfo = {
 	Title: string,
@@ -29,9 +30,10 @@ export type Props = {
 
 local function ActionBar(props: Props)
 	local theme = StudioComponents.useTheme()
+	local isLocalPlugin = Hooks.useIsLocalPlugin()
 
 	local uploadIcon = assert(Lucide.GetAsset("upload", 16))
-	local uploadDisabled = not (UPLOADING_ENABLED and not props.Disabled and props.EditableImage)
+	local uploadDisabled = not (not props.Disabled and props.EditableImage)
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -54,7 +56,7 @@ local function ActionBar(props: Props)
 			Padding = UDim.new(0, 4),
 		}),
 
-		Upload = UPLOADING_ENABLED and React.createElement(StudioComponents.MainButton, {
+		Upload = isLocalPlugin and React.createElement(StudioComponents.MainButton, {
 			LayoutOrder = -1,
 			Size = UDim2.new(0, 70, 1, 0),
 			AnchorPoint = Vector2.new(1, 0.5),
