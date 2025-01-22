@@ -31,6 +31,13 @@ local function compose(
 	local Wb = { 255, 255, 255, 255 }
 	local Bb = { 0, 0, 0, 255 }
 
+	local brightness = colorCorrection.Brightness
+	local contrast = colorCorrection.Contrast + 1
+	local saturation = colorCorrection.Saturation + 1
+
+	local tintColor = colorCorrection.TintColor
+	local tint = { tintColor.R, tintColor.G, tintColor.B }
+
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
@@ -42,7 +49,10 @@ local function compose(
 				-- in both samples the pixels match their backgrounds perfectly
 				-- this means that this pixel is guaranteed to be a background pixel
 				onBlack:SetRGBA255(pixelIndex, 255, 255, 255, 0)
-			elseif not compareByMargin(Wo, Bo, COMPARE_MARGIN) then
+				continue
+			end
+
+			if not compareByMargin(Wo, Bo, COMPARE_MARGIN) then
 				-- the pixels differ between the two versions of the image
 				-- this means their must be some alpha we have to calculate
 				local uBo = { onBlack:GetRGBA255(pixelIndex) }
@@ -60,49 +70,26 @@ local function compose(
 
 				onBlack:SetRGBA255(pixelIndex, rgb[1], rgb[2], rgb[3], maxAlpha * 255)
 			end
-		end
-	end
 
-	local contrast = colorCorrection.Contrast
-	local brightness = colorCorrection.Brightness
-	local saturation = colorCorrection.Saturation
-
-	-- stylua: ignore
-	local tint = {
-		colorCorrection.TintColor.R,
-		colorCorrection.TintColor.G,
-		colorCorrection.TintColor.B,
-	}
-
-	for h = 1, onBlack.size.Y do
-		for w = 1, onBlack.size.X do
-			local pixelIndex = onBlack:GetPixelIndex(w, h)
+			-- apply color correction
 			local rgba = { onBlack:GetRGBA(pixelIndex) }
 
 			for i = 1, 3 do
-				-- not dividing by the alpha seems to provide better edge results
-				-- need to investigate more...
-
-				local c = rgba[i] --/ rgba[4]
-
-				c = ((c - 0.5) * math.max(0, contrast + 1)) + 0.5 -- apply contrast
-				c = c + brightness -- apply brightness
-				c = c * tint[i] -- apply tint
-
-				--c = c * rgba[4]
-
-				rgba[i] = math.clamp(c, 0, 1)
+				local component = rgba[i]
+				component = ((component - 0.5) * math.max(0, contrast)) + 0.5 -- contrast
+				component = component + brightness -- brightness
+				component = component * tint[i] -- tint
+				rgba[i] = math.clamp(component, 0, 1)
 			end
 
 			-- apply saturation
-			-- pretty sure this is incorrect / not how Roblox calculates
-			-- it darkens the image too much in certain places
-			local color = Color3.new(rgba[1], rgba[2], rgba[3])
-			local ch, cs, cv = color:ToHSV()
-			cs = cs * (1 + saturation)
-			local newColor = Color3.fromHSV(ch, math.clamp(cs, 0, 1), cv)
+			local grey = rgba[1] * 0.299 + rgba[2] * 0.587 + rgba[3] * 0.114
+			for i = 1, 3 do
+				local component = rgba[i] * saturation + (1 - saturation) * grey
+				rgba[i] = math.clamp(component, 0, 1)
+			end
 
-			onBlack:SetRGBA(pixelIndex, newColor.R, newColor.G, newColor.B, rgba[4])
+			onBlack:SetRGBA(pixelIndex, rgba[1], rgba[2], rgba[3], rgba[4])
 		end
 	end
 
@@ -115,7 +102,7 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 		return
 	end
 
-	local colorCorrection = SceneControl.Lighting.getColorCorrection()
+	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
 	trove:Add(colorCorrection)
 
 	local redoColorCorrection = SceneControl.Lighting.removeColorCorrection()

@@ -28,7 +28,7 @@ function LightingUtils.getTonemapperPreset()
 	return Enum.TonemapperPreset.Default
 end
 
-function LightingUtils.getColorCorrection()
+function LightingUtils.getAppliedColorCorrectionCopy()
 	local colorCorrectionEffects = SceneUtils.filterInstances(Lighting:GetChildren(), function(child)
 		return SceneUtils.isAny(child, {
 			"ColorCorrectionEffect",
