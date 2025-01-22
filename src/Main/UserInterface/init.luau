@@ -135,15 +135,13 @@ function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginTool
 				setIsEnabled(not dock.Enabled)
 			end)
 
-			local widgetConnection = dock:GetPropertyChangedSignal("Enabled"):Connect(function()
-				if not dock.Enabled then
-					setIsEnabled(false)
-				end
+			dock:BindToClose(function()
+				setIsEnabled(false)
 			end)
 
 			return function()
+				dock:BindToClose(nil)
 				buttonConnection:Disconnect()
-				widgetConnection:Disconnect()
 			end
 		end, {})
 
