@@ -1,7 +1,7 @@
 --!strict
 
 local CoreGui = game:GetService("CoreGui") :: CoreGui
-local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
+local StarterGui = game:GetService("StarterGui") :: StarterGui
 local SelectionService = game:GetService("Selection") :: Selection
 local AssetService = game:GetService("AssetService") :: AssetService
 local StudioService = game:GetService("StudioService") :: StudioService
@@ -46,7 +46,7 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 	local clickConnection = button.Click:Connect(function()
 		if selection and not Photo.Flags.get("isCapturing") then
 			local captures = Photo.captureUI(selection, Photo.Configuration.get().UserInterfaceCaptureType)
-			local selection = Photo.export(captures, ServerStorage)
+			local selection = Photo.export(captures, StarterGui)
 			SelectionService:Set(selection :: any)
 		end
 	end)
@@ -90,7 +90,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 			Content = React.createElement(Viewport, {
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
-					local selection = Photo.export(captures, ServerStorage)
+					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 				end,
 				Disabled = isCapturing,
@@ -190,7 +190,7 @@ function UserInterface.mountImportPngButton(plugin: Plugin, button: PluginToolba
 			local editImage = AssetService:CreateEditableImageAsync(content)
 			local img = Image.fromEditableImage(editImage)
 
-			local selection = Photo.export({ img }, ServerStorage)
+			local selection = Photo.export({ img }, StarterGui)
 			SelectionService:Set(selection :: any)
 		end
 	end)

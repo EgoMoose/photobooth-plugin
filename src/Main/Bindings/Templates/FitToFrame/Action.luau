@@ -8,7 +8,7 @@
 		4. Resize the "CaptureFrame" to your desired dimensions.
 		5. Make any rotational adjustments to the targets as the camera will have identity rotation when taking the captures.
 		6. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.FitToFrame.Action)` in the command bar.
-		7. After completion your captures will be in a timestamped folder under the ServerStorage.
+		7. After completion your captures will be in a timestamped folder under the StarterGui.
 
 	UNIFORM_SCALE
 		> If you have some capture targets that are larger than others you may want to use a consistent camera distance so
@@ -22,7 +22,9 @@
 local UNIFORM_SCALE = false
 local DELAY_BETWEEN_CAPTURES = 0
 
+local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
+
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local frame = script.Parent.CaptureFrame
@@ -124,7 +126,7 @@ local _success, err = Photobooth.cancellable(script, function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
-	results.Parent = ServerStorage
+	results.Parent = StarterGui
 end)
 
 if err then

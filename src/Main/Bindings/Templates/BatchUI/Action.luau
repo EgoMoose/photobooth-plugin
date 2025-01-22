@@ -5,10 +5,12 @@
 		1. Copy this template to the StarterGui.
 		2. Place all the UI elements you'd like to capture in the CaptureFolder.
 		3. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.BatchUI.Action)` in the command bar.
-		4. After completion your captures will be in a timestamped folder under the ServerStorage.
+		4. After completion your captures will be in a timestamped folder under the StarterGui.
 --]]
 
+local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
+
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local screen = script.Parent
@@ -30,7 +32,7 @@ local _success, err = Photobooth.cancellable(script, function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
-	results.Parent = ServerStorage
+	results.Parent = StarterGui
 end)
 
 if err then

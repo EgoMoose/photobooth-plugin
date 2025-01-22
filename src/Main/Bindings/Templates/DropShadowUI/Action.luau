@@ -5,7 +5,7 @@
 		1. Copy this template to the StarterGui.
 		2. Place all the UI elements you'd like to capture in the CaptureFolder.
 		3. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.DropShadowUI.Action)` in the command bar.
-		4. After completion your drop-shadows will be in a timestamped ScreenGui under the ServerStorage.
+		4. After completion your drop-shadows will be in a timestamped ScreenGui under the StarterGui.
 	
 	BLUR_RADIUS
 		> How much blurring will occur on the drop shadow. The blurring method used is box blur.
@@ -22,8 +22,10 @@ local BLUR_RADIUS = 5
 local BLUR_OFFSET = Vector2.new(2, 2)
 local BLUR_TRANSPARENCY = 0.7
 
+local StarterGui = game:GetService("StarterGui")
 local AssetService = game:GetService("AssetService")
 local ServerStorage = game:GetService("ServerStorage")
+
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local screen = script.Parent
@@ -184,7 +186,7 @@ local _success, err = Photobooth.cancellable(script, function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
-	results.Parent = ServerStorage
+	results.Parent = StarterGui
 end)
 
 if err then

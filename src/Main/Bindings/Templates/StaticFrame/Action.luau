@@ -6,9 +6,9 @@
 		2. Create a folder in the workspace named "StaticFrame_Targets" and put all the models you want to capture in it.
 		3. Hide everything that is not in the target folder so that it is not visible in the workspace.
 		4. Resize the "CaptureFrame" to your desired dimensions.
-		5. Adjust your camera and move any move any target models so that they're in the bounds of the capture frame.
+		5. Adjust your camera and move any target models so that they're in the bounds of the capture frame.
 		5. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.StaticFrame.Action)` in the command bar.
-		6. After completion your captures will be in a timestamped folder under the ServerStorage.
+		6. After completion your captures will be in a timestamped folder under the StarterGui.
 
 	DELAY_BETWEEN_CAPTURES
 		> This represents how much time to delay once the capture target is about to be captured. This can be useful
@@ -17,7 +17,9 @@
 
 local DELAY_BETWEEN_CAPTURES = 0
 
+local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
+
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local frame = script.Parent.CaptureFrame
@@ -82,7 +84,7 @@ local _success, err = Photobooth.cancellable(script, function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
-	results.Parent = ServerStorage
+	results.Parent = StarterGui
 end)
 
 if err then
