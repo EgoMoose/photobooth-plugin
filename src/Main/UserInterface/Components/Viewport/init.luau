@@ -3,6 +3,7 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
+local Sift = require(pluginRoot.Packages.Sift)
 
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
@@ -14,6 +15,13 @@ local Hooks = require(uiRoot.Hooks)
 local GRABBERS = {
 	CornersEnabled = true,
 	MiddlesEnabled = true,
+
+	MaintainAspectKeys = Sift.Array.toSet({
+		Enum.KeyCode.LeftControl,
+		Enum.KeyCode.RightControl,
+		Enum.KeyCode.LeftMeta,
+		Enum.KeyCode.RightMeta,
+	}),
 
 	Length = 30,
 	Padding = 8,
@@ -69,6 +77,8 @@ local function Viewport(props: Props)
 	local viewportSize = React.useContext(viewportSizeContext)
 	local scaledViewport = viewportSize * scaleOS
 
+	local aspectKeysDown, setAspectKeysDown = React.useState({})
+
 	local sizeInitiated, setSizeInitiated = React.useState(false)
 	local size, setSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
 	local prevSize, setPrevSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
@@ -99,6 +109,24 @@ local function Viewport(props: Props)
 		Position = UDim2.fromScale(0, 0),
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
+
+		[React.Event.InputBegan] = function(_, input)
+			if GRABBERS.MaintainAspectKeys[input.KeyCode] then
+				aspectKeysDown[input.KeyCode] = true
+				setAspectKeysDown(aspectKeysDown)
+
+				if startDrag then
+					setPrevSize(size)
+					setStartDrag(input.Position)
+				end
+			end
+		end,
+		[React.Event.InputEnded] = function(_, input)
+			if GRABBERS.MaintainAspectKeys[input.KeyCode] then
+				aspectKeysDown[input.KeyCode] = nil
+				setAspectKeysDown(aspectKeysDown)
+			end
+		end,
 	}, {
 		Focus = React.createElement("Frame", {
 			AnchorPoint = ANCHOR_POINT,
@@ -142,6 +170,16 @@ local function Viewport(props: Props)
 					if startDrag then
 						local delta3 = input.Position - startDrag
 						local delta2 = Vector2.new(delta3.X, delta3.Y)
+
+						if next(aspectKeysDown) then
+							local directionAbsSum = math.abs(direction.X) + math.abs(direction.Y)
+							local isDiagonal = directionAbsSum >= 2
+
+							if isDiagonal then
+								local projectionAxis = prevSize.Unit
+								delta2 = delta2:Dot(projectionAxis) * projectionAxis
+							end
+						end
 
 						local offset = 2 * direction * scaleOS * delta2
 						local newSize = prevSize + offset
