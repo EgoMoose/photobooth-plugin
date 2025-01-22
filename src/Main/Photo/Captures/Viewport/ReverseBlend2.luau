@@ -77,25 +77,29 @@ local function compose(
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
-
 			local rgba = { onBlack:GetRGBA(pixelIndex) }
 
 			for i = 1, 3 do
-				local c = rgba[i] / rgba[4]
+				-- not dividing by the alpha seems to provide better edge results
+				-- need to investigate more...
+
+				local c = rgba[i] --/ rgba[4]
 
 				c = ((c - 0.5) * math.max(0, contrast + 1)) + 0.5 -- apply contrast
 				c = c + brightness -- apply brightness
 				c = c * tint[i] -- apply tint
 
-				c = c * rgba[4]
+				--c = c * rgba[4]
 
 				rgba[i] = math.clamp(c, 0, 1)
 			end
 
 			-- apply saturation
+			-- pretty sure this is incorrect / not how Roblox calculates
+			-- it darkens the image too much in certain places
 			local color = Color3.new(rgba[1], rgba[2], rgba[3])
 			local ch, cs, cv = color:ToHSV()
-			cs = cs + cs * saturation
+			cs = cs * (1 + saturation)
 			local newColor = Color3.fromHSV(ch, math.clamp(cs, 0, 1), cv)
 
 			onBlack:SetRGBA(pixelIndex, newColor.R, newColor.G, newColor.B, rgba[4])
