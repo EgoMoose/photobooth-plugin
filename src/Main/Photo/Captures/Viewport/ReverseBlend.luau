@@ -73,11 +73,11 @@ local function compose(
 
 			-- apply color correction
 			local rgba = { onBlack:GetRGBA(pixelIndex) }
-			local grey = rgba[1] * 0.299 + rgba[2] * 0.587 + rgba[3] * 0.114
+			local gray = rgba[1] * 0.299 + rgba[2] * 0.587 + rgba[3] * 0.114
 
 			for i = 1, 3 do
 				local component = rgba[i]
-				component = component * saturation + (1 - saturation) * grey -- saturation
+				component = component * saturation + (1 - saturation) * gray -- saturation
 				component = ((component - 0.5) * math.max(0, contrast)) + 0.5 -- contrast
 				component = component + brightness -- brightness
 				component = component * tint[i] -- tint
