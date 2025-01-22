@@ -22,9 +22,21 @@ local function compareByMargin(a: { number }, b: { number }, margin: number): bo
 	)
 end
 
-local function compose(onWhiteRetro: Image.Image, onBlackRetro: Image.Image, onBlack: Image.Image)
+local function compose(
+	onWhiteRetro: Image.Image,
+	onBlackRetro: Image.Image,
+	onBlack: Image.Image,
+	colorCorrection: ColorCorrectionEffect
+)
 	local Wb = { 255, 255, 255, 255 }
 	local Bb = { 0, 0, 0, 255 }
+
+	local brightness = colorCorrection.Brightness
+	local contrast = colorCorrection.Contrast + 1
+	local saturation = colorCorrection.Saturation + 1
+
+	local tintColor = colorCorrection.TintColor
+	local tint = { tintColor.R, tintColor.G, tintColor.B }
 
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
@@ -37,7 +49,10 @@ local function compose(onWhiteRetro: Image.Image, onBlackRetro: Image.Image, onB
 				-- in both samples the pixels match their backgrounds perfectly
 				-- this means that this pixel is guaranteed to be a background pixel
 				onBlack:SetRGBA255(pixelIndex, 255, 255, 255, 0)
-			elseif not compareByMargin(Wo, Bo, COMPARE_MARGIN) then
+				continue
+			end
+
+			if not compareByMargin(Wo, Bo, COMPARE_MARGIN) then
 				-- the pixels differ between the two versions of the image
 				-- this means their must be some alpha we have to calculate
 				local uBo = { onBlack:GetRGBA255(pixelIndex) }
@@ -55,6 +70,26 @@ local function compose(onWhiteRetro: Image.Image, onBlackRetro: Image.Image, onB
 
 				onBlack:SetRGBA255(pixelIndex, rgb[1], rgb[2], rgb[3], maxAlpha * 255)
 			end
+
+			-- apply color correction
+			local rgba = { onBlack:GetRGBA(pixelIndex) }
+
+			for i = 1, 3 do
+				local component = rgba[i]
+				component = ((component - 0.5) * math.max(0, contrast)) + 0.5 -- contrast
+				component = component + brightness -- brightness
+				component = component * tint[i] -- tint
+				rgba[i] = math.clamp(component, 0, 1)
+			end
+
+			-- apply saturation
+			local grey = rgba[1] * 0.299 + rgba[2] * 0.587 + rgba[3] * 0.114
+			for i = 1, 3 do
+				local component = rgba[i] * saturation + (1 - saturation) * grey
+				rgba[i] = math.clamp(component, 0, 1)
+			end
+
+			onBlack:SetRGBA(pixelIndex, rgba[1], rgba[2], rgba[3], rgba[4])
 		end
 	end
 
@@ -66,6 +101,12 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 		warn("Skybox cannot be removed when Atmosphere is present.")
 		return
 	end
+
+	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
+	trove:Add(colorCorrection)
+
+	local redoColorCorrection = SceneControl.Lighting.removeColorCorrection()
+	trove:Add(redoColorCorrection)
 
 	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
 	trove:Add(redoCloudsAndFog)
@@ -92,8 +133,9 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	billboardBackground:SetEnabled(false)
 	redoCloudsAndFog()
 	undoRetroGrading()
+	redoColorCorrection()
 
-	return compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro)
+	return compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
 end
 
 return operation
