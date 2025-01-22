@@ -4,6 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
+local Wally = require(pluginRoot.Wally)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Captures = require(pluginRoot.Main.Photo.Captures)
@@ -185,6 +186,7 @@ end
 
 local function ConfigurationWindow(props: Props)
 	local theme = StudioComponents.useTheme()
+	local isLocalPlugin = Hooks.useIsLocalPlugin()
 	local configuration, setConfiguration = Hooks.usePhotoConfiguration()
 
 	return React.createElement(React.Fragment, nil, {
@@ -199,6 +201,13 @@ local function ConfigurationWindow(props: Props)
 			Size = UDim2.new(1, 0, 0, 20),
 			Text = "Settings",
 			TextXAlignment = Enum.TextXAlignment.Left,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 2),
+				PaddingRight = UDim.new(0, 0),
+				PaddingTop = UDim.new(0, 0),
+				PaddingBottom = UDim.new(0, 0),
+			}),
 		}),
 		Inner = React.createElement("Frame", {
 			Position = UDim2.fromOffset(0, 24),
@@ -238,6 +247,23 @@ local function ConfigurationWindow(props: Props)
 						LayoutOrder = 3,
 					}),
 				}),
+			}),
+		}),
+		Version = React.createElement(StudioComponents.Label, {
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.fromScale(0, 1),
+			Size = UDim2.fromOffset(80, 28),
+			Text = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`,
+			TextSize = 6,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Bottom,
+			Disabled = true,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 2),
+				PaddingRight = UDim.new(0, 0),
+				PaddingTop = UDim.new(0, 0),
+				PaddingBottom = UDim.new(0, 0),
 			}),
 		}),
 		Close = React.createElement(StudioComponents.MainButton, {

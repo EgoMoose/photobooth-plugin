@@ -59,7 +59,7 @@ function Plugin.build(plugin: Plugin)
 	end)
 
 	local theme = settings().Studio.Theme
-	local toolbar = plugin:CreateToolbar("Photo Booth")
+	local toolbar = plugin:CreateToolbar("Photobooth")
 
 	local openViewportButton = toolbar:CreateButton(
 		"egomoose_photobooth_viewport",
@@ -77,13 +77,13 @@ function Plugin.build(plugin: Plugin)
 	)
 	UserInterface.mountCaptureUIButton(plugin, captureUIButton)
 
-	local openViewerButton = toolbar:CreateButton(
+	local openGalleryButton = toolbar:CreateButton(
 		"egomoose_photobooth_viewer",
 		"View photobooth images",
 		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/ImageLabel@3x.png`,
-		"Viewer"
+		"Gallery"
 	)
-	UserInterface.mountOpenGalleryButton(plugin, openViewerButton)
+	UserInterface.mountOpenGalleryButton(plugin, openGalleryButton)
 
 	-- local importPngButton = toolbar:CreateButton(
 	-- 	"egomoose_photobooth_importer",
