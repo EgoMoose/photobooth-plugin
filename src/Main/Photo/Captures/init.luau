@@ -20,7 +20,7 @@ local function _convertToWhite(img: Image.Image)
 	end
 end
 
-local function alphaBleedSerial(img: Image.Image, thickness: number)
+local function alphaBleed(img: Image.Image, thickness: number)
 	local width, height = img.size.X, img.size.Y
 
 	local visited = {}
@@ -101,7 +101,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for _, img in results do
-			alphaBleedSerial(img, 1)
+			alphaBleed(img, 1)
 		end
 		return results
 	end
