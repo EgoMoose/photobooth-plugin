@@ -1,10 +1,9 @@
 --!strict
 
-local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local usePlugin = require(script.Parent.usePlugin)
 
 local function useIsLocalPlugin()
-	local plugin = StudioComponents.usePlugin() :: Plugin?
+	local plugin = usePlugin()
 	local pluginName = plugin and plugin.Name
 
 	if pluginName then

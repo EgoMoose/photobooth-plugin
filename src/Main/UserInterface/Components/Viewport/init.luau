@@ -52,6 +52,10 @@ local viewportSizeContext = React.createContext(Vector2.new(0, 0))
 
 export type Props = {
 	OnCapture: (Rect) -> (),
+	OnFocus: {
+		Trigger: RBXScriptSignal,
+		Callback: (Vector2) -> (),
+	},
 	Disabled: boolean,
 }
 
@@ -99,6 +103,15 @@ local function Viewport(props: Props)
 
 	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
 	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
+
+	React.useEffect(function()
+		local connection = props.OnFocus.Trigger:Connect(function()
+			props.OnFocus.Callback(lenseSize:Ceil())
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
 
 	local scaledLenseSize = lenseSize * scaleOS
 	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
