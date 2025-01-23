@@ -20,7 +20,7 @@ local function _convertToWhite(img: Image.Image)
 	end
 end
 
-local function fixAlpha(img: Image.Image)
+local function alphaBleed(img: Image.Image, thickness: number)
 	local width, height = img.size.X, img.size.Y
 
 	local visited = {}
@@ -30,7 +30,7 @@ local function fixAlpha(img: Image.Image)
 	for y = 1, height do
 		for x = 1, width do
 			local index = img:GetPixelIndex(x, y)
-			local _, _, _, a = img:GetRGBA(index)
+			local _, _, _, a = img:GetRGBA255(index)
 
 			if a ~= 0 then
 				visited[index] = true
@@ -40,7 +40,7 @@ local function fixAlpha(img: Image.Image)
 
 			local hasOpaqueNeighbor = false
 			for _, neighborIndex in img:GetNeighbors(index) do
-				local _, _, _, na = img:GetRGBA(neighborIndex)
+				local _, _, _, na = img:GetRGBA255(neighborIndex)
 				if na ~= 0 then
 					hasOpaqueNeighbor = true
 					break
@@ -54,29 +54,40 @@ local function fixAlpha(img: Image.Image)
 		end
 	end
 
-	while queue:getLength() > 0 do
-		local poppedIndex = queue:popFront()
-
-		local rgb = { 0, 0, 0 }
-		local contributing = 0
-
-		for _, neighborIndex in img:GetNeighbors(poppedIndex) do
-			if canSample[neighborIndex] then
-				local r, g, b = img:GetRGBA(neighborIndex)
-
-				rgb[1] = rgb[1] + r
-				rgb[2] = rgb[2] + g
-				rgb[3] = rgb[3] + b
-
-				contributing = contributing + 1
-			elseif not visited[neighborIndex] then
-				visited[neighborIndex] = true
-				queue:pushBack(neighborIndex)
-			end
+	for _ = 1, thickness do
+		local length = queue:getLength()
+		if length == 0 then
+			break
 		end
 
-		img:SetRGBA(poppedIndex, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
-		canSample[poppedIndex] = true
+		for i = 1, length do
+			local index = queue:getElement(i)
+
+			local rgb = { 0, 0, 0 }
+			local contributing = 0
+
+			for _, neighborIndex in img:GetNeighbors(index) do
+				if canSample[neighborIndex] then
+					local r, g, b = img:GetRGBA255(neighborIndex)
+
+					rgb[1] = rgb[1] + r
+					rgb[2] = rgb[2] + g
+					rgb[3] = rgb[3] + b
+
+					contributing = contributing + 1
+				elseif not visited[neighborIndex] then
+					visited[neighborIndex] = true
+					queue:pushBack(neighborIndex)
+				end
+			end
+
+			img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+		end
+
+		for _ = 1, length do
+			local poppedIndex = queue:popFront()
+			canSample[poppedIndex] = true
+		end
 	end
 end
 
@@ -90,7 +101,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for _, img in results do
-			fixAlpha(img)
+			alphaBleed(img, 1)
 		end
 		return results
 	end
