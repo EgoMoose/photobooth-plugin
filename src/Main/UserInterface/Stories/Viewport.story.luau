@@ -10,6 +10,8 @@ local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
 local CreateStory = require(stories.Helpers.CreateStory)
 
+workspace:SetAttribute("FocusActionTrigger", false)
+
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
 	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
@@ -27,9 +29,12 @@ local function story()
 			setIsDisabled(false)
 		end,
 
-		OnFocus = function(size)
-			print(size)
-		end,
+		OnFocus = {
+			Trigger = workspace:GetAttributeChangedSignal("FocusActionTrigger"),
+			Callback = function(size)
+				print(size)
+			end,
+		},
 
 		Disabled = isDisabled or disabled,
 	})

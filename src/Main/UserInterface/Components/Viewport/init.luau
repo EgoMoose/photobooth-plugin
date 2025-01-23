@@ -34,10 +34,6 @@ local ACTION_BAR = {
 	Padding = 8,
 }
 
-local FOCUS_KEYS = Sift.Array.toSet({
-	Enum.KeyCode.G,
-})
-
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
@@ -56,7 +52,10 @@ local viewportSizeContext = React.createContext(Vector2.new(0, 0))
 
 export type Props = {
 	OnCapture: (Rect) -> (),
-	OnFocus: (Vector2) -> (),
+	OnFocus: {
+		Trigger: RBXScriptSignal,
+		Callback: (Vector2) -> (),
+	},
 	Disabled: boolean,
 }
 
@@ -105,6 +104,15 @@ local function Viewport(props: Props)
 	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
 	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
 
+	React.useEffect(function()
+		local connection = props.OnFocus.Trigger:Connect(function()
+			props.OnFocus.Callback(lenseSize:Ceil())
+		end)
+		return function()
+			connection:Disconnect()
+		end
+	end, { lenseSize, props.OnFocus } :: { any })
+
 	local scaledLenseSize = lenseSize * scaleOS
 	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
 	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
@@ -124,10 +132,6 @@ local function Viewport(props: Props)
 					setPrevSize(size)
 					setStartDrag(input.Position)
 				end
-			end
-
-			if FOCUS_KEYS[input.KeyCode] then
-				props.OnFocus(lenseSize:Ceil())
 			end
 		end,
 		[React.Event.InputEnded] = function(_, input)

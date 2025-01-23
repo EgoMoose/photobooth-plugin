@@ -59,6 +59,12 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 end
 
 function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToolbarButton)
+	local focusAction = plugin:CreatePluginAction(
+		"photobooth_focus",
+		"Photobooth Focus",
+		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport."
+	)
+
 	local folder = Instance.new("Folder")
 	folder.Name = "EgoMoosePhotobooth"
 	folder.Archivable = false
@@ -94,16 +100,17 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 				end,
-				OnFocus = function(size)
-					print(size)
+				OnFocus = {
+					Trigger = focusAction.Triggered,
+					Callback = function(size)
+						local selection = SelectionService:Get()
+						local singleSelection = if #selection == 1 then selection[1] else nil
 
-					local selection = SelectionService:Get()
-					local singleSelection = if #selection == 1 then selection[1] else nil
-
-					if singleSelection and singleSelection:IsA("PVInstance") then
-						Camera.focus(workspace.CurrentCamera, singleSelection, size)
-					end
-				end,
+						if singleSelection and singleSelection:IsA("PVInstance") then
+							Camera.focus(workspace.CurrentCamera, singleSelection, size)
+						end
+					end,
+				},
 				Disabled = isCapturing,
 			}),
 		})
@@ -118,6 +125,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 
 	plugin.Unloading:Connect(function()
 		coreGuiRoot:unmount()
+		focusAction:Destroy()
 		folder:Destroy()
 	end)
 end
