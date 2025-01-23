@@ -111,7 +111,7 @@ local function Viewport(props: Props)
 		return function()
 			connection:Disconnect()
 		end
-	end, { lenseSize, props.OnFocus } :: { any })
+	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
 
 	local scaledLenseSize = lenseSize * scaleOS
 	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()

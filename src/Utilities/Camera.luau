@@ -40,27 +40,48 @@ function Camera.distort(camera: Camera, distortion: Distortion)
 	)
 end
 
-function Camera.focus(camera: Camera, instance: PVInstance, size: Vector2)
-	local viewportSize = camera.ViewportSize
-	local aspect = size.X / size.Y
-	local scaleY = size.Y / viewportSize.Y
-	local scaledFov2 = math.atan(math.tan(math.rad(camera.FieldOfView / 2)) * scaleY)
-	local sinFov2 = math.sin(scaledFov2 * math.min(1, aspect))
+function Camera.focus(camera: Camera, selection: { Instance }, viewportSize: Vector2)
+	local bounds = {}
+	local centerSum = Vector3.zero
+	for _, selected in selection do
+		if selected:IsA("PVInstance") then
+			local boundCF, boundSize
+			if selected:IsA("BasePart") then
+				boundCF = selected.CFrame
+				boundSize = selected.Size
+			elseif selected:IsA("Model") then
+				boundCF, boundSize = selected:GetBoundingBox()
+			end
 
-	-- get the bounding box of focus
-	local boundCF, boundSize
-	if instance:IsA("BasePart") then
-		boundCF = instance.CFrame
-		boundSize = instance.Size
-	elseif instance:IsA("Model") then
-		boundCF, boundSize = instance:GetBoundingBox()
+			table.insert(bounds, {
+				CFrame = boundCF,
+				Size = boundSize,
+			})
+
+			centerSum = centerSum + boundCF.Position
+		end
 	end
 
-	local radius = boundSize.Magnitude / 2
-	local focusCF = camera.CFrame.Rotation + boundCF.Position
+	if #bounds > 0 then
+		local center = centerSum / #bounds
 
-	camera.Focus = focusCF
-	camera.CFrame = focusCF * CFrame.new(0, 0, radius / sinFov2)
+		local maxRadius = 0
+		for _, bound in bounds do
+			local radius = (bound.Size / 2).Magnitude
+			local distance = (bound.CFrame.Position - center).Magnitude
+			maxRadius = math.max(maxRadius, distance + radius)
+		end
+
+		local aspect = viewportSize.X / viewportSize.Y
+		local scaleY = viewportSize.Y / camera.ViewportSize.Y
+		local scaledFov2 = math.atan(math.tan(math.rad(camera.FieldOfView / 2)) * scaleY)
+		local sinFov2 = math.sin(scaledFov2 * math.min(1, aspect))
+
+		local focusCF = camera.CFrame.Rotation + center
+
+		camera.Focus = focusCF
+		camera.CFrame = focusCF * CFrame.new(0, 0, maxRadius / sinFov2)
+	end
 end
 
 return Camera

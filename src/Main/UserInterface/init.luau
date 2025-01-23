@@ -65,6 +65,10 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport."
 	)
 
+	local function focusCurrentCameraToViewSize(viewportSize: Vector2)
+		return Camera.focus(workspace.CurrentCamera, SelectionService:Get(), viewportSize)
+	end
+
 	local folder = Instance.new("Folder")
 	folder.Name = "EgoMoosePhotobooth"
 	folder.Archivable = false
@@ -102,14 +106,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 				end,
 				OnFocus = {
 					Trigger = focusAction.Triggered,
-					Callback = function(size)
-						local selection = SelectionService:Get()
-						local singleSelection = if #selection == 1 then selection[1] else nil
-
-						if singleSelection and singleSelection:IsA("PVInstance") then
-							Camera.focus(workspace.CurrentCamera, singleSelection, size)
-						end
-					end,
+					Callback = focusCurrentCameraToViewSize,
 				},
 				Disabled = isCapturing,
 			}),
