@@ -12,6 +12,7 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
 
@@ -58,6 +59,16 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 end
 
 function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToolbarButton)
+	local focusAction = plugin:CreatePluginAction(
+		"photobooth_focus",
+		"Photobooth Focus",
+		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport."
+	)
+
+	local function focusCurrentCameraToViewSize(viewportSize: Vector2)
+		return Camera.focus(workspace.CurrentCamera, SelectionService:Get(), viewportSize)
+	end
+
 	local folder = Instance.new("Folder")
 	folder.Name = "EgoMoosePhotobooth"
 	folder.Archivable = false
@@ -93,6 +104,10 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 				end,
+				OnFocus = {
+					Trigger = focusAction.Triggered,
+					Callback = focusCurrentCameraToViewSize,
+				},
 				Disabled = isCapturing,
 			}),
 		})
@@ -107,6 +122,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 
 	plugin.Unloading:Connect(function()
 		coreGuiRoot:unmount()
+		focusAction:Destroy()
 		folder:Destroy()
 	end)
 end

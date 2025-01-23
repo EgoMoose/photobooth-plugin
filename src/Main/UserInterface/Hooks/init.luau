@@ -9,5 +9,6 @@ return {
 	usePhotoFlag = require(script.usePhotoFlag),
 	usePhotoConfiguration = require(script.usePhotoConfiguration),
 
+	usePlugin = require(script.usePlugin),
 	useIsLocalPlugin = require(script.useIsLocalPlugin),
 }
