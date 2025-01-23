@@ -20,7 +20,7 @@ local function _convertToWhite(img: Image.Image)
 	end
 end
 
-local function fixAlpha(img: Image.Image, thickness: number)
+local function alphaBleedSerial(img: Image.Image, thickness: number)
 	local width, height = img.size.X, img.size.Y
 
 	local visited = {}
@@ -30,7 +30,7 @@ local function fixAlpha(img: Image.Image, thickness: number)
 	for y = 1, height do
 		for x = 1, width do
 			local index = img:GetPixelIndex(x, y)
-			local _, _, _, a = img:GetRGBA(index)
+			local _, _, _, a = img:GetRGBA255(index)
 
 			if a ~= 0 then
 				visited[index] = true
@@ -40,7 +40,7 @@ local function fixAlpha(img: Image.Image, thickness: number)
 
 			local hasOpaqueNeighbor = false
 			for _, neighborIndex in img:GetNeighbors(index) do
-				local _, _, _, na = img:GetRGBA(neighborIndex)
+				local _, _, _, na = img:GetRGBA255(neighborIndex)
 				if na ~= 0 then
 					hasOpaqueNeighbor = true
 					break
@@ -55,15 +55,20 @@ local function fixAlpha(img: Image.Image, thickness: number)
 	end
 
 	for _ = 1, thickness do
-		for _ = 1, queue:getLength() do
-			local poppedIndex = queue:popFront()
+		local length = queue:getLength()
+		if length == 0 then
+			break
+		end
+
+		for i = 1, length do
+			local index = queue:getElement(i)
 
 			local rgb = { 0, 0, 0 }
 			local contributing = 0
 
-			for _, neighborIndex in img:GetNeighbors(poppedIndex) do
+			for _, neighborIndex in img:GetNeighbors(index) do
 				if canSample[neighborIndex] then
-					local r, g, b = img:GetRGBA(neighborIndex)
+					local r, g, b = img:GetRGBA255(neighborIndex)
 
 					rgb[1] = rgb[1] + r
 					rgb[2] = rgb[2] + g
@@ -76,7 +81,11 @@ local function fixAlpha(img: Image.Image, thickness: number)
 				end
 			end
 
-			img:SetRGBA(poppedIndex, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+			img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+		end
+
+		for _ = 1, length do
+			local poppedIndex = queue:popFront()
 			canSample[poppedIndex] = true
 		end
 	end
@@ -92,7 +101,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for _, img in results do
-			fixAlpha(img, 1)
+			alphaBleedSerial(img, 1)
 		end
 		return results
 	end
