@@ -20,7 +20,7 @@ local function _convertToWhite(img: Image.Image)
 	end
 end
 
-local function fixAlpha(img: Image.Image)
+local function fixAlpha(img: Image.Image, thickness: number)
 	local width, height = img.size.X, img.size.Y
 
 	local visited = {}
@@ -54,29 +54,31 @@ local function fixAlpha(img: Image.Image)
 		end
 	end
 
-	while queue:getLength() > 0 do
-		local poppedIndex = queue:popFront()
+	for _ = 1, thickness do
+		for _ = 1, queue:getLength() do
+			local poppedIndex = queue:popFront()
 
-		local rgb = { 0, 0, 0 }
-		local contributing = 0
+			local rgb = { 0, 0, 0 }
+			local contributing = 0
 
-		for _, neighborIndex in img:GetNeighbors(poppedIndex) do
-			if canSample[neighborIndex] then
-				local r, g, b = img:GetRGBA(neighborIndex)
+			for _, neighborIndex in img:GetNeighbors(poppedIndex) do
+				if canSample[neighborIndex] then
+					local r, g, b = img:GetRGBA(neighborIndex)
 
-				rgb[1] = rgb[1] + r
-				rgb[2] = rgb[2] + g
-				rgb[3] = rgb[3] + b
+					rgb[1] = rgb[1] + r
+					rgb[2] = rgb[2] + g
+					rgb[3] = rgb[3] + b
 
-				contributing = contributing + 1
-			elseif not visited[neighborIndex] then
-				visited[neighborIndex] = true
-				queue:pushBack(neighborIndex)
+					contributing = contributing + 1
+				elseif not visited[neighborIndex] then
+					visited[neighborIndex] = true
+					queue:pushBack(neighborIndex)
+				end
 			end
-		end
 
-		img:SetRGBA(poppedIndex, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
-		canSample[poppedIndex] = true
+			img:SetRGBA(poppedIndex, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+			canSample[poppedIndex] = true
+		end
 	end
 end
 
@@ -90,7 +92,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for _, img in results do
-			fixAlpha(img)
+			fixAlpha(img, 1)
 		end
 		return results
 	end
