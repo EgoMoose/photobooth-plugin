@@ -27,6 +27,10 @@ local function story()
 			setIsDisabled(false)
 		end,
 
+		OnFocus = function(size)
+			print(size)
+		end,
+
 		Disabled = isDisabled or disabled,
 	})
 end

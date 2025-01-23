@@ -12,6 +12,7 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
 
@@ -92,6 +93,16 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
+				end,
+				OnFocus = function(size)
+					print(size)
+
+					local selection = SelectionService:Get()
+					local singleSelection = if #selection == 1 then selection[1] else nil
+
+					if singleSelection and singleSelection:IsA("PVInstance") then
+						Camera.focus(workspace.CurrentCamera, singleSelection, size)
+					end
 				end,
 				Disabled = isCapturing,
 			}),

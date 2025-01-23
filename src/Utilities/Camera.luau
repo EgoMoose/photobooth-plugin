@@ -40,4 +40,27 @@ function Camera.distort(camera: Camera, distortion: Distortion)
 	)
 end
 
+function Camera.focus(camera: Camera, instance: PVInstance, size: Vector2)
+	local viewportSize = camera.ViewportSize
+	local aspect = size.X / size.Y
+	local scaleY = size.Y / viewportSize.Y
+	local scaledFov2 = math.atan(math.tan(math.rad(camera.FieldOfView / 2)) * scaleY)
+	local sinFov2 = math.sin(scaledFov2 * math.min(1, aspect))
+
+	-- get the bounding box of focus
+	local boundCF, boundSize
+	if instance:IsA("BasePart") then
+		boundCF = instance.CFrame
+		boundSize = instance.Size
+	elseif instance:IsA("Model") then
+		boundCF, boundSize = instance:GetBoundingBox()
+	end
+
+	local radius = boundSize.Magnitude / 2
+	local focusCF = camera.CFrame.Rotation + boundCF.Position
+
+	camera.Focus = focusCF
+	camera.CFrame = focusCF * CFrame.new(0, 0, radius / sinFov2)
+end
+
 return Camera

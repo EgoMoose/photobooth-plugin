@@ -34,6 +34,10 @@ local ACTION_BAR = {
 	Padding = 8,
 }
 
+local FOCUS_KEYS = Sift.Array.toSet({
+	Enum.KeyCode.G,
+})
+
 local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
@@ -52,6 +56,7 @@ local viewportSizeContext = React.createContext(Vector2.new(0, 0))
 
 export type Props = {
 	OnCapture: (Rect) -> (),
+	OnFocus: (Vector2) -> (),
 	Disabled: boolean,
 }
 
@@ -119,6 +124,10 @@ local function Viewport(props: Props)
 					setPrevSize(size)
 					setStartDrag(input.Position)
 				end
+			end
+
+			if FOCUS_KEYS[input.KeyCode] then
+				props.OnFocus(lenseSize:Ceil())
 			end
 		end,
 		[React.Event.InputEnded] = function(_, input)
