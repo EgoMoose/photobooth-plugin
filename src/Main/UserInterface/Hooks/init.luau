@@ -11,4 +11,5 @@ return {
 
 	usePlugin = require(script.usePlugin),
 	useIsLocalPlugin = require(script.useIsLocalPlugin),
+	useHasCreateAssetPermission = require(script.useHasCreateAssetPermission),
 }
