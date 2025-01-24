@@ -29,17 +29,17 @@ jobs:
 
       - name: "Build rbxm"
         run: |
-          rojo build plugin.project.json --output plugin.rbxm
+          rojo build plugin.project.json --output photobooth-${{ github.ref_name }}.rbxm
 
       - name: Create Archive and Upload to Release
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} plugin.rbxm
+          gh release upload ${{ github.ref_name }} photobooth-${{ github.ref_name }}.rbxm
       
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: release
-          path: plugin.rbxm
+          path: photobooth-${{ github.ref_name }}.rbxm
