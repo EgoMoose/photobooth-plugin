@@ -8,9 +8,7 @@ local BillboardBackground = require(photoRoot.Tools.BillboardBackground)
 local Screenshot = require(photoRoot.Captures.Screenshot)
 
 local function operation(rect: Rect, _billboardBackground: BillboardBackground.BillboardBackground, trove: Trove.Trove)
-	local result = Screenshot.rect(rect)
-	trove:Add(result :: any)
-	return result
+	return Screenshot.rect(rect)
 end
 
 return operation

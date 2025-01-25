@@ -115,7 +115,6 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	if SceneControl.Lighting.getTonemapperPreset() ~= Enum.TonemapperPreset.Retro then
 		SceneControl.yieldUntilNextFrame()
 		onBlack = Screenshot.rect(rect)
-		trove:Add(onBlack :: any)
 	end
 
 	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
@@ -123,12 +122,10 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 
 	SceneControl.yieldUntilNextFrame()
 	local onBlackRetro = Screenshot.rect(rect)
-	trove:Add(onBlackRetro :: any)
 
 	billboardBackground:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
 	local onWhiteRetro = Screenshot.rect(rect)
-	trove:Add(onWhiteRetro :: any)
 
 	billboardBackground:SetEnabled(false)
 	redoCloudsAndFog()

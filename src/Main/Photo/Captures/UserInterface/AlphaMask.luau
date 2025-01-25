@@ -70,12 +70,10 @@ local function operation(uiBounds: UIBounds.UIBounds, trove: Trove.Trove)
 	uiBounds:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
 	local onWhite = Screenshot.rect(targetRect) :: Image.Image
-	trove:Add(onWhite :: any)
 
 	uiBounds:SetColor(Color3.new(0, 0, 0))
 	SceneControl.yieldUntilNextFrame()
 	local onBlack = Screenshot.rect(targetRect)
-	trove:Add(onBlack :: any)
 
 	return compose(onWhite, onBlack)
 end

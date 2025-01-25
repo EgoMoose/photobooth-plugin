@@ -14,8 +14,22 @@ local bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
 
+local function captureEditableImage()
+	local contentUriFuture = Future.raw() :: Future.Future<string>
+	CaptureService:CaptureScreenshot(function(contentUri: string)
+		-- this is a significant bottleneck for speed
+		-- it can take roughly 0.3 seconds to complete
+		contentUriFuture:complete(contentUri)
+	end)
+
+	local contentUri = contentUriFuture:expect()
+	local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(contentUri)) :: EditableImage
+
+	return editImage, contentUri
+end
+
 local function screenshot(rect: Rect?)
-	local editImage = Screenshot.captureEditableImage()
+	local editImage, contentUri = captureEditableImage()
 
 	local bilinearScale = bilinearScaleContext:Use()
 	if bilinearScale then
@@ -31,7 +45,7 @@ local function screenshot(rect: Rect?)
 	if rect then
 		editImage:Destroy()
 	else
-		img:SetSaveTarget(editImage)
+		img:SetTemplateUri(contentUri)
 	end
 
 	return img
@@ -61,22 +75,8 @@ end
 
 -- Public
 
-function Screenshot.captureEditableImage()
-	local contentUriFuture = Future.raw() :: Future.Future<string>
-	CaptureService:CaptureScreenshot(function(contentUri: string)
-		-- this is a significant bottleneck for speed
-		-- it can take roughly 0.3 seconds to complete
-		contentUriFuture:complete(contentUri)
-	end)
-
-	local contentUri = contentUriFuture:expect()
-	local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(contentUri)) :: EditableImage
-
-	return editImage
-end
-
 function Screenshot.calculateScaleOS()
-	local editImage = Screenshot.captureEditableImage()
+	local editImage = captureEditableImage()
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
 	local scale = editImage.Size / viewportSize
 	editImage:Destroy()

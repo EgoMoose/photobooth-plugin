@@ -58,13 +58,6 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 		end,
 	})
 
-	if success then
-		for _, img in results do
-			-- TODO: this sucks
-			(trove :: any):_findAndRemoveFromObjects(img :: any, false)
-		end
-	end
-
 	trove:Destroy()
 
 	if not success then
@@ -115,13 +108,6 @@ local function captureViewport(
 			results = processor(rect, billboardBackground, trove)
 		end,
 	})
-
-	if success then
-		for _, img in results do
-			-- TODO: this sucks
-			(trove :: any):_findAndRemoveFromObjects(img :: any, false)
-		end
-	end
 
 	trove:Destroy()
 

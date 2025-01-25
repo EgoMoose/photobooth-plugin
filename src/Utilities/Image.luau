@@ -10,7 +10,7 @@ export type Image = typeof(setmetatable(
 	{} :: {
 		buffer: buffer,
 		size: Vector2,
-		saveTarget: EditableImage?,
+		templateUri: string?,
 	},
 	ImageClass
 ))
@@ -91,7 +91,9 @@ end
 function ImageClass.Clone(self: Image)
 	local copyBuffer = buffer.create(buffer.len(self.buffer))
 	buffer.copy(copyBuffer, 0, self.buffer, 0)
-	return ImageClass.fromBuffer(copyBuffer, self.size)
+	local copy = ImageClass.fromBuffer(copyBuffer, self.size)
+	copy.templateUri = self.templateUri
+	return copy
 end
 
 function ImageClass.Crop(self: Image, rect: Rect)
@@ -194,14 +196,13 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 	end
 end
 
-function ImageClass.SetSaveTarget(self: Image, editImage: EditableImage)
-	self.saveTarget = editImage
+function ImageClass.SetTemplateUri(self: Image, uri: string)
+	self.templateUri = uri
 end
 
 function ImageClass.Save(self: Image)
-	if self.saveTarget then
-		local editImage = self.saveTarget
-		self.saveTarget = nil
+	if self.templateUri then
+		local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(self.templateUri))
 		self:WriteToEditableImage(editImage, Vector2.zero, self.size)
 		return editImage
 	end
@@ -215,11 +216,7 @@ function ImageClass.Save(self: Image)
 	return editableImage :: EditableImage
 end
 
-function ImageClass.Destroy(self: Image)
-	if self.saveTarget then
-		self.saveTarget:Destroy()
-	end
-end
+function ImageClass.Destroy(_self: Image) end
 
 --
 
