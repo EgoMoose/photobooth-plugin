@@ -4,7 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local Viewport = require(uiRoot.Components.Viewport)
+local CroppedViewport = require(uiRoot.Components.CroppedViewport)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
@@ -16,7 +16,7 @@ local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
 	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
 
-	return React.createElement(Viewport, {
+	return React.createElement(CroppedViewport, {
 		OnCapture = function(rect)
 			setIsDisabled(true)
 			print(table.concat({

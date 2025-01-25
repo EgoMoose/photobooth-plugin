@@ -75,7 +75,7 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function Viewport(props: Props)
+local function CroppedViewport(props: Props)
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 	local viewportSize = React.useContext(viewportSizeContext)
@@ -265,7 +265,7 @@ return function(props: Props)
 		React.createElement(viewportSizeContext.Provider, {
 			value = viewportSize,
 		}, {
-			React.createElement(Viewport, props),
+			React.createElement(CroppedViewport, props),
 		}),
 	})
 end
