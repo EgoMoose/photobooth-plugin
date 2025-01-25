@@ -44,6 +44,7 @@ local function captureViewportMask(rect: Rect, trove: Trove.Trove)
 
 	SceneControl.yieldUntilNextFrame()
 	local fogMask = Screenshot.rect(rect)
+	trove:Add(fogMask :: any)
 
 	for h = 1, fogMask.size.Y do
 		for w = 1, fogMask.size.X do
@@ -106,6 +107,7 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	billboardBackground:SetColor(Color3.new(0, 0, 0))
 	SceneControl.yieldUntilNextFrame()
 	local onBlack = Screenshot.rect(rect)
+	trove:Add(onBlack :: any)
 
 	billboardBackground:SetEnabled(false)
 	local mask = captureViewportMask(rect, trove)

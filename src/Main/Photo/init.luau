@@ -9,6 +9,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Configuration = require(script.Configuration)
 local Flags = require(script.Flags)
 
+local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
@@ -57,6 +58,13 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 		end,
 	})
 
+	if success then
+		for _, img in results do
+			-- TODO: this sucks
+			(trove :: any):_findAndRemoveFromObjects(img :: any, false)
+		end
+	end
+
 	trove:Destroy()
 
 	if not success then
@@ -74,13 +82,15 @@ local function captureViewport(
 	local trove = createIsCapturingTrove()
 
 	local hide = {}
-	local _success = pcall(function()
-		local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
-		local app = folder and folder:FindFirstChild("ViewportApp")
-		if app and app:IsA("LayerCollector") then
-			table.insert(hide, app)
-		end
-	end)
+	if not Screenshot.isViewportRect(rect) then
+		local _success = pcall(function()
+			local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
+			local app = folder and folder:FindFirstChild("ViewportApp")
+			if app and app:IsA("LayerCollector") then
+				table.insert(hide, app)
+			end
+		end)
+	end
 
 	local uiHider = UIHider.new(hide, function(layerCollector)
 		return layerCollector:IsA("ScreenGui")
@@ -105,6 +115,13 @@ local function captureViewport(
 			results = processor(rect, billboardBackground, trove)
 		end,
 	})
+
+	if success then
+		for _, img in results do
+			-- TODO: this sucks
+			(trove :: any):_findAndRemoveFromObjects(img :: any, false)
+		end
+	end
 
 	trove:Destroy()
 

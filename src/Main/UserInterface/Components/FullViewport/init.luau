@@ -16,10 +16,14 @@ export type Props = {
 }
 
 local function ActionBar(props: Props)
+	local moveIcon = assert(Lucide.GetAsset("move", 16))
+	local cameraIcon = assert(Lucide.GetAsset("camera", 16))
+
 	local theme = StudioComponents.useTheme()
 	local containerSize = FreeDrag.useContainerSize()
-	local cameraIcon = assert(Lucide.GetAsset("camera", 16))
-	local moveIcon = assert(Lucide.GetAsset("move", 16))
+	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
+
+	local displaySize = (scaleOS * containerSize):Ceil()
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -40,42 +44,41 @@ local function ActionBar(props: Props)
 			Padding = UDim.new(0, 0),
 		}),
 
-		Drag = React.createElement("Frame", {
-			Size = UDim2.new(0, 24, 1, 0),
-			BackgroundTransparency = 1,
-			LayoutOrder = 1,
-		}, {
-			Icon = React.createElement("ImageLabel", {
-				Image = moveIcon.Url,
-				ImageRectSize = moveIcon.ImageRectSize,
-				ImageRectOffset = moveIcon.ImageRectOffset,
+		Icon = React.createElement("ImageLabel", {
+			Image = moveIcon.Url,
+			ImageRectSize = moveIcon.ImageRectSize,
+			ImageRectOffset = moveIcon.ImageRectOffset,
 
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromOffset(moveIcon.ImageRectSize.X, moveIcon.ImageRectSize.Y),
-				BackgroundTransparency = 1,
-				ImageColor3 = Color3.fromRGB(102, 102, 102),
-			}),
+			Size = UDim2.fromOffset(moveIcon.ImageRectSize.X, moveIcon.ImageRectSize.Y),
+			BackgroundTransparency = 1,
+			ImageColor3 = Color3.fromRGB(102, 102, 102),
+			LayoutOrder = 1,
+		}),
+
+		Spacing1 = React.createElement("Frame", {
+			Size = UDim2.new(0, 4, 1, 0),
+			BackgroundTransparency = 1,
+			LayoutOrder = 2,
 		}),
 
 		Label = React.createElement("TextLabel", {
-			Size = UDim2.new(1, -24 * 2, 1, 0),
+			Size = UDim2.new(1, -24 - 16 - 4 - 6, 1, 0),
 			BackgroundTransparency = 1,
 
-			Text = `{containerSize.X} x {containerSize.Y}`,
+			Text = `{displaySize.X} x {displaySize.Y}`,
 			TextColor3 = Color3.fromRGB(102, 102, 102),
-			TextXAlignment = Enum.TextXAlignment.Left,
+			TextXAlignment = Enum.TextXAlignment.Center,
 			TextYAlignment = Enum.TextYAlignment.Center,
+			TextTruncate = Enum.TextTruncate.AtEnd,
 			TextSize = 8,
 
-			LayoutOrder = 2,
-		}, {
-			Padding = React.createElement("UIPadding", {
-				PaddingLeft = UDim.new(0, 4),
-				PaddingRight = UDim.new(0, 0),
-				PaddingTop = UDim.new(0, 0),
-				PaddingBottom = UDim.new(0, 0),
-			}),
+			LayoutOrder = 3,
+		}),
+
+		Spacing2 = React.createElement("Frame", {
+			Size = UDim2.new(0, 6, 1, 0),
+			BackgroundTransparency = 1,
+			LayoutOrder = 4,
 		}),
 
 		Capture = React.createElement(StudioComponents.MainButton, {
@@ -95,7 +98,7 @@ local function ActionBar(props: Props)
 				props.OnCapture(Rect.new(Vector2.zero, containerSize))
 			end,
 			Disabled = props.Disabled,
-			LayoutOrder = 3,
+			LayoutOrder = 5,
 		}),
 	})
 end
@@ -152,14 +155,14 @@ end
 
 local function FullViewport(props: Props)
 	return React.createElement(FreeDrag.Component, {
-		InitialPosition = UDim2.new(0.5, 0, 1, -10),
-		AnchorPoint = Vector2.new(0.5, 1),
+		InitialPosition = UDim2.fromScale(0, 0),
+		AnchorPoint = Vector2.new(0, 0),
 		Size = UDim2.fromOffset(120, 28),
 
 		Disabled = props.Disabled,
 	}, {
 		HoverFade = React.createElement(HoverFade, {
-			DetectionSize = UDim2.new(1, 100, 1, 100),
+			DetectionSize = UDim2.new(1, 500, 1, 500),
 			HoverOnTransparency = 0,
 			HoverOffTransparency = 0.7,
 		}, {

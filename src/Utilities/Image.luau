@@ -10,6 +10,7 @@ export type Image = typeof(setmetatable(
 	{} :: {
 		buffer: buffer,
 		size: Vector2,
+		saveTarget: EditableImage?,
 	},
 	ImageClass
 ))
@@ -30,7 +31,7 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 -- Constructors
 
 function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
-	local self = setmetatable({}, ImageClass) :: Image
+	local self = setmetatable({} :: any, ImageClass) :: Image
 
 	self.buffer = buffer
 	self.size = size
@@ -193,7 +194,18 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 	end
 end
 
+function ImageClass.SetSaveTarget(self: Image, editImage: EditableImage)
+	self.saveTarget = editImage
+end
+
 function ImageClass.Save(self: Image)
+	if self.saveTarget then
+		local editImage = self.saveTarget
+		self.saveTarget = nil
+		self:WriteToEditableImage(editImage, Vector2.zero, self.size)
+		return editImage
+	end
+
 	local editableImage = AssetService:CreateEditableImage({
 		Size = self.size,
 	})
@@ -203,7 +215,11 @@ function ImageClass.Save(self: Image)
 	return editableImage :: EditableImage
 end
 
-function ImageClass.Destroy(_self: Image) end
+function ImageClass.Destroy(self: Image)
+	if self.saveTarget then
+		self.saveTarget:Destroy()
+	end
+end
 
 --
 

@@ -100,10 +100,12 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	billboardBackground:SetColor(Color3.new(0, 0, 0))
 	SceneControl.yieldUntilNextFrame()
 	local onBlack = Screenshot.rect(rect)
+	trove:Add(onBlack :: any)
 
 	billboardBackground:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
 	local onWhite = Screenshot.rect(rect)
+	trove:Add(onBlack :: any)
 
 	billboardBackground:SetEnabled(false)
 	redoCloudsAndFog()

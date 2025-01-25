@@ -74,6 +74,7 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	end
 
 	local unmodified = Screenshot.rect(rect)
+	trove:Add(unmodified :: any)
 
 	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
 	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
@@ -87,6 +88,7 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 		billboardBackground:SetColor(COLOR_SAMPLES[i])
 		SceneControl.yieldUntilNextFrame()
 		onBackgrounds[i] = Screenshot.rect(rect)
+		trove:Add(onBackgrounds[i] :: any)
 	end
 
 	billboardBackground:SetEnabled(false)

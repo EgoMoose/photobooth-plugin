@@ -7,8 +7,10 @@ local photoRoot = script:FindFirstAncestor("Photo")
 local BillboardBackground = require(photoRoot.Tools.BillboardBackground)
 local Screenshot = require(photoRoot.Captures.Screenshot)
 
-local function operation(rect: Rect, _billboardBackground: BillboardBackground.BillboardBackground, _trove: Trove.Trove)
-	return Screenshot.rect(rect)
+local function operation(rect: Rect, _billboardBackground: BillboardBackground.BillboardBackground, trove: Trove.Trove)
+	local result = Screenshot.rect(rect)
+	trove:Add(result :: any)
+	return result
 end
 
 return operation

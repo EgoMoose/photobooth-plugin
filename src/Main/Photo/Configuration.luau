@@ -3,9 +3,15 @@
 local Captures = require(script.Parent.Captures)
 
 export type Configuration = {
+	-- General
 	ScaleOS: Vector2,
 	BindingsEnabled: boolean,
+
+	-- Viewport
+	UseFullScreen: boolean,
 	ViewportCaptureType: Captures.ViewportCaptureTypes,
+
+	-- User Interface
 	UserInterfaceCaptureType: Captures.UICaptureTypes,
 }
 
@@ -15,9 +21,15 @@ local Configuration = {}
 
 local configurationChanged = Instance.new("BindableEvent")
 local configurationCurrent: Configuration = {
+	-- General
 	ScaleOS = Vector2.new(1, 1),
 	BindingsEnabled = false,
+
+	-- Viewport
+	UseFullScreen = true,
 	ViewportCaptureType = Captures.Viewport.Default,
+
+	-- User Interface
 	UserInterfaceCaptureType = Captures.UserInterface.Default,
 }
 

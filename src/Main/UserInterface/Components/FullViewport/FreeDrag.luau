@@ -68,10 +68,13 @@ local function FreeDrag(props: Props)
 	return React.createElement(isDraggingContext.Provider, {
 		value = isDragging,
 	}, {
-		React.createElement("Frame", {
+		React.createElement("TextButton", {
 			Size = props.Size,
 			Position = clampedPosition,
 			BackgroundTransparency = 1,
+
+			AutoButtonColor = false,
+			Text = "",
 
 			[React.Event.InputBegan] = dragger.onInputBegan,
 			[React.Event.InputChanged] = dragger.onInputChanged,
