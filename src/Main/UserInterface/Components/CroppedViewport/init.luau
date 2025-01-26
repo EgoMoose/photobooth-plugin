@@ -5,6 +5,7 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
+local ContainerSize = require(script.ContainerSize)
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
 local Blinder = require(script.Blinder)
@@ -48,8 +49,6 @@ end
 local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
 local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
 
-local viewportSizeContext = React.createContext(Vector2.new(0, 0))
-
 export type Props = {
 	OnCapture: (Rect) -> (),
 	OnFocus: {
@@ -78,7 +77,7 @@ end
 local function CroppedViewport(props: Props)
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
-	local viewportSize = React.useContext(viewportSizeContext)
+	local viewportSize = ContainerSize.useContainerSize()
 	local scaledViewport = viewportSize * scaleOS
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
@@ -240,32 +239,5 @@ local function CroppedViewport(props: Props)
 end
 
 return function(props: Props)
-	local viewportSize, setViewportSize = React.useState(Vector2.new(0, 0))
-	local viewportRef = React.useRef(nil :: GuiObject?)
-
-	React.useEffect(function()
-		local frame = viewportRef.current :: GuiObject
-		setViewportSize(frame.AbsoluteSize)
-
-		local connection = frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			setViewportSize(frame.AbsoluteSize)
-		end)
-
-		return function()
-			connection:Disconnect()
-		end
-	end, { viewportRef.current })
-
-	return React.createElement("Frame", {
-		Name = "ViewportSizeFrame",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ref = viewportRef,
-	}, {
-		React.createElement(viewportSizeContext.Provider, {
-			value = viewportSize,
-		}, {
-			React.createElement(CroppedViewport, props),
-		}),
-	})
+	return React.createElement(ContainerSize.Component, nil, React.createElement(CroppedViewport, props))
 end
