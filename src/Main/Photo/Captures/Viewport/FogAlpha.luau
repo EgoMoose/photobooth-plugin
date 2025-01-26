@@ -7,12 +7,12 @@ local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
 local photoRoot = script:FindFirstAncestor("Photo")
-local BillboardBackground = require(photoRoot.Tools.BillboardBackground)
 local Screenshot = require(photoRoot.Captures.Screenshot)
+local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 local Skybox = require(photoRoot.Tools.Skybox)
 
-type BillboardBackground = BillboardBackground.BillboardBackground
+type Background = Background.Background
 
 local function captureViewportMask(rect: Rect, trove: Trove.Trove)
 	local descendants = SceneControl.Utils.filterInstancesMap(game:GetDescendants(), {
@@ -96,18 +96,18 @@ local function compose(onBlack: Image.Image, mask: Image.Image)
 	return onBlack
 end
 
-local function operation(rect: Rect, billboardBackground: BillboardBackground, trove: Trove.Trove)
+local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
 	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
 	trove:Add(redoCloudsAndFog)
 	trove:Add(undoRetroGrading)
 
-	billboardBackground:SetEnabled(true)
-	billboardBackground:SetColor(Color3.new(0, 0, 0))
+	background:SetEnabled(true)
+	background:SetColor(Color3.new(0, 0, 0))
 	SceneControl.yieldUntilNextFrame()
 	local onBlack = Screenshot.rect(rect)
 
-	billboardBackground:SetEnabled(false)
+	background:SetEnabled(false)
 	local mask = captureViewportMask(rect, trove)
 
 	redoCloudsAndFog()

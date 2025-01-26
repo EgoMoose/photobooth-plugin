@@ -6,13 +6,13 @@ local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
 local photoRoot = script:FindFirstAncestor("Photo")
-local BillboardBackground = require(photoRoot.Tools.BillboardBackground)
 local Screenshot = require(photoRoot.Captures.Screenshot)
+local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
 local COLOR_SAMPLES = { Color3.new(0, 0, 0), Color3.new(1, 1, 1) }
 
-type BillboardBackground = BillboardBackground.BillboardBackground
+type Background = Background.Background
 
 local function compareByMargin(a: { number }, b: { number }, margin: number): boolean
 	-- stylua: ignore
@@ -67,7 +67,7 @@ local function compose(unmodified: Image.Image, samples: { [Image.Image]: Color3
 	return unmodified
 end
 
-local function operation(rect: Rect, billboardBackground: BillboardBackground, trove: Trove.Trove)
+local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
 		warn("Skybox cannot be removed when Atmosphere is present.")
 		return
@@ -80,16 +80,16 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	trove:Add(redoCloudsAndFog)
 	trove:Add(undoRetroGrading)
 
-	billboardBackground:SetEnabled(true)
+	background:SetEnabled(true)
 
 	local onBackgrounds = {}
 	for i = 1, #COLOR_SAMPLES do
-		billboardBackground:SetColor(COLOR_SAMPLES[i])
+		background:SetColor(COLOR_SAMPLES[i])
 		SceneControl.yieldUntilNextFrame()
 		onBackgrounds[i] = Screenshot.rect(rect)
 	end
 
-	billboardBackground:SetEnabled(false)
+	background:SetEnabled(false)
 	redoCloudsAndFog()
 	undoRetroGrading()
 
