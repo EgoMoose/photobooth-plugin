@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 local Sift = require(pluginRoot.Packages.Sift)
@@ -96,18 +97,24 @@ local function _alphaBleedSerial(img: Image.Image, thickness: number)
 end
 
 local function alphaBleedParallel(img: Image.Image)
-	-- this only bleeds 1 pixels which more efficient and easier to write in parallel
-	local packedResults = img:Parallel(32, require(script.Parallel.AlphaBleed))
+	local nWorkers = 32
+	local scheduler = Parallel.new(nWorkers, require(script.Parallel.AlphaBleed))
 
-	local i = 0
-	local newBuffer = buffer.create(img.size.X * img.size.Y * 4)
-	for _, unpackResult in packedResults do
-		local commitBuffer = unpackResult()
-		buffer.copy(newBuffer, i, commitBuffer)
-		i = i + buffer.len(commitBuffer)
+	for i, chunkImg in img:Split(nWorkers) do
+		scheduler:Schedule(chunkImg.buffer, chunkImg.size)
 	end
 
-	local result = Image.fromBuffer(newBuffer, img.size)
+	local packedResults = scheduler:WorkDeferred()
+
+	local copyIndex = 0
+	local resultBuffer = buffer.create(img:GetNumberOfPixels() * 4)
+	for _, unpackResult in packedResults do
+		local commitBuffer = unpackResult()
+		buffer.copy(resultBuffer, copyIndex, commitBuffer)
+		copyIndex = copyIndex + buffer.len(commitBuffer)
+	end
+
+	local result = Image.fromBuffer(resultBuffer, img.size)
 	result.templateUri = img.templateUri
 	return result
 end
@@ -126,7 +133,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 				results[i] = alphaBleedParallel(img :: Image.Image)
 			end
 		end)
-		print(dt)
+		print("Alpha bleed", dt)
 		return results
 	end
 

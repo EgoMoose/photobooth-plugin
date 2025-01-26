@@ -8,7 +8,7 @@ return function(script: Script)
 
 	local required = require(module) :: any
 
-	actor:BindToMessageParallel("Work", function(index, buff, size, fromPixelIndex, toPixelIndex)
-		resultsBinding:Fire(index, required.callback(buff, size, fromPixelIndex, toPixelIndex))
+	actor:BindToMessageParallel("Work", function(index, ...)
+		resultsBinding:Fire(index, required.callback(...))
 	end)
 end

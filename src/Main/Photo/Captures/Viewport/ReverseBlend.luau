@@ -11,6 +11,8 @@ local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
+local parallelRoot = script.Parent.Parent.Parallel
+
 local COMPARE_MARGIN = 0
 
 type Background = Background.Background

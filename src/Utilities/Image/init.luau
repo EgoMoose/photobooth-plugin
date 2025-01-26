@@ -2,19 +2,9 @@
 
 local AssetService = game:GetService("AssetService")
 
-local Parallel = require(script.Parallel)
-
 local ImageClass = {}
 ImageClass.__index = ImageClass
 ImageClass.ClassName = "Image"
-
-export type ParallelSerialized = {
-	index: number,
-	buffer: buffer,
-	size: Vector2,
-	fromPixelIndex: number,
-	toPixelIndex: number,
-}
 
 export type Image = typeof(setmetatable(
 	{} :: {
@@ -210,23 +200,12 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 	end
 end
 
-function ImageClass.SetTemplateUri(self: Image, uri: string)
-	self.templateUri = uri
-end
-
-function ImageClass.Parallel<U..., V...>(
-	self: Image,
-	n: number,
-	required: Parallel.Required<(ParallelSerialized, U...), V...>,
-	...: U...
-)
-	local packedResults
-	local scheduler = Parallel.new(n, required)
-
+function ImageClass.Split(self: Image, n: number)
 	local width = self.size.X
 	local height = self.size.Y
 	local linesPerWorker = math.ceil(height / n)
 
+	local chunks = {}
 	for i = 1, n do
 		local start = ((i - 1) * linesPerWorker) + 1
 		local finish = math.min(height, (i * linesPerWorker))
@@ -235,32 +214,19 @@ function ImageClass.Parallel<U..., V...>(
 			local fromPixelIndex = self:GetPixelIndex(1, start)
 			local toPixelIndex = self:GetPixelIndex(width, finish)
 
-			local serialized = {
-				index = i,
-				buffer = self.buffer,
-				size = self.size,
-				fromPixelIndex = fromPixelIndex,
-				toPixelIndex = toPixelIndex,
-			}
+			local chunkLen = (toPixelIndex - fromPixelIndex + 1) * 4
+			local chunkBuffer = buffer.create(chunkLen)
+			buffer.copy(chunkBuffer, 0, self.buffer, (fromPixelIndex - 1) * 4, chunkLen)
 
-			scheduler:Schedule(serialized, ...)
+			table.insert(chunks, ImageClass.fromBuffer(chunkBuffer, Vector2.new(width, (finish - start) + 1)))
 		end
 	end
 
-	local complete = false
-	local thread = coroutine.running()
-	task.defer(function()
-		packedResults = scheduler:Work()
-		complete = true
-		task.spawn(thread)
-	end)
+	return chunks
+end
 
-	while not complete do
-		coroutine.yield()
-	end
-
-	scheduler:Destroy()
-	return packedResults
+function ImageClass.SetTemplateUri(self: Image, uri: string)
+	self.templateUri = uri
 end
 
 function ImageClass.Save(self: Image)

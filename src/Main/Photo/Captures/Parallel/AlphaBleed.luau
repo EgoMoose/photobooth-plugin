@@ -3,21 +3,18 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 
-local function doWork(serialized: Image.ParallelSerialized)
-	local img = Image.fromBuffer(serialized.buffer, serialized.size)
+local function doWork(chunkBuffer: buffer, chunkSize: Vector2)
+	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
+	local commitImg = chunkImg:Clone()
 
-	local nPixels = (serialized.toPixelIndex - serialized.fromPixelIndex) + 1
-	local commitBuffer = buffer.create(nPixels * 4)
-	buffer.copy(commitBuffer, 0, serialized.buffer, (serialized.fromPixelIndex - 1) * 4, nPixels * 4)
-
-	for index = serialized.fromPixelIndex, serialized.toPixelIndex do
-		local _, _, _, alpha = img:GetRGBA255(index)
+	for index = 1, chunkImg:GetNumberOfPixels() do
+		local _, _, _, alpha = chunkImg:GetRGBA255(index)
 
 		if alpha == 0 then
 			local opaqueCount = 0
 			local sr, sg, sb = 0, 0, 0
-			for _, neighborIndex in img:GetNeighbors(index) do
-				local nr, ng, nb, na = img:GetRGBA255(neighborIndex)
+			for _, neighborIndex in chunkImg:GetNeighbors(index) do
+				local nr, ng, nb, na = chunkImg:GetRGBA255(neighborIndex)
 				if na > 0 then
 					opaqueCount = opaqueCount + 1
 
@@ -28,15 +25,12 @@ local function doWork(serialized: Image.ParallelSerialized)
 			end
 
 			if opaqueCount > 0 then
-				local j = (index - serialized.fromPixelIndex) * 4
-				buffer.writeu8(commitBuffer, j + 0, sr / opaqueCount)
-				buffer.writeu8(commitBuffer, j + 1, sg / opaqueCount)
-				buffer.writeu8(commitBuffer, j + 2, sb / opaqueCount)
+				commitImg:SetRGBA255(index, sr / opaqueCount, sg / opaqueCount, sb / opaqueCount, 0)
 			end
 		end
 	end
 
-	return commitBuffer
+	return commitImg.buffer
 end
 
 return {

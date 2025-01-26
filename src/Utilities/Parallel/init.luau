@@ -2,43 +2,6 @@
 
 local RunService = game:GetService("RunService") :: RunService
 
--- Private
-
-local function quickFuture<T>()
-	local result: T
-	local isComplete = false
-	local awaiting: { [thread]: boolean } = {}
-
-	local function complete(value: T)
-		if not isComplete then
-			isComplete = true
-			result = value
-			for thread, _ in awaiting do
-				task.spawn(thread)
-			end
-		end
-	end
-
-	local function expect()
-		if not isComplete then
-			local thread = coroutine.running()
-			awaiting[thread] = true
-			coroutine.yield()
-		end
-		return result
-	end
-
-	return complete, expect
-end
-
-local function packAsCallback<T...>(...: T...): () -> T...
-	local n = select("#", ...)
-	local packed = { select(1, ...) }
-	return function()
-		return unpack(packed, 1, n)
-	end
-end
-
 -- Class
 
 local ParallelClass = {}
@@ -93,7 +56,6 @@ function ParallelClass.new<T..., U...>(n: number, required: Required<T..., U...>
 
 	local template = script.ClientWorker
 	if script:FindFirstAncestorWhichIsA("Plugin") then
-		print("!")
 		template = script.PluginWorker
 	elseif RunService:IsServer() then
 		template = script.ServerWorker
@@ -115,22 +77,44 @@ function ParallelClass.new<T..., U...>(n: number, required: Required<T..., U...>
 	return self
 end
 
--- Public
+-- Private
 
-function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
-	self.ticket = self.ticket + 1
-	local myTicket = self.ticket
+local function quickFuture<T>()
+	local result: T
+	local isComplete = false
+	local awaiting: { [thread]: boolean } = {}
 
-	local actorIndex = ((myTicket - 1) % #self.actors) + 1
-	local actor = self.actors[actorIndex]
+	local function complete(value: T)
+		if not isComplete then
+			isComplete = true
+			result = value
+			for thread, _ in awaiting do
+				task.spawn(thread)
+			end
+		end
+	end
 
-	table.insert(self.schedules[actor], packAsCallback(...))
+	local function expect()
+		if not isComplete then
+			local thread = coroutine.running()
+			awaiting[thread] = true
+			coroutine.yield()
+		end
+		return result
+	end
+
+	return complete, expect
 end
 
-function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
-	assert(not self.isWorking, "Already working!")
-	self.isWorking = true
+local function packAsCallback<T...>(...: T...): () -> T...
+	local n = select("#", ...)
+	local packed = { select(1, ...) }
+	return function()
+		return unpack(packed, 1, n)
+	end
+end
 
+local function work<T..., U...>(self: Parallel<T..., U...>)
 	local expectations = {}
 	for i, actor in self.actors do
 		local schedule = self.schedules[actor]
@@ -158,8 +142,49 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 		results[i] = expect()
 	end
 
-	self.isWorking = false
+	return results
+end
 
+-- Public
+
+function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
+	self.ticket = self.ticket + 1
+	local myTicket = self.ticket
+
+	local actorIndex = ((myTicket - 1) % #self.actors) + 1
+	local actor = self.actors[actorIndex]
+
+	table.insert(self.schedules[actor], packAsCallback(...))
+end
+
+function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
+	assert(not self.isWorking, "Already working!")
+	self.isWorking = true
+
+	local results = work(self)
+
+	self.isWorking = false
+	return results
+end
+
+function ParallelClass.WorkDeferred<T..., U...>(self: Parallel<T..., U...>)
+	assert(not self.isWorking, "Already working!")
+	self.isWorking = true
+
+	local results
+	local complete = false
+	local thread = coroutine.running()
+	task.defer(function()
+		results = work(self)
+		complete = true
+		task.spawn(thread)
+	end)
+
+	while not complete do
+		coroutine.yield()
+	end
+
+	self.isWorking = false
 	return results
 end
 
