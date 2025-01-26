@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
@@ -10,8 +11,6 @@ local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
-
-local parallelRoot = script.Parent.Parent.Parallel
 
 local COMPARE_MARGIN = 0
 
@@ -95,6 +94,47 @@ local function compose(
 	return onBlack
 end
 
+local function composeParallel(
+	onWhiteRetro: Image.Image,
+	onBlackRetro: Image.Image,
+	onBlack: Image.Image?,
+	colorCorrection: ColorCorrectionEffect
+)
+	local scheduler = Parallel.new(32, require(script.Parent.Parent.Parallel.ReverseBlend))
+
+	local splitOnWhiteRetro = onWhiteRetro:Split(scheduler:GetActorCount())
+	local splitOnBlackRetro = onBlackRetro:Split(scheduler:GetActorCount())
+	local splitOnBlack = if onBlack then onBlack:Split(scheduler:GetActorCount()) else {}
+
+	for i = 1, #splitOnWhiteRetro do
+		local onWhiteRetroChunkImg = splitOnWhiteRetro[i]
+		local onBlackRetroChunkImg = splitOnBlackRetro[i]
+		local onBlackChunkImg = splitOnBlack[i]
+
+		scheduler:Schedule(
+			onWhiteRetroChunkImg.size,
+			colorCorrection,
+			onWhiteRetroChunkImg.buffer,
+			onBlackRetroChunkImg.buffer,
+			if onBlackChunkImg then onBlackChunkImg.buffer else nil
+		)
+	end
+
+	local packedResults = scheduler:WorkDeferred()
+
+	local copyIndex = 0
+	local resultBuffer = buffer.create(onWhiteRetro:GetNumberOfPixels() * 4)
+	for _, unpackResult in packedResults do
+		local commitBuffer = unpackResult()
+		buffer.copy(resultBuffer, copyIndex, commitBuffer)
+		copyIndex = copyIndex + buffer.len(commitBuffer)
+	end
+
+	local result = Image.fromBuffer(resultBuffer, onWhiteRetro.size)
+	result.templateUri = onWhiteRetro.templateUri
+	return result
+end
+
 local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
 	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
 		warn("Skybox cannot be removed when Atmosphere is present.")
@@ -136,7 +176,8 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 
 	local result
 	local dt = TimeIt(function()
-		result = compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
+		--result = compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
+		result = composeParallel(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
 	end)
 	print("Reverse blend", dt)
 

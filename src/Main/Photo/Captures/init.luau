@@ -97,10 +97,9 @@ local function _alphaBleedSerial(img: Image.Image, thickness: number)
 end
 
 local function alphaBleedParallel(img: Image.Image)
-	local nWorkers = 32
-	local scheduler = Parallel.new(nWorkers, require(script.Parallel.AlphaBleed))
+	local scheduler = Parallel.new(32, require(script.Parallel.AlphaBleed))
 
-	for i, chunkImg in img:Split(nWorkers) do
+	for i, chunkImg in img:Split(scheduler:GetActorCount()) do
 		scheduler:Schedule(chunkImg.buffer, chunkImg.size)
 	end
 

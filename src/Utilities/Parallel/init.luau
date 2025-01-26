@@ -147,6 +147,10 @@ end
 
 -- Public
 
+function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
+	return #self.actors
+end
+
 function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
 	self.ticket = self.ticket + 1
 	local myTicket = self.ticket
