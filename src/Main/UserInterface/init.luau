@@ -20,7 +20,8 @@ local Hooks = require(script.Hooks)
 local Constants = require(script.Constants)
 
 local Gallery = require(script.Components.Gallery)
-local Viewport = require(script.Components.Viewport)
+local FullViewport = require(script.Components.FullViewport)
+local CroppedViewport = require(script.Components.CroppedViewport)
 
 local UserInterface = {}
 
@@ -77,6 +78,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 	local function ViewportApp(): React.ReactNode?
 		local isEnabled, setIsEnabled = React.useState(false)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
+		local useFullScreen = Hooks.usePhotoConfiguration().UseFullScreen
 
 		button:SetActive(isEnabled)
 
@@ -98,7 +100,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		}, {
-			Content = React.createElement(Viewport, {
+			Content = React.createElement(if useFullScreen then FullViewport else CroppedViewport, {
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
@@ -109,7 +111,7 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 					Callback = focusCurrentCameraToViewSize,
 				},
 				Disabled = isCapturing,
-			}),
+			})
 		})
 	end
 

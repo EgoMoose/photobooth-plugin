@@ -75,7 +75,7 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function Viewport(props: Props)
+local function CroppedViewport(props: Props)
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 	local viewportSize = React.useContext(viewportSizeContext)
@@ -83,21 +83,21 @@ local function Viewport(props: Props)
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
 
-	local sizeInitiated, setSizeInitiated = React.useState(false)
 	local size, setSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
-	local prevSize, setPrevSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
-	local startDrag, setStartDrag = React.useState(nil :: Vector3?)
+	local sizeInitiated = React.useRef(false)
+	local prevSize = React.useRef(MAX_EDIT_IMAGE_SIZE / 2)
+	local startDrag = React.useRef(nil :: Vector3?)
 
 	React.useEffect(function()
 		local minX = grabberMin + grabberMargin * 2
 		local minY = grabberMin + actionBarMargin * 2
 
 		if viewportSize.X >= minX and viewportSize.Y >= minY then
-			local targetSize = if sizeInitiated then size else scaledViewport * INITIAL_SIZE_SCALE
+			local targetSize = if sizeInitiated.current then size else scaledViewport * INITIAL_SIZE_SCALE
 			local clamped = useLenseSize(targetSize, scaledViewport, Vector2.new(1, 1))
 			setSize(clamped)
-			setPrevSize(clamped)
-			setSizeInitiated(true)
+			prevSize.current = clamped
+			sizeInitiated.current = true
 		end
 	end, { viewportSize })
 
@@ -128,9 +128,9 @@ local function Viewport(props: Props)
 				aspectKeysDown[input.KeyCode] = true
 				setAspectKeysDown(aspectKeysDown)
 
-				if startDrag then
-					setPrevSize(size)
-					setStartDrag(input.Position)
+				if startDrag.current then
+					prevSize.current = size
+					startDrag.current = input.Position
 				end
 			end
 		end,
@@ -171,17 +171,17 @@ local function Viewport(props: Props)
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
 				OnDragStart = function(_rbx, input)
-					setPrevSize(size)
-					setStartDrag(input.Position)
+					prevSize.current = size
+					startDrag.current = input.Position
 				end,
 
 				OnDragFinish = function()
-					setStartDrag(nil :: any)
+					startDrag.current = nil
 				end,
 
 				OnDrag = function(_rbx, input, direction)
-					if startDrag then
-						local delta3 = input.Position - startDrag
+					if startDrag.current then
+						local delta3 = input.Position - startDrag.current
 						local delta2 = Vector2.new(delta3.X, delta3.Y)
 
 						if next(aspectKeysDown) then
@@ -189,13 +189,13 @@ local function Viewport(props: Props)
 							local isDiagonal = directionAbsSum >= 2
 
 							if isDiagonal then
-								local projectionAxis = (prevSize * direction).Unit
+								local projectionAxis = (prevSize.current * direction).Unit
 								delta2 = delta2:Dot(projectionAxis) * projectionAxis
 							end
 						end
 
 						local offset = 2 * direction * scaleOS * delta2
-						local newSize = prevSize + offset
+						local newSize = prevSize.current + offset
 
 						setSize(useLenseSize(newSize, scaledViewport, Vector2.new(1, 1)))
 					end
@@ -265,7 +265,7 @@ return function(props: Props)
 		React.createElement(viewportSizeContext.Provider, {
 			value = viewportSize,
 		}, {
-			React.createElement(Viewport, props),
+			React.createElement(CroppedViewport, props),
 		}),
 	})
 end

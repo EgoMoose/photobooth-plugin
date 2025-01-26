@@ -44,13 +44,15 @@ local function useFreshCallback<Args..., Rets...>(callback: Callback<Args..., Re
 	end
 end
 
-local function useMouseDrag(
-	callback: (rbx: GuiObject, input: InputObject) -> (),
+type DragOptions = {
+	onDragCallback: (rbx: GuiObject, input: InputObject) -> (),
+	onBeganCallback: ((rbx: GuiObject, input: InputObject) -> ())?,
+	onEndedCallback: (() -> ())?,
 	deps: { any }?,
-	onBeganCallback: ((rbx: GuiObject, input: InputObject) -> ())?, -- NB: consumer needs to guard against stale state
-	onEndedCallback: (() -> ())?
-)
-	local freshCallback = useFreshCallback(callback, deps)
+}
+
+local function useMouseDrag(options: DragOptions)
+	local freshCallback = useFreshCallback(options.onDragCallback, options.deps)
 
 	-- we use a state so consumers can re-render
 	-- ... as well as a ref so we have an immediately-updated/available value
@@ -82,8 +84,8 @@ local function useMouseDrag(
 			moveConnection.current:Disconnect()
 			moveConnection.current = nil
 		end
-		if onEndedCallback and holding.current == true then
-			onEndedCallback()
+		if options.onEndedCallback and holding.current == true then
+			options.onEndedCallback()
 		end
 	end
 
@@ -104,8 +106,8 @@ local function useMouseDrag(
 		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
 			holding.current = true
 			setHoldingState(true)
-			if onBeganCallback then
-				onBeganCallback(rbx, input)
+			if options.onBeganCallback then
+				options.onBeganCallback(rbx, input)
 			end
 			if moveInput.current then
 				connect()

@@ -10,6 +10,7 @@ export type Image = typeof(setmetatable(
 	{} :: {
 		buffer: buffer,
 		size: Vector2,
+		templateUri: string?,
 	},
 	ImageClass
 ))
@@ -30,7 +31,7 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 -- Constructors
 
 function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
-	local self = setmetatable({}, ImageClass) :: Image
+	local self = setmetatable({} :: any, ImageClass) :: Image
 
 	self.buffer = buffer
 	self.size = size
@@ -90,7 +91,9 @@ end
 function ImageClass.Clone(self: Image)
 	local copyBuffer = buffer.create(buffer.len(self.buffer))
 	buffer.copy(copyBuffer, 0, self.buffer, 0)
-	return ImageClass.fromBuffer(copyBuffer, self.size)
+	local copy = ImageClass.fromBuffer(copyBuffer, self.size)
+	copy.templateUri = self.templateUri
+	return copy
 end
 
 function ImageClass.Crop(self: Image, rect: Rect)
@@ -193,7 +196,17 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 	end
 end
 
+function ImageClass.SetTemplateUri(self: Image, uri: string)
+	self.templateUri = uri
+end
+
 function ImageClass.Save(self: Image)
+	if self.templateUri then
+		local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(self.templateUri))
+		self:WriteToEditableImage(editImage, Vector2.zero, self.size)
+		return editImage
+	end
+
 	local editableImage = AssetService:CreateEditableImage({
 		Size = self.size,
 	})

@@ -9,6 +9,7 @@ local Future = require(pluginRoot.Utilities.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
 local Screenshot = {}
+
 local bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
@@ -24,11 +25,11 @@ local function captureEditableImage()
 	local contentUri = contentUriFuture:expect()
 	local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(contentUri)) :: EditableImage
 
-	return editImage
+	return editImage, contentUri
 end
 
-local function screenshot(rect: Rect)
-	local editImage = captureEditableImage()
+local function screenshot(rect: Rect?)
+	local editImage, contentUri = captureEditableImage()
 
 	local bilinearScale = bilinearScaleContext:Use()
 	if bilinearScale then
@@ -40,21 +41,17 @@ local function screenshot(rect: Rect)
 	end
 
 	local img = Image.fromEditableImage(editImage, rect)
-	editImage:Destroy()
+
+	if rect then
+		editImage:Destroy()
+	else
+		img:SetTemplateUri(contentUri)
+	end
+
 	return img
 end
 
--- Public
-
-function Screenshot.calculateScaleOS()
-	local editImage = captureEditableImage()
-	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
-	local scale = editImage.Size / viewportSize
-	editImage:Destroy()
-	return scale
-end
-
-function Screenshot.validate(rect: Rect)
+local function validate(rect: Rect)
 	-- first check if our target rect is greater than 1024x1024
 	if rect.Width > 1024 or rect.Height > 1024 then
 		return false
@@ -76,13 +73,32 @@ function Screenshot.validate(rect: Rect)
 	return true
 end
 
-function Screenshot.rect(rect: Rect)
-	assert(
-		Screenshot.validate(rect),
-		"Capture target is being clipped by the viewport or is larger than 1024 in width / height."
-	)
+-- Public
 
-	return screenshot(rect)
+function Screenshot.calculateScaleOS()
+	local editImage = captureEditableImage()
+	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
+	local scale = editImage.Size / viewportSize
+	editImage:Destroy()
+	return scale
+end
+
+function Screenshot.isViewportRect(rect: Rect)
+	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
+	return rect.Min == Vector2.zero and rect.Max == viewportSize
+end
+
+function Screenshot.rect(rect: Rect)
+	if Screenshot.isViewportRect(rect) then
+		return screenshot()
+	else
+		assert(
+			validate(rect),
+			"Capture target is being clipped by the viewport or is larger than 1024 in width / height."
+		)
+
+		return screenshot(rect)
+	end
 end
 
 --

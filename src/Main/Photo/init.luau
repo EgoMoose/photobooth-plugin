@@ -9,6 +9,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Configuration = require(script.Configuration)
 local Flags = require(script.Flags)
 
+local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
@@ -71,13 +72,15 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local trove = createIsCapturingTrove()
 
 	local hide = {}
-	local _success = pcall(function()
-		local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
-		local app = folder and folder:FindFirstChild("ViewportApp")
-		if app and app:IsA("LayerCollector") then
-			table.insert(hide, app)
-		end
-	end)
+	if not Screenshot.isViewportRect(rect) then
+		local _success = pcall(function()
+			local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
+			local app = folder and folder:FindFirstChild("ViewportApp")
+			if app and app:IsA("LayerCollector") then
+				table.insert(hide, app)
+			end
+		end)
+	end
 
 	local uiHider = UIHider.new(hide, function(layerCollector)
 		return layerCollector:IsA("ScreenGui")
