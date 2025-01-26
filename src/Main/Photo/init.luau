@@ -12,7 +12,7 @@ local Flags = require(script.Flags)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
-local BillboardBackground = require(script.Tools.BillboardBackground)
+local Background = require(script.Tools.Background)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
@@ -66,10 +66,7 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 	return results
 end
 
-local function captureViewport(
-	rect: Rect,
-	processor: (Rect, BillboardBackground.BillboardBackground, Trove.Trove) -> { Image.Image }
-)
+local function captureViewport(rect: Rect, processor: (Rect, Background.Background, Trove.Trove) -> { Image.Image })
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
@@ -97,12 +94,12 @@ local function captureViewport(
 		freezeEmitters = true,
 
 		callback = function()
-			local billboardBackground = BillboardBackground.new(CoreGui)
+			local background = Background.new(workspace)
 			trove:Add(function()
-				billboardBackground:Destroy()
+				background:Destroy()
 			end)
 
-			results = processor(rect, billboardBackground, trove)
+			results = processor(rect, background, trove)
 		end,
 	})
 

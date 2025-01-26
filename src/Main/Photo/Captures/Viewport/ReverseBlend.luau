@@ -5,13 +5,13 @@ local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
 local photoRoot = script:FindFirstAncestor("Photo")
-local BillboardBackground = require(photoRoot.Tools.BillboardBackground)
 local Screenshot = require(photoRoot.Captures.Screenshot)
+local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
 local COMPARE_MARGIN = 0
 
-type BillboardBackground = BillboardBackground.BillboardBackground
+type Background = Background.Background
 
 local function compareByMargin(a: { number }, b: { number }, margin: number): boolean
 	-- stylua: ignore
@@ -91,7 +91,7 @@ local function compose(
 	return onBlack
 end
 
-local function operation(rect: Rect, billboardBackground: BillboardBackground, trove: Trove.Trove): ...Image.Image
+local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
 	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
 		warn("Skybox cannot be removed when Atmosphere is present.")
 		return
@@ -106,8 +106,8 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
 	trove:Add(redoCloudsAndFog)
 
-	billboardBackground:SetEnabled(true)
-	billboardBackground:SetColor(Color3.new(0, 0, 0))
+	background:SetEnabled(true)
+	background:SetColor(Color3.new(0, 0, 0))
 
 	local onBlack: Image.Image?
 	if SceneControl.Lighting.getTonemapperPreset() ~= Enum.TonemapperPreset.Retro then
@@ -121,11 +121,11 @@ local function operation(rect: Rect, billboardBackground: BillboardBackground, t
 	SceneControl.yieldUntilNextFrame()
 	local onBlackRetro = Screenshot.rect(rect)
 
-	billboardBackground:SetColor(Color3.new(1, 1, 1))
+	background:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
 	local onWhiteRetro = Screenshot.rect(rect)
 
-	billboardBackground:SetEnabled(false)
+	background:SetEnabled(false)
 	redoCloudsAndFog()
 	undoRetroGrading()
 	redoColorCorrection()
