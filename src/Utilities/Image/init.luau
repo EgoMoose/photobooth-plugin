@@ -2,9 +2,19 @@
 
 local AssetService = game:GetService("AssetService")
 
+local Parallel = require(script.Parallel)
+
 local ImageClass = {}
 ImageClass.__index = ImageClass
 ImageClass.ClassName = "Image"
+
+export type ParallelSerialized = {
+	index: number,
+	buffer: buffer,
+	size: Vector2,
+	fromPixelIndex: number,
+	toPixelIndex: number,
+}
 
 export type Image = typeof(setmetatable(
 	{} :: {
@@ -75,15 +85,19 @@ function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	return ImageClass.fromBuffer(resultBuffer, cropSize)
 end
 
-function ImageClass.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
+function ImageClass.fromRGBA255(r: number, g: number, b: number, a: number, size: Vector2)
 	local img = ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
 	for x = 1, size.X do
 		for y = 1, size.Y do
 			local pixelIndex = img:GetPixelIndex(x, y)
-			img:SetRGBA(pixelIndex, r, g, b, a)
+			img:SetRGBA255(pixelIndex, r, g, b, a)
 		end
 	end
 	return img
+end
+
+function ImageClass.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
+	return ImageClass.fromRGBA255(r * 255, g * 255, b * 255, a * 255, size)
 end
 
 -- Public Methods
@@ -198,6 +212,55 @@ end
 
 function ImageClass.SetTemplateUri(self: Image, uri: string)
 	self.templateUri = uri
+end
+
+function ImageClass.Parallel<T, U..., V...>(
+	self: Image,
+	n: number,
+	required: Parallel.Required<(ParallelSerialized, U...), V...>,
+	...: U...
+)
+	local packedResults
+	local scheduler = Parallel.new(n, required)
+
+	local width = self.size.X
+	local height = self.size.Y
+	local linesPerWorker = math.ceil(height / n)
+
+	for i = 1, n do
+		local start = ((i - 1) * linesPerWorker) + 1
+		local finish = math.min(height, (i * linesPerWorker))
+
+		if start <= finish then
+			local fromPixelIndex = self:GetPixelIndex(1, start)
+			local toPixelIndex = self:GetPixelIndex(width, finish)
+
+			local serialized = {
+				index = i,
+				buffer = self.buffer,
+				size = self.size,
+				fromPixelIndex = fromPixelIndex,
+				toPixelIndex = toPixelIndex,
+			}
+
+			scheduler:Schedule(serialized, ...)
+		end
+	end
+
+	local complete = false
+	local thread = coroutine.running()
+	task.defer(function()
+		packedResults = scheduler:Work()
+		complete = true
+		task.spawn(thread)
+	end)
+
+	while not complete do
+		coroutine.yield()
+	end
+
+	scheduler:Destroy()
+	return packedResults
 end
 
 function ImageClass.Save(self: Image)

@@ -22,7 +22,7 @@ local function _convertToWhite(img: Image.Image)
 	end
 end
 
-local function alphaBleed(img: Image.Image, thickness: number)
+local function _alphaBleedSerial(img: Image.Image, thickness: number)
 	local width, height = img.size.X, img.size.Y
 
 	local visited = {}
@@ -91,6 +91,23 @@ local function alphaBleed(img: Image.Image, thickness: number)
 			canSample[poppedIndex] = true
 		end
 	end
+
+	return img
+end
+
+local function alphaBleedParallel(img: Image.Image)
+	-- this only bleeds 1 pixels which more efficient and easier to write in parallel
+	local packedResults = img:Parallel(32, require(script.Parallel.AlphaBleed))
+
+	local i = 0
+	local newBuffer = buffer.create(img.size.X * img.size.Y * 4)
+	for _, unpackResult in packedResults do
+		local commitBuffer = unpackResult()
+		buffer.copy(newBuffer, i, commitBuffer)
+		i = i + buffer.len(commitBuffer)
+	end
+
+	return Image.fromBuffer(newBuffer, img.size)
 end
 
 local ticket = 0
@@ -103,11 +120,11 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		local dt = TimeIt(function()
-			for _, img in results do
-				alphaBleed(img, 1)
+			for i, img in results do
+				results[i] = alphaBleedParallel(img :: Image.Image)
 			end
 		end)
-		print("Alpha bleed", dt)
+		print(dt)
 		return results
 	end
 
