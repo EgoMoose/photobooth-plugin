@@ -5,8 +5,6 @@ local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
-
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
@@ -25,7 +23,7 @@ local function compareByMargin(a: { number }, b: { number }, margin: number): bo
 	)
 end
 
-local function compose(
+local function _composeSerial(
 	onWhiteRetro: Image.Image,
 	onBlackRetro: Image.Image,
 	onBlack: Image.Image,
@@ -174,12 +172,8 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	local result
-	local dt = TimeIt(function()
-		--result = compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
-		result = composeParallel(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
-	end)
-	print("Reverse blend", dt)
+	--local result = _composeSerial(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	local result = composeParallel(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
 
 	return result
 end

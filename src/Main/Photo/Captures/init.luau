@@ -6,8 +6,6 @@ local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
-
 -- Private
 
 local function _convertToWhite(img: Image.Image)
@@ -127,12 +125,10 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 
 	local function wrapped(...: T...)
 		local results = { callback(...) }
-		local dt = TimeIt(function()
-			for i, img in results do
-				results[i] = alphaBleedParallel(img :: Image.Image)
-			end
-		end)
-		print("Alpha bleed", dt)
+		for i, img in results do
+			results[i] = alphaBleedParallel(img)
+			--results[i] = _alphaBleedSerial(img, 1)
+		end
 		return results
 	end
 
