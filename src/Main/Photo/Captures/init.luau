@@ -107,7 +107,9 @@ local function alphaBleedParallel(img: Image.Image)
 		i = i + buffer.len(commitBuffer)
 	end
 
-	return Image.fromBuffer(newBuffer, img.size)
+	local result = Image.fromBuffer(newBuffer, img.size)
+	result.templateUri = img.templateUri
+	return result
 end
 
 local ticket = 0

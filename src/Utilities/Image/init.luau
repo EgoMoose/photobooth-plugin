@@ -214,7 +214,7 @@ function ImageClass.SetTemplateUri(self: Image, uri: string)
 	self.templateUri = uri
 end
 
-function ImageClass.Parallel<T, U..., V...>(
+function ImageClass.Parallel<U..., V...>(
 	self: Image,
 	n: number,
 	required: Parallel.Required<(ParallelSerialized, U...), V...>,
