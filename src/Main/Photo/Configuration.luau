@@ -26,7 +26,7 @@ local configurationCurrent: Configuration = {
 	BindingsEnabled = false,
 
 	-- Viewport
-	UseFullScreen = true,
+	UseFullScreen = false,
 	ViewportCaptureType = Captures.Viewport.Default,
 
 	-- User Interface
