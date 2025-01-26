@@ -5,7 +5,7 @@ local Lighting = game:GetService("Lighting") :: Lighting
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
-local MARGIN_OF_ERROR_DISTANCE = 10
+local MARGIN_OF_ERROR_DISTANCE = 1000
 
 local MeshPartFogBackgroundClass = {}
 MeshPartFogBackgroundClass.__index = MeshPartFogBackgroundClass
@@ -99,9 +99,10 @@ function MeshPartFogBackgroundClass._createInstances(self: MeshPartFogBackground
 	part.Anchored = true
 	part.CanTouch = false
 	part.CanQuery = false
+	part.Locked = true
 
 	local mesh = Instance.new("SpecialMesh")
-	mesh.Scale = Vector3.new(100_000_000, 100_000_000) -- we could calc, but why bother
+	mesh.Scale = Vector3.new(1_000_000_000, 1_000_000_000) -- we could calc, but why bother
 	mesh.MeshType = Enum.MeshType.Brick
 	mesh.Parent = part
 
