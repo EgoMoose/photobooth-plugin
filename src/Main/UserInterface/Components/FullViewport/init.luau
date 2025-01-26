@@ -5,6 +5,7 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
+local ContainerSize = require(script.Parent.Shared.ContainerSize)
 local FreeDrag = require(script.FreeDrag)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
@@ -15,15 +16,14 @@ export type Props = {
 	Disabled: boolean,
 }
 
-local function ActionBar(props: Props)
+local function ActionBar(props: Props & { ContainerSize: Vector2 })
 	local moveIcon = assert(Lucide.GetAsset("move", 16))
 	local cameraIcon = assert(Lucide.GetAsset("camera", 16))
 
 	local theme = StudioComponents.useTheme()
-	local containerSize = FreeDrag.useContainerSize()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 
-	local displaySize = (scaleOS * containerSize):Ceil()
+	local displaySize = (scaleOS * props.ContainerSize):Ceil()
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -95,7 +95,7 @@ local function ActionBar(props: Props)
 			},
 
 			OnActivated = function()
-				props.OnCapture(Rect.new(Vector2.zero, containerSize))
+				props.OnCapture(Rect.new(Vector2.zero, props.ContainerSize))
 			end,
 			Disabled = props.Disabled,
 			LayoutOrder = 5,
@@ -107,19 +107,19 @@ type HoverFadeProps = {
 	DetectionSize: UDim2,
 	HoverOnTransparency: number,
 	HoverOffTransparency: number,
+	IsDragging: boolean,
 	children: React.ReactNode,
 }
 
 local function HoverFade(props: HoverFadeProps)
-	local isDragging = FreeDrag.useIsDragging()
 	local goal, setGoal = React.useBinding(props.HoverOffTransparency)
 	local transparency, setTransparency = Hooks.useSpring(goal)
 
 	React.useMemo(function()
-		if not isDragging then
+		if not props.IsDragging then
 			setTransparency(props.HoverOnTransparency)
 		end
-	end, { isDragging })
+	end, { props.IsDragging })
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -128,7 +128,7 @@ local function HoverFade(props: HoverFadeProps)
 		Fade = React.createElement("CanvasGroup", {
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
-			GroupTransparency = if isDragging then props.HoverOnTransparency else transparency,
+			GroupTransparency = if props.IsDragging then props.HoverOnTransparency else transparency,
 		}, props.children),
 
 		Detection = React.createElement("Frame", {
@@ -153,20 +153,57 @@ local function HoverFade(props: HoverFadeProps)
 	})
 end
 
-local function FullViewport(props: Props)
-	return React.createElement(FreeDrag.Component, {
-		InitialPosition = UDim2.fromScale(0, 0),
-		AnchorPoint = Vector2.new(0, 0),
-		Size = UDim2.fromOffset(120, 28),
+local function InnerBorder(props: { Thickness: number, Disabled: boolean, children: React.ReactNode })
+	local theme = StudioComponents.useTheme()
 
-		Disabled = props.Disabled,
+	return React.createElement("Frame", {
+		Size = UDim2.new(1, -props.Thickness * 2, 1, -props.Thickness * 2),
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		ZIndex = 2,
 	}, {
-		HoverFade = React.createElement(HoverFade, {
-			DetectionSize = UDim2.new(1, 500, 1, 500),
-			HoverOnTransparency = 0,
-			HoverOffTransparency = 0.7,
+		UIStroke = React.createElement("UIStroke", {
+			Thickness = props.Thickness,
+			Transparency = 0,
+			Color = theme:GetColor(Enum.StudioStyleGuideColor.InputFieldBorder, Enum.StudioStyleGuideModifier.Selected),
+		}),
+	}, props.children)
+end
+
+local function FullViewport(props: Props)
+	local isDragging, setIsDragging = React.useState(false)
+	local containerSize, setContainerSize = React.useState(Vector2.zero)
+
+	return React.createElement(ContainerSize, {
+		SetContainerSize = setContainerSize,
+	}, {
+		Outline = React.createElement(InnerBorder, {
+			Thickness = 2,
+			Disabled = false,
 		}, {
-			ActionBar = React.createElement(ActionBar, props),
+			Dragger = React.createElement(FreeDrag, {
+				SetIsDragging = setIsDragging,
+
+				InitialPosition = UDim2.fromScale(0, 0),
+				AnchorPoint = Vector2.new(0, 0),
+				Size = UDim2.fromOffset(120, 28),
+
+				Disabled = props.Disabled,
+			}, {
+				HoverFade = React.createElement(HoverFade, {
+					DetectionSize = UDim2.new(1, 500, 1, 500),
+					HoverOnTransparency = 0,
+					HoverOffTransparency = 0.7,
+					IsDragging = isDragging,
+				}, {
+					ActionBar = React.createElement(ActionBar, {
+						ContainerSize = containerSize,
+						OnCapture = props.OnCapture,
+						Disabled = props.Disabled,
+					}),
+				}),
+			}),
 		}),
 	})
 end

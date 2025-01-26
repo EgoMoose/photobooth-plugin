@@ -5,7 +5,8 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local ContainerSize = require(script.ContainerSize)
+local ContainerSize = require(script.Parent.Shared.ContainerSize)
+
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
 local Blinder = require(script.Blinder)
@@ -74,10 +75,11 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function CroppedViewport(props: Props)
+local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
-	local viewportSize = ContainerSize.useContainerSize()
+
+	local viewportSize = props.ViewportSize
 	local scaledViewport = viewportSize * scaleOS
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
@@ -239,5 +241,15 @@ local function CroppedViewport(props: Props)
 end
 
 return function(props: Props)
-	return React.createElement(ContainerSize.Component, nil, React.createElement(CroppedViewport, props))
+	local containerSize, setContainerSize = React.useState(Vector2.zero)
+	return React.createElement(ContainerSize, {
+		SetContainerSize = setContainerSize,
+	}, {
+		CroppedViewport = React.createElement(CroppedViewport, {
+			ViewportSize = containerSize,
+			OnCapture = props.OnCapture,
+			OnFocus = props.OnFocus,
+			Disabled = props.Disabled,
+		}),
+	})
 end

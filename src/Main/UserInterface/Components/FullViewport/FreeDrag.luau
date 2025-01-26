@@ -6,10 +6,13 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
-local containerSizeContext = React.createContext(Vector2.new(0, 0))
+local ContainerSize = require(script.Parent.Parent.Shared.ContainerSize)
+
 local isDraggingContext = React.createContext(false)
 
 export type Props = {
+	SetIsDragging: (boolean) -> (),
+
 	InitialPosition: UDim2,
 	AnchorPoint: Vector2,
 	Size: UDim2,
@@ -25,18 +28,10 @@ local function convertToAbsSize(udim2: UDim2, containerSize: Vector2)
 	)
 end
 
-local function useContainerSize()
-	return React.useContext(containerSizeContext)
-end
-
-local function useIsDragging()
-	return React.useContext(isDraggingContext)
-end
-
-local function FreeDrag(props: Props)
-	local containerSize = useContainerSize()
+local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 	local position, setPosition = React.useState(props.InitialPosition)
 
+	local containerSize = props.ContainerSize
 	local absSize = convertToAbsSize(props.Size, containerSize)
 	local absAnchorPosition = convertToAbsSize(position, containerSize)
 	local absAnchorSize = props.AnchorPoint * absSize
@@ -63,7 +58,10 @@ local function FreeDrag(props: Props)
 		end,
 	})
 
-	local isDragging = React.useMemo(dragger.isActive)
+	local isDragging = dragger.isActive()
+	React.useMemo(function()
+		props.SetIsDragging(isDragging)
+	end, { isDragging })
 
 	return React.createElement(isDraggingContext.Provider, {
 		value = isDragging,
@@ -83,39 +81,21 @@ local function FreeDrag(props: Props)
 	})
 end
 
-local function FreeDragComponent(props: Props)
-	local containerSize, setContainerSize = React.useState(Vector2.new(0, 0))
-	local containerRef = React.useRef(nil :: GuiObject?)
+return function(props: Props)
+	local containerSize, setContainerSize = React.useState(Vector2.zero)
 
-	React.useEffect(function()
-		local frame = containerRef.current :: GuiObject
-		setContainerSize(frame.AbsoluteSize)
-
-		local connection = frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			setContainerSize(frame.AbsoluteSize)
-		end)
-
-		return function()
-			connection:Disconnect()
-		end
-	end, { containerRef.current })
-
-	return React.createElement("Frame", {
-		Name = "ViewportSizeFrame",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ref = containerRef,
+	return React.createElement(ContainerSize, {
+		SetContainerSize = setContainerSize,
 	}, {
-		React.createElement(containerSizeContext.Provider, {
-			value = containerSize,
-		}, {
-			React.createElement(FreeDrag, props),
-		}),
+		FreeDrag = React.createElement(FreeDrag, {
+			SetIsDragging = props.SetIsDragging,
+			ContainerSize = containerSize,
+
+			InitialPosition = props.InitialPosition,
+			AnchorPoint = props.AnchorPoint,
+			Size = props.Size,
+
+			Disabled = props.Disabled,
+		}, props.children),
 	})
 end
-
-return {
-	Component = FreeDragComponent,
-	useContainerSize = useContainerSize,
-	useIsDragging = useIsDragging,
-}
