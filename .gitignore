@@ -4,6 +4,8 @@
 /placefiles
 
 /lune/**/*.png
+/icons/dark
+/icons/light
 
 sourcemap.json
 *.ds_store
