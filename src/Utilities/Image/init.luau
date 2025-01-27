@@ -39,6 +39,10 @@ function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
 	return self
 end
 
+function ImageClass.fromSize(size: Vector2)
+	return ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
+end
+
 function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	local fullSize = editableImage.Size
 	local origin = if crop then crop.Min:Min(fullSize) else Vector2.zero

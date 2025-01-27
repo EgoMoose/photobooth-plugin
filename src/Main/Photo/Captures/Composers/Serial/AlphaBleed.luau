@@ -5,7 +5,8 @@ local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 
 local function alphaBleedSerial(img: Image.Image, thickness: number)
-	local width, height = img.size.X, img.size.Y
+	local copy = img:Clone()
+	local width, height = copy.size.X, copy.size.Y
 
 	local visited = {}
 	local canSample = {}
@@ -13,8 +14,8 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 
 	for y = 1, height do
 		for x = 1, width do
-			local index = img:GetPixelIndex(x, y)
-			local _, _, _, a = img:GetRGBA255(index)
+			local index = copy:GetPixelIndex(x, y)
+			local _, _, _, a = copy:GetRGBA255(index)
 
 			if a ~= 0 then
 				visited[index] = true
@@ -23,8 +24,8 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 			end
 
 			local hasOpaqueNeighbor = false
-			for _, neighborIndex in img:GetNeighbors(index) do
-				local _, _, _, na = img:GetRGBA255(neighborIndex)
+			for _, neighborIndex in copy:GetNeighbors(index) do
+				local _, _, _, na = copy:GetRGBA255(neighborIndex)
 				if na ~= 0 then
 					hasOpaqueNeighbor = true
 					break
@@ -50,9 +51,9 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 			local rgb = { 0, 0, 0 }
 			local contributing = 0
 
-			for _, neighborIndex in img:GetNeighbors(index) do
+			for _, neighborIndex in copy:GetNeighbors(index) do
 				if canSample[neighborIndex] then
-					local r, g, b = img:GetRGBA255(neighborIndex)
+					local r, g, b = copy:GetRGBA255(neighborIndex)
 
 					rgb[1] = rgb[1] + r
 					rgb[2] = rgb[2] + g
@@ -65,7 +66,7 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 				end
 			end
 
-			img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+			copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
 		end
 
 		for _ = 1, length do
@@ -74,7 +75,7 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 		end
 	end
 
-	return img
+	return copy
 end
 
 return alphaBleedSerial
