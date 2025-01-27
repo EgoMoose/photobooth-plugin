@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 
 local function doWork(chunkBuffer: buffer, chunkSize: Vector2)
@@ -33,7 +34,32 @@ local function doWork(chunkBuffer: buffer, chunkSize: Vector2)
 	return commitImg.buffer
 end
 
-return {
+local required = {
 	script = script,
 	callback = doWork,
 }
+
+local function alphaBleedParallel(img: Image.Image)
+	local scheduler = Parallel.new(32, required)
+
+	for i, chunkImg in img:Split(scheduler:GetActorCount()) do
+		scheduler:Schedule(chunkImg.buffer, chunkImg.size)
+	end
+
+	local packedResults = scheduler:WorkDeferred()
+	scheduler:Destroy()
+
+	local copyIndex = 0
+	local resultBuffer = buffer.create(img:GetNumberOfPixels() * 4)
+	for _, unpackResult in packedResults do
+		local commitBuffer = unpackResult()
+		buffer.copy(resultBuffer, copyIndex, commitBuffer)
+		copyIndex = copyIndex + buffer.len(commitBuffer)
+	end
+
+	local result = Image.fromBuffer(resultBuffer, img.size)
+	result.templateUri = img.templateUri
+	return result
+end
+
+return Parallel.cast(required, alphaBleedParallel)

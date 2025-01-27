@@ -4,6 +4,8 @@ local RunService = game:GetService("RunService") :: RunService
 
 -- Class
 
+local ParallelStatic = {}
+
 local ParallelClass = {}
 ParallelClass.__index = ParallelClass
 ParallelClass.ClassName = "Parallel"
@@ -28,7 +30,7 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 	ParallelClass
 ))
 
-function ParallelClass.new<T..., U...>(n: number, required: Required<T..., U...>)
+function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...>)
 	local self = setmetatable({}, ParallelClass) :: Parallel<T..., U...>
 
 	self.ticket = 0
@@ -75,6 +77,16 @@ function ParallelClass.new<T..., U...>(n: number, required: Required<T..., U...>
 	end
 
 	return self
+end
+
+function ParallelStatic.cast<T..., U..., V..., W...>(required: Required<T..., U...>, callback: (V...) -> W...)
+	local meta = setmetatable(table.clone(required), {
+		__call = function(self, ...)
+			return callback(...)
+		end,
+	})
+
+	return (meta :: any) :: (V...) -> W...
 end
 
 -- Private
@@ -201,4 +213,4 @@ end
 
 --
 
-return ParallelClass
+return ParallelStatic

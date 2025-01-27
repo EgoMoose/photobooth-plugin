@@ -1,18 +1,21 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
-
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
 
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
+local parallelRoot = script:FindFirstAncestor("Captures").Parallel
+local reverseBlendParallel = require(parallelRoot.ReverseBlend)
+
 local COMPARE_MARGIN = 0
+
+local Wb = { 255, 255, 255, 255 }
+local Bb = { 0, 0, 0, 255 }
 
 type Background = Background.Background
 
@@ -25,15 +28,12 @@ local function compareByMargin(a: { number }, b: { number }, margin: number): bo
 	)
 end
 
-local function _composeSerial(
+local function _reverseBlendSerial(
 	onWhiteRetro: Image.Image,
 	onBlackRetro: Image.Image,
-	onBlack: Image.Image,
+	onBlackBase: Image.Image?,
 	colorCorrection: ColorCorrectionEffect
 )
-	local Wb = { 255, 255, 255, 255 }
-	local Bb = { 0, 0, 0, 255 }
-
 	local brightness = colorCorrection.Brightness
 	local contrast = colorCorrection.Contrast + 1
 	local saturation = colorCorrection.Saturation + 1
@@ -41,6 +41,7 @@ local function _composeSerial(
 	local tintColor = colorCorrection.TintColor
 	local tint = { tintColor.R, tintColor.G, tintColor.B }
 
+	local onBlack = onBlackBase or onBlackRetro
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
@@ -94,48 +95,6 @@ local function _composeSerial(
 	return onBlack
 end
 
-local function composeParallel(
-	onWhiteRetro: Image.Image,
-	onBlackRetro: Image.Image,
-	onBlack: Image.Image?,
-	colorCorrection: ColorCorrectionEffect
-)
-	local scheduler = Parallel.new(32, require(script.Parent.Parent.Parallel.ReverseBlend))
-
-	local splitOnWhiteRetro = onWhiteRetro:Split(scheduler:GetActorCount())
-	local splitOnBlackRetro = onBlackRetro:Split(scheduler:GetActorCount())
-	local splitOnBlack = if onBlack then onBlack:Split(scheduler:GetActorCount()) else {}
-
-	for i = 1, #splitOnWhiteRetro do
-		local onWhiteRetroChunkImg = splitOnWhiteRetro[i]
-		local onBlackRetroChunkImg = splitOnBlackRetro[i]
-		local onBlackChunkImg = splitOnBlack[i]
-
-		scheduler:Schedule(
-			onWhiteRetroChunkImg.size,
-			colorCorrection,
-			onWhiteRetroChunkImg.buffer,
-			onBlackRetroChunkImg.buffer,
-			if onBlackChunkImg then onBlackChunkImg.buffer else nil
-		)
-	end
-
-	local packedResults = scheduler:WorkDeferred()
-	scheduler:Destroy()
-
-	local copyIndex = 0
-	local resultBuffer = buffer.create(onWhiteRetro:GetNumberOfPixels() * 4)
-	for _, unpackResult in packedResults do
-		local commitBuffer = unpackResult()
-		buffer.copy(resultBuffer, copyIndex, commitBuffer)
-		copyIndex = copyIndex + buffer.len(commitBuffer)
-	end
-
-	local result = Image.fromBuffer(resultBuffer, onWhiteRetro.size)
-	result.templateUri = onWhiteRetro.templateUri
-	return result
-end
-
 local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
 	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
 		warn("Skybox cannot be removed when Atmosphere is present.")
@@ -175,8 +134,8 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	--local result = _composeSerial(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
-	local result = composeParallel(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	--local result = _reverseBlendSerial(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	local result = reverseBlendParallel(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
 
 	return result
 end

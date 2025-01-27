@@ -1,12 +1,12 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
+local parallelRoot = script.Parallel
+local alphaBleedParallel = require(parallelRoot.AlphaBleed)
 
 -- Private
 
@@ -94,29 +94,6 @@ local function _alphaBleedSerial(img: Image.Image, thickness: number)
 	end
 
 	return img
-end
-
-local function alphaBleedParallel(img: Image.Image)
-	local scheduler = Parallel.new(32, require(script.Parallel.AlphaBleed))
-
-	for i, chunkImg in img:Split(scheduler:GetActorCount()) do
-		scheduler:Schedule(chunkImg.buffer, chunkImg.size)
-	end
-
-	local packedResults = scheduler:WorkDeferred()
-	scheduler:Destroy()
-
-	local copyIndex = 0
-	local resultBuffer = buffer.create(img:GetNumberOfPixels() * 4)
-	for _, unpackResult in packedResults do
-		local commitBuffer = unpackResult()
-		buffer.copy(resultBuffer, copyIndex, commitBuffer)
-		copyIndex = copyIndex + buffer.len(commitBuffer)
-	end
-
-	local result = Image.fromBuffer(resultBuffer, img.size)
-	result.templateUri = img.templateUri
-	return result
 end
 
 local ticket = 0
