@@ -27,13 +27,21 @@ local UserInterface = {}
 
 -- Public
 
-function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar, theme: StudioTheme)
+function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
 	local captureButton = toolbar:CreateButton(
 		"egomoose_photobooth_capture_ui_button",
 		"Capture UI images",
-		`rbxassetid://{Constants.Icons[theme.Name].UserInterfacePluginButton}`,
-		"UI"
+		"", "UI"
 	)
+
+	local function onThemeChanged()
+		local theme = settings().Studio.Theme
+		captureButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].UserInterfacePluginButton}`
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local function getSelectedGuiObject()
 		local selection = SelectionService:Get()
@@ -66,29 +74,46 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar, th
 	end)
 end
 
-function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolbar, theme: StudioTheme)
+function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
 	local openButton = toolbar:CreateButton(
-		"egomoose_photobooth_viewport_button",
-		"Capture viewport images",
-		`rbxassetid://{Constants.Icons[theme.Name].CameraPluginButton}`,
-		"Viewport"
+		"egomoose_photobooth_viewport_button", 
+		"Capture viewport images", 
+		"", "Viewport"
 	)
 
-	local focusAction = plugin:CreatePluginAction(
-		"egomoose_photobooth_focus_action",
-		"Photobooth Viewport Focus",
-		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
-		`rbxassetid://{Constants.Icons[theme.Name].FocusPluginAction}`,
-		true
-	)
+	local focusAction: PluginAction
+	local fullscreenAction: PluginAction
+	local actionTrove = Trove.new()
 
-	local fullscreenAction = plugin:CreatePluginAction(
-		"egomoose_photobooth_fullscreen_action",
-		"Photobooth Viewport Fullscreen",
-		"Toggles between capturing the full viewport or a cropped portion of it.",
-		`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
-		true
-	)
+	local function onThemeChanged()
+		local theme = settings().Studio.Theme
+		openButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].CameraPluginButton}`
+		actionTrove:Clean()
+
+		focusAction = actionTrove:Add(
+			plugin:CreatePluginAction(
+				"egomoose_photobooth_focus_action",
+				"Photobooth Viewport Focus",
+				"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
+				`rbxassetid://{Constants.Icons[theme.Name].FocusPluginAction}`,
+				true
+			)
+		)
+
+		fullscreenAction = actionTrove:Add(
+			plugin:CreatePluginAction(
+				"egomoose_photobooth_fullscreen_action",
+				"Photobooth Viewport Fullscreen",
+				"Toggles between capturing the full viewport or a cropped portion of it.",
+				`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
+				true
+			)
+		)
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local folder = Instance.new("Folder")
 	folder.Name = "EgoMoosePhotobooth"
@@ -169,18 +194,26 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 
 	plugin.Unloading:Connect(function()
 		coreGuiRoot:unmount()
-		focusAction:Destroy()
+		actionTrove:Destroy()
 		folder:Destroy()
 	end)
 end
 
-function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar, theme: StudioTheme)
+function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
 	local openButton = toolbar:CreateButton(
 		"egomoose_photobooth_gallery_button",
 		"View photobooth images",
-		`rbxassetid://{Constants.Icons[theme.Name].GalleryPluginButton}`,
-		"Gallery"
+		"", "Gallery"
 	)
+
+	local function onThemeChanged()
+		local theme = settings().Studio.Theme
+		openButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].GalleryPluginButton}`
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local info = DockWidgetPluginGuiInfo.new(
 		Enum.InitialDockState.Float, -- Widget will be initialized in floating panel
@@ -249,13 +282,21 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar, them
 	end)
 end
 
-function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar, theme: StudioTheme)
+function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
 	local importButton = toolbar:CreateButton(
 		"egomoose_photobooth_import_button",
 		"Import Png",
-		`rbxassetid://{Constants.Icons[theme.Name].ImportPluginButton}`,
-		"Import"
+		"", "Import"
 	)
+
+	local function onThemeChanged()
+		local theme = settings().Studio.Theme
+		importButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].ImportPluginButton}`
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local clickConnection = importButton.Click:Connect(function()
 		-- only png is supported by Roblox currently
