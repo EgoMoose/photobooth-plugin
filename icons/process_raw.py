@@ -24,8 +24,14 @@ def recolorFolder(folder_path, new_folder_path, r, g, b):
             recolored = recolorImage(os.path.join(folder_path, file_name), r, g, b)
             recolored.save(os.path.join(new_folder_path, file_name))
 
-parent_path = os.path.join(os.path.abspath(__file__), os.path.pardir)
-raw_path = os.path.join(parent_path, "raw")
+file_parent_path = os.path.join(os.path.abspath(__file__), os.path.pardir)
+output_folder_path = os.path.join(file_parent_path, "output")
+raw_path = os.path.join(file_parent_path, "raw")
 
-recolorFolder(raw_path, os.path.join(parent_path, "dark"), 225, 225, 225)
-recolorFolder(raw_path, os.path.join(parent_path, "light"), 94, 94, 94)
+if os.path.isdir(output_folder_path):
+        shutil.rmtree(output_folder_path)
+
+os.makedirs(output_folder_path)
+
+recolorFolder(raw_path, os.path.join(output_folder_path, "dark"), 225, 225, 225)
+recolorFolder(raw_path, os.path.join(output_folder_path, "light"), 94, 94, 94)
