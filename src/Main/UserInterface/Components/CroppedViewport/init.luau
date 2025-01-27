@@ -5,6 +5,8 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
+local ContainerSize = require(script.Parent.Shared.ContainerSize)
+
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
 local Blinder = require(script.Blinder)
@@ -48,14 +50,9 @@ end
 local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
 local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
 
-local viewportSizeContext = React.createContext(Vector2.new(0, 0))
-
 export type Props = {
+	FocusLenseSizeRef: { current: Vector2? },
 	OnCapture: (Rect) -> (),
-	OnFocus: {
-		Trigger: RBXScriptSignal,
-		Callback: (Vector2) -> (),
-	},
 	Disabled: boolean,
 }
 
@@ -75,10 +72,11 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function CroppedViewport(props: Props)
+local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
-	local viewportSize = React.useContext(viewportSizeContext)
+
+	local viewportSize = props.ViewportSize
 	local scaledViewport = viewportSize * scaleOS
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
@@ -104,19 +102,15 @@ local function CroppedViewport(props: Props)
 	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
 	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
 
-	React.useEffect(function()
-		local connection = props.OnFocus.Trigger:Connect(function()
-			props.OnFocus.Callback(lenseSize:Ceil())
-		end)
-		return function()
-			connection:Disconnect()
-		end
-	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
-
 	local scaledLenseSize = lenseSize * scaleOS
 	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
 	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
 	local scaledLenseRect = Rect.new(scaledLenseMin, scaledLenseMax)
+	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
+
+	React.useEffect(function()
+		props.FocusLenseSizeRef.current = scaledLenseRectSize
+	end, { scaledLenseRectSize })
 
 	return React.createElement("Frame", {
 		Position = UDim2.fromScale(0, 0),
@@ -208,7 +202,7 @@ local function CroppedViewport(props: Props)
 				Position = UDim2.new(0.5, 0, 1, ACTION_BAR.Padding),
 				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
 
-				DisplayedAbsSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height),
+				DisplayedAbsSize = scaledLenseRectSize,
 				OnDimensionInput = function(dimensions)
 					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1)))
 				end,
@@ -240,32 +234,15 @@ local function CroppedViewport(props: Props)
 end
 
 return function(props: Props)
-	local viewportSize, setViewportSize = React.useState(Vector2.new(0, 0))
-	local viewportRef = React.useRef(nil :: GuiObject?)
-
-	React.useEffect(function()
-		local frame = viewportRef.current :: GuiObject
-		setViewportSize(frame.AbsoluteSize)
-
-		local connection = frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			setViewportSize(frame.AbsoluteSize)
-		end)
-
-		return function()
-			connection:Disconnect()
-		end
-	end, { viewportRef.current })
-
-	return React.createElement("Frame", {
-		Name = "ViewportSizeFrame",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ref = viewportRef,
+	local containerSize, setContainerSize = React.useState(Vector2.zero)
+	return React.createElement(ContainerSize, {
+		SetContainerSize = setContainerSize,
 	}, {
-		React.createElement(viewportSizeContext.Provider, {
-			value = viewportSize,
-		}, {
-			React.createElement(CroppedViewport, props),
+		CroppedViewport = React.createElement(CroppedViewport, {
+			ViewportSize = containerSize,
+			FocusLenseSizeRef = props.FocusLenseSizeRef,
+			OnCapture = props.OnCapture,
+			Disabled = props.Disabled,
 		}),
 	})
 end

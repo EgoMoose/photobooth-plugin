@@ -6,6 +6,8 @@ local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 local Sift = require(pluginRoot.Packages.Sift)
 
+local TimeIt = require(pluginRoot.Utilities.TimeIt)
+
 -- Private
 
 local function _convertToWhite(img: Image.Image)

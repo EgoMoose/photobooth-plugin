@@ -5,6 +5,8 @@ local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local TimeIt = require(pluginRoot.Utilities.TimeIt)
+
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)

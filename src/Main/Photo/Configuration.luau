@@ -8,7 +8,6 @@ export type Configuration = {
 	BindingsEnabled: boolean,
 
 	-- Viewport
-	UseFullScreen: boolean,
 	ViewportCaptureType: Captures.ViewportCaptureTypes,
 
 	-- User Interface
@@ -26,7 +25,6 @@ local configurationCurrent: Configuration = {
 	BindingsEnabled = false,
 
 	-- Viewport
-	UseFullScreen = false,
 	ViewportCaptureType = Captures.Viewport.Default,
 
 	-- User Interface
