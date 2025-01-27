@@ -61,37 +61,10 @@ function Plugin.build(plugin: Plugin)
 	local theme = settings().Studio.Theme
 	local toolbar = plugin:CreateToolbar("Photobooth")
 
-	local openViewportButton = toolbar:CreateButton(
-		"egomoose_photobooth_viewport",
-		"Capture viewport images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/Camera@3x.png`,
-		"Viewport"
-	)
-	UserInterface.mountOpenViewportButton(plugin, openViewportButton)
-
-	local captureUIButton = toolbar:CreateButton(
-		"egomoose_photobooth_ui",
-		"Capture UI images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/Interface@3x.png`,
-		"UI"
-	)
-	UserInterface.mountCaptureUIButton(plugin, captureUIButton)
-
-	local openGalleryButton = toolbar:CreateButton(
-		"egomoose_photobooth_viewer",
-		"View photobooth images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/ImageLabel@3x.png`,
-		"Gallery"
-	)
-	UserInterface.mountOpenGalleryButton(plugin, openGalleryButton)
-
-	-- local importPngButton = toolbar:CreateButton(
-	-- 	"egomoose_photobooth_importer",
-	-- 	"Import Png",
-	-- 	`rbxasset://studio_svg_textures/Lua/AssetManager/{theme.Name}/Standard/Import@3x.png`,
-	-- 	"Import"
-	-- )
-	-- UserInterface.mountImportPngButton(plugin, importPngButton)
+	UserInterface.mountCaptureViewport(plugin, toolbar, theme)
+	UserInterface.mountCaptureUI(plugin, toolbar, theme)
+	UserInterface.mountGallery(plugin, toolbar, theme)
+	--UserInterface.mountImportPng(plugin, toolbar, theme)
 
 	Bindings.setup(plugin)
 end

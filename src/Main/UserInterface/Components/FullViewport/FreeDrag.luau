@@ -4,9 +4,8 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
+local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
 local Hooks = require(uiRoot.Hooks)
-
-local ContainerSize = require(script.Parent.Parent.Shared.ContainerSize)
 
 local isDraggingContext = React.createContext(false)
 
@@ -59,20 +58,25 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 	})
 
 	local isDragging = dragger.isActive()
-	React.useMemo(function()
-		props.SetIsDragging(isDragging)
+	React.useEffect(function()
+		if props.Disabled then
+			dragger.cancel()
+			props.SetIsDragging(false)
+		else
+			props.SetIsDragging(isDragging)
+		end
 	end, { isDragging })
 
 	return React.createElement(isDraggingContext.Provider, {
 		value = isDragging,
 	}, {
-		React.createElement("TextButton", {
+		React.createElement("ImageButton", {
 			Size = props.Size,
 			Position = clampedPosition,
 			BackgroundTransparency = 1,
 
+			Image = "",
 			AutoButtonColor = false,
-			Text = "",
 
 			[React.Event.InputBegan] = dragger.onInputBegan,
 			[React.Event.InputChanged] = dragger.onInputChanged,

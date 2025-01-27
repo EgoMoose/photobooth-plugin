@@ -5,18 +5,26 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
-local ContainerSize = require(script.Parent.Shared.ContainerSize)
-local FreeDrag = require(script.FreeDrag)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
+local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
 local Hooks = require(uiRoot.Hooks)
+
+local FreeDrag = require(script.FreeDrag)
 
 export type Props = {
 	OnCapture: (Rect) -> (),
+	FocusLenseSizeRef: { current: Vector2? },
 	Disabled: boolean,
 }
 
-local function ActionBar(props: Props & { ContainerSize: Vector2 })
+type ActionBarProps = {
+	OnCapture: (Rect) -> (),
+	IsDragging: boolean,
+	ContainerSize: Vector2,
+	Disabled: boolean,
+}
+
+local function ActionBar(props: ActionBarProps)
 	local moveIcon = assert(Lucide.GetAsset("move", 16))
 	local cameraIcon = assert(Lucide.GetAsset("camera", 16))
 
@@ -175,6 +183,10 @@ local function FullViewport(props: Props)
 	local isDragging, setIsDragging = React.useState(false)
 	local containerSize, setContainerSize = React.useState(Vector2.zero)
 
+	React.useEffect(function()
+		props.FocusLenseSizeRef.current = containerSize
+	end, { containerSize })
+
 	return React.createElement(ContainerSize, {
 		SetContainerSize = setContainerSize,
 	}, {
@@ -194,10 +206,11 @@ local function FullViewport(props: Props)
 				HoverFade = React.createElement(HoverFade, {
 					DetectionSize = UDim2.new(1, 500, 1, 500),
 					HoverOnTransparency = 0,
-					HoverOffTransparency = 0.7,
+					HoverOffTransparency = 0,
 					IsDragging = isDragging,
 				}, {
 					ActionBar = React.createElement(ActionBar, {
+						IsDragging = isDragging,
 						ContainerSize = containerSize,
 						OnCapture = props.OnCapture,
 						Disabled = props.Disabled,

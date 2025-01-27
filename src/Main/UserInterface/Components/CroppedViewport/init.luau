@@ -51,11 +51,8 @@ local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
 local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
 
 export type Props = {
+	FocusLenseSizeRef: { current: Vector2? },
 	OnCapture: (Rect) -> (),
-	OnFocus: {
-		Trigger: RBXScriptSignal,
-		Callback: (Vector2) -> (),
-	},
 	Disabled: boolean,
 }
 
@@ -105,19 +102,15 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
 	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
 
-	React.useEffect(function()
-		local connection = props.OnFocus.Trigger:Connect(function()
-			props.OnFocus.Callback(lenseSize:Ceil())
-		end)
-		return function()
-			connection:Disconnect()
-		end
-	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
-
 	local scaledLenseSize = lenseSize * scaleOS
 	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
 	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
 	local scaledLenseRect = Rect.new(scaledLenseMin, scaledLenseMax)
+	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
+
+	React.useEffect(function()
+		props.FocusLenseSizeRef.current = scaledLenseRectSize
+	end, { scaledLenseRectSize })
 
 	return React.createElement("Frame", {
 		Position = UDim2.fromScale(0, 0),
@@ -209,7 +202,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 				Position = UDim2.new(0.5, 0, 1, ACTION_BAR.Padding),
 				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
 
-				DisplayedAbsSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height),
+				DisplayedAbsSize = scaledLenseRectSize,
 				OnDimensionInput = function(dimensions)
 					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1)))
 				end,
@@ -247,8 +240,8 @@ return function(props: Props)
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportSize = containerSize,
+			FocusLenseSizeRef = props.FocusLenseSizeRef,
 			OnCapture = props.OnCapture,
-			OnFocus = props.OnFocus,
 			Disabled = props.Disabled,
 		}),
 	})

@@ -15,10 +15,12 @@ workspace:SetAttribute("FocusActionTrigger", false)
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
 	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
+	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement(FullViewport, {
 		OnCapture = function(rect)
 			setIsDisabled(true)
+			print(focusLenseSizeRef.current)
 			print(table.concat({
 				"",
 				"Viewport Capture",
@@ -28,6 +30,8 @@ local function story()
 			task.wait(1)
 			setIsDisabled(false)
 		end,
+
+		FocusLenseSizeRef = focusLenseSizeRef,
 		Disabled = isDisabled or disabled,
 	})
 end
