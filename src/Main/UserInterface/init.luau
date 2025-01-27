@@ -31,7 +31,7 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar, th
 	local captureButton = toolbar:CreateButton(
 		"egomoose_photobooth_capture_ui_button",
 		"Capture UI images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/Interface@3x.png`,
+		`rbxassetid://{Constants.Icons[theme.Name].UserInterfacePluginButton}`,
 		"UI"
 	)
 
@@ -70,20 +70,24 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 	local openButton = toolbar:CreateButton(
 		"egomoose_photobooth_viewport_button",
 		"Capture viewport images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/Camera@3x.png`,
+		`rbxassetid://{Constants.Icons[theme.Name].CameraPluginButton}`,
 		"Viewport"
 	)
 
 	local focusAction = plugin:CreatePluginAction(
 		"egomoose_photobooth_focus_action",
 		"Photobooth Viewport Focus",
-		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport."
+		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
+		`rbxassetid://{Constants.Icons[theme.Name].FocusPluginAction}`,
+		true
 	)
 
 	local fullscreenAction = plugin:CreatePluginAction(
 		"egomoose_photobooth_fullscreen_action",
 		"Photobooth Viewport Fullscreen",
-		"Toggles between capturing the full viewport or a cropped portion of it."
+		"Toggles between capturing the full viewport or a cropped portion of it.",
+		`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
+		true
 	)
 
 	local folder = Instance.new("Folder")
@@ -174,7 +178,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar, them
 	local openButton = toolbar:CreateButton(
 		"egomoose_photobooth_gallery_button",
 		"View photobooth images",
-		`rbxasset://studio_svg_textures/Shared/InsertableObjects/{theme.Name}/Standard/ImageLabel@3x.png`,
+		`rbxassetid://{Constants.Icons[theme.Name].GalleryPluginButton}`,
 		"Gallery"
 	)
 
@@ -249,7 +253,7 @@ function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar, th
 	local importButton = toolbar:CreateButton(
 		"egomoose_photobooth_import_button",
 		"Import Png",
-		`rbxasset://studio_svg_textures/Lua/AssetManager/{theme.Name}/Standard/Import@3x.png`,
+		`rbxassetid://{Constants.Icons[theme.Name].ImportPluginButton}`,
 		"Import"
 	)
 
