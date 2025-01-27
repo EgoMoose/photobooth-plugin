@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local RectHelper = require(pluginRoot.Utilities.RectHelper)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
@@ -113,10 +114,9 @@ local function Viewport(props: Props)
 		end
 	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
 
-	local scaledLenseSize = lenseSize * scaleOS
-	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
-	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
-	local scaledLenseRect = Rect.new(scaledLenseMin, scaledLenseMax)
+	local scaledLenseAbsSize = lenseSize * scaleOS
+	local scaledLenseAbsPosition = (scaledViewport - scaledLenseAbsSize) / 2
+	local scaledLenseRect = RectHelper.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 
 	return React.createElement("Frame", {
 		Position = UDim2.fromScale(0, 0),

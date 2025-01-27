@@ -1,8 +1,10 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local RectHelper = require(pluginRoot.Utilities.RectHelper)
 
 local ALWAYS_CLIPPED = true
+local ALWAYS_CLIP_TEXT = true
 
 -- Class
 
@@ -179,7 +181,7 @@ local function getBoundingRect(qualified: { GuiObject }): Rect
 			table.insert(corners, corner)
 		end
 
-		if not frame.ClipsDescendants and isTextFrame(frame) then
+		if not ALWAYS_CLIP_TEXT and not frame.ClipsDescendants and isTextFrame(frame) then
 			for _, corner in getTextBoundsCorners(frame :: TextLabel) do
 				table.insert(corners, corner)
 			end
@@ -193,7 +195,7 @@ local function getBoundingRect(qualified: { GuiObject }): Rect
 		min = min:Min(corners[i])
 	end
 
-	return Rect.new(min:Ceil(), max:Ceil())
+	return RectHelper.fromAbs(min, max - min)
 end
 
 local function getMinZIndex(qualified: { GuiObject }): number
@@ -240,9 +242,7 @@ end
 -- Public
 
 function UIBoundsClass.GetRect(self: UIBounds)
-	local min = self.aabbFrame.AbsolutePosition
-	local max = min + self.aabbFrame.AbsoluteSize
-	return Rect.new(min:Ceil(), max:Ceil())
+	return RectHelper.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize)
 end
 
 function UIBoundsClass.SetColor(self: UIBounds, color: Color3)
