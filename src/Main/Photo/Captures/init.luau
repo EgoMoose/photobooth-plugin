@@ -104,6 +104,7 @@ local function alphaBleedParallel(img: Image.Image)
 	end
 
 	local packedResults = scheduler:WorkDeferred()
+	scheduler:Destroy()
 
 	local copyIndex = 0
 	local resultBuffer = buffer.create(img:GetNumberOfPixels() * 4)

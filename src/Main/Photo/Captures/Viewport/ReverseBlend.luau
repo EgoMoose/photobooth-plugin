@@ -121,6 +121,7 @@ local function composeParallel(
 	end
 
 	local packedResults = scheduler:WorkDeferred()
+	scheduler:Destroy()
 
 	local copyIndex = 0
 	local resultBuffer = buffer.create(onWhiteRetro:GetNumberOfPixels() * 4)
