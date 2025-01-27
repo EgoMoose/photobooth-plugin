@@ -79,7 +79,7 @@ local function customImageSplit(img: Image.Image, n: number, yPadding: number)
 end
 
 local function alphaBleedParallel(img: Image.Image)
-	local scheduler = Parallel.new(3, required)
+	local scheduler = Parallel.new(32, required)
 
 	for i, chunk in customImageSplit(img, scheduler:GetActorCount(), 1) do
 		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop)
