@@ -58,13 +58,12 @@ function Plugin.build(plugin: Plugin)
 		updateScaleOS()
 	end)
 
-	local theme = settings().Studio.Theme
 	local toolbar = plugin:CreateToolbar("Photobooth")
 
-	UserInterface.mountCaptureViewport(plugin, toolbar, theme)
-	UserInterface.mountCaptureUI(plugin, toolbar, theme)
-	UserInterface.mountGallery(plugin, toolbar, theme)
-	--UserInterface.mountImportPng(plugin, toolbar, theme)
+	UserInterface.mountCaptureViewport(plugin, toolbar)
+	UserInterface.mountCaptureUI(plugin, toolbar)
+	UserInterface.mountGallery(plugin, toolbar)
+	--UserInterface.mountImportPng(plugin, toolbar)
 
 	Bindings.setup(plugin)
 end
