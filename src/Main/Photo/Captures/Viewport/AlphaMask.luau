@@ -20,9 +20,6 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 		return
 	end
 
-	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
-	trove:Add(colorCorrection)
-
 	local redoColorCorrection = SceneControl.Lighting.removeColorCorrection()
 	trove:Add(redoColorCorrection)
 
@@ -31,12 +28,6 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 
 	background:SetEnabled(true)
 	background:SetColor(Color3.new(0, 0, 0))
-
-	local onBlack: Image.Image?
-	if SceneControl.Lighting.getTonemapperPreset() ~= Enum.TonemapperPreset.Retro then
-		SceneControl.yieldUntilNextFrame()
-		onBlack = Screenshot.rect(rect)
-	end
 
 	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
 	trove:Add(undoRetroGrading)
@@ -53,7 +44,11 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	return reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	local colorCorrection = Instance.new("ColorCorrectionEffect")
+	colorCorrection.Brightness = 1
+	trove:Add(colorCorrection)
+
+	return reverseBlend(onWhiteRetro, onBlackRetro, nil, colorCorrection)
 end
 
 return operation

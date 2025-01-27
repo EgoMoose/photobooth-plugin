@@ -1,0 +1,80 @@
+--!strict
+
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Image = require(pluginRoot.Utilities.Image)
+local Deque = require(pluginRoot.Packages.Deque)
+
+local function alphaBleedSerial(img: Image.Image, thickness: number)
+	local width, height = img.size.X, img.size.Y
+
+	local visited = {}
+	local canSample = {}
+	local queue = Deque.raw({})
+
+	for y = 1, height do
+		for x = 1, width do
+			local index = img:GetPixelIndex(x, y)
+			local _, _, _, a = img:GetRGBA255(index)
+
+			if a ~= 0 then
+				visited[index] = true
+				canSample[index] = true
+				continue
+			end
+
+			local hasOpaqueNeighbor = false
+			for _, neighborIndex in img:GetNeighbors(index) do
+				local _, _, _, na = img:GetRGBA255(neighborIndex)
+				if na ~= 0 then
+					hasOpaqueNeighbor = true
+					break
+				end
+			end
+
+			if hasOpaqueNeighbor then
+				visited[index] = true
+				queue:pushBack(index)
+			end
+		end
+	end
+
+	for _ = 1, thickness do
+		local length = queue:getLength()
+		if length == 0 then
+			break
+		end
+
+		for i = 1, length do
+			local index = queue:getElement(i)
+
+			local rgb = { 0, 0, 0 }
+			local contributing = 0
+
+			for _, neighborIndex in img:GetNeighbors(index) do
+				if canSample[neighborIndex] then
+					local r, g, b = img:GetRGBA255(neighborIndex)
+
+					rgb[1] = rgb[1] + r
+					rgb[2] = rgb[2] + g
+					rgb[3] = rgb[3] + b
+
+					contributing = contributing + 1
+				elseif not visited[neighborIndex] then
+					visited[neighborIndex] = true
+					queue:pushBack(neighborIndex)
+				end
+			end
+
+			img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+		end
+
+		for _ = 1, length do
+			local poppedIndex = queue:popFront()
+			canSample[poppedIndex] = true
+		end
+	end
+
+	return img
+end
+
+return alphaBleedSerial
