@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local Image = require(pluginRoot.Utilities.Image)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
@@ -40,7 +41,7 @@ local ANCHOR_POINT = Vector2.new(0.5, 0.5)
 local POSITION = UDim2.fromScale(0.5, 0.5)
 local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
 
-local MAX_EDIT_IMAGE_SIZE = Vector2.new(1024, 1024)
+local MAX_EDIT_IMAGE_SIZE = Image.MAX_EDIT_IMAGE_SIZE
 
 local grabberMargin = GRABBERS.Padding + GRABBERS.Thickness
 if GRABBERS.MiddlesEnabled then

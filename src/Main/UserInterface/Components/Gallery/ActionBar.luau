@@ -5,8 +5,6 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
-local Image = require(pluginRoot.Utilities.Image)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
@@ -68,7 +66,7 @@ local function ActionBar(props: Props)
 				if props.EditableImage then
 					props.OnUpload({
 						Title = props.EditableImageName,
-						EditableImage = Image.fromEditableImage(props.EditableImage):Save(), -- this effectively clones the edit image
+						EditableImage = props.EditableImage,
 					})
 				end
 			end,
