@@ -38,8 +38,6 @@ local ACTION_BAR = {
 	Padding = 8,
 }
 
-local ANCHOR_POINT = Vector2.new(0.5, 0.5)
-local POSITION = UDim2.fromScale(0.5, 0.5)
 local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
 
 local MAX_EDIT_IMAGE_SIZE = Image.MAX_EDIT_IMAGE_SIZE
@@ -101,13 +99,17 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 		end
 	end, { viewportSize })
 
-	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
-	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
+	-- this is what renders
+	local lenseAbsSize = useLenseSize(size, viewportSize, 1 / scaleOS)
+	local lenseAbsPosition = ((viewportSize - lenseAbsSize) / 2):Floor()
+	local lenseRect = RectHelper.fromAbs(lenseAbsPosition, lenseAbsSize)
+	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
+	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
-	local scaledLenseSize = lenseSize * scaleOS
-	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
-	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
-	local scaledLenseRect = Rect.new(scaledLenseMin, scaledLenseMax)
+	-- this is used for displaying dimensions + capture rect
+	local scaledLenseAbsSize = lenseAbsSize * scaleOS
+	local scaledLenseAbsPosition = ((scaledViewport - scaledLenseAbsSize) / 2):Floor()
+	local scaledLenseRect = RectHelper.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
 
 	React.useEffect(function()
@@ -138,9 +140,9 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 		end,
 	}, {
 		Focus = React.createElement("Frame", {
-			AnchorPoint = ANCHOR_POINT,
-			Position = POSITION,
-			Size = lenseSizeUDim2,
+			AnchorPoint = Vector2.zero,
+			Position = lenseUDim2Position,
+			Size = lenseUDim2Size,
 			BackgroundTransparency = 1,
 			ZIndex = 2,
 		}, {
@@ -218,13 +220,14 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 		}),
 
 		Blinder = React.createElement(Blinder, {
-			AnchorPoint = ANCHOR_POINT,
-			Position = POSITION,
-			Size = lenseSizeUDim2,
+			AnchorPoint = Vector2.zero,
+			Position = lenseUDim2Position,
+			Size = lenseUDim2Size,
 
 			-- this should be hidden by the UI stroke
 			-- it acts as a margin of error against half-pixel scaling
 			MarginBump = -1,
+			OverlapBump = 10,
 
 			Color = Color3.new(0, 0, 0),
 			Transparency = 0.7,
