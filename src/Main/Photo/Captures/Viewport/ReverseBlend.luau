@@ -4,8 +4,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
-
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
@@ -132,13 +130,7 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	local result
-	local dt = TimeIt(function()
-		result = compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
-	end)
-	print("Reverse blend", dt)
-
-	return result
+	return compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
 end
 
 return operation
