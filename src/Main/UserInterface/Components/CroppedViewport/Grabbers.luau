@@ -152,15 +152,15 @@ local function GrabDragger(props: GenericGrabberProps)
 		(2 * props.AnchorPoint.Y) - 1
 	)
 
-	local function onDragStart(rbx, input)
-		props.RootProps.OnDragStart(rbx, input, direction)
-	end
-
-	local function onDrag(rbx, input)
-		props.RootProps.OnDrag(rbx, input, direction)
-	end
-
-	local dragger = Hooks.useMouseDrag(onDrag, nil, onDragStart, props.RootProps.OnDragFinish)
+	local dragger = Hooks.useMouseDrag({
+		onDragCallback = function(rbx, input)
+			props.RootProps.OnDrag(rbx, input, direction)
+		end,
+		onBeganCallback = function(rbx, input)
+			props.RootProps.OnDragStart(rbx, input, direction)
+		end,
+		onEndedCallback = props.RootProps.OnDragFinish,
+	})
 
 	if props.RootProps.Disabled and dragger.isActive() then
 		dragger.cancel()
