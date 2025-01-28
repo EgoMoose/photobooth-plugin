@@ -12,6 +12,7 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
@@ -83,7 +84,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 	)
 
 	local focusAction: PluginAction
-	local fullscreenAction: PluginAction
+	local fullscreenAction: PluginAction?
 	local actionTrove = Trove.new()
 
 	local function onThemeChanged()
@@ -101,15 +102,17 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			)
 		)
 
-		fullscreenAction = actionTrove:Add(
-			plugin:CreatePluginAction(
-				"egomoose_photobooth_fullscreen_action",
-				"Photobooth Viewport Fullscreen",
-				"Toggles between capturing the full viewport or a cropped portion of it.",
-				`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
-				true
+		if Screenshot.isFullscreenAllowed() then
+			fullscreenAction = actionTrove:Add(
+				plugin:CreatePluginAction(
+					"egomoose_photobooth_fullscreen_action",
+					"Photobooth Viewport Fullscreen",
+					"Toggles between capturing the full viewport or a cropped portion of it.",
+					`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
+					true
+				)
 			)
-		)
+		end
 	end
 
 	onThemeChanged()
@@ -155,14 +158,16 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		end, { isEnabled })
 
 		React.useEffect(function()
-			local connection = fullscreenAction.Triggered:Connect(function()
-				if isEnabled then
-					setIsFullscreen(not isFullscreen)
-				end
-			end)
-
+			local trove = Trove.new()
+			if fullscreenAction then
+				trove:Add(fullscreenAction.Triggered:Connect(function()
+					if isEnabled then
+						setIsFullscreen(not isFullscreen)
+					end
+				end))
+			end
 			return function()
-				connection:Disconnect()
+				trove:Destroy()
 			end
 		end, { isEnabled, isFullscreen })
 		
