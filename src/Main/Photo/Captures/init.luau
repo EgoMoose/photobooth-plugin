@@ -39,22 +39,16 @@ end
 -- Public
 
 export type UICaptureTypes = "NoBackground" | "AlphaMask"
-export type ViewportCaptureTypes = "Unmodified" | "AlphaMask" | "NoSkybox"
+export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
 
 local captureTypes = {
 	UserInterface = {
-		NoBackground = wrap(require(script.UserInterface.ReverseBlend)),
-		AlphaMask = wrap(require(script.UserInterface.AlphaMask)),
+		NoBackground = wrap(require(script.CaptureTypes.UserInterface.ReverseBlend)),
+		AlphaMask = wrap(require(script.CaptureTypes.UserInterface.AlphaMask)),
 	},
 	Viewport = {
-		Unmodified = wrap(require(script.Viewport.Unmodified)),
-		AlphaMask = wrap(require(script.Viewport.AlphaMask)),
-		NoSkybox = wrap(require(script.Viewport.ReverseBlend)),
-
-		-- FogAlpha = wrap(require(script.Viewport.FogAlpha)),
-		-- ReverseBlend = wrap(require(script.Viewport.ReverseBlend)),
-		-- LeastSquares = wrap(require(script.Viewport.LeastSquares)),
-		-- ReverseBlendLeastSquares = wrap(require(script.Viewport.ReverseBlendLeastSquares)),
+		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
+		NoSkybox = wrap(require(script.CaptureTypes.Viewport.ReverseBlend)),
 	},
 }
 

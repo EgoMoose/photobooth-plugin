@@ -8,8 +8,8 @@ local Screenshot = require(photoRoot.Captures.Screenshot)
 local SceneControl = require(photoRoot.SceneControl)
 local UIBounds = require(photoRoot.Tools.UIBounds)
 
-local composersRoot = script:FindFirstAncestor("Captures").Composers
-local reverseBlend = require(composersRoot.Parallel.ReverseBlend)
+local capturesRoot = script:FindFirstAncestor("Captures")
+local reverseBlend = require(capturesRoot.Composers.Parallel.ReverseBlend)
 
 local function operation(uiBounds: UIBounds.UIBounds, trove: Trove.Trove)
 	local targetRect = uiBounds:GetRect()

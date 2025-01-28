@@ -9,8 +9,8 @@ local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
-local composersRoot = script:FindFirstAncestor("Captures").Composers
-local reverseBlend = require(composersRoot.Parallel.ReverseBlend)
+local capturesRoot = script:FindFirstAncestor("Captures")
+local reverseBlend = require(capturesRoot.Composers.Parallel.ReverseBlend)
 
 type Background = Background.Background
 
