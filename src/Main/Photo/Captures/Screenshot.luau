@@ -10,6 +10,8 @@ local Image = require(pluginRoot.Utilities.Image)
 
 local Screenshot = {}
 
+local ALLOW_FULLSCREEN = true
+
 local bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
@@ -51,28 +53,6 @@ local function screenshot(rect: Rect?)
 	return img
 end
 
-local function validate(rect: Rect)
-	-- first check if our target rect is greater than 1024x1024
-	if rect.Width > 1024 or rect.Height > 1024 then
-		return false
-	end
-
-	--[[
-	-- DISABLED
-	-- this is turned off due to OS scaling also needed to get the correct viewport size
-	-- ultimately it is not needed b/c Image.fromEditableImage will clamp the rect 
-
-	-- next check that our target rect is entirely contained in the viewport
-	local viewportSize = workspace.CurrentCamera.ViewportSize
-	local function isInViewport(position: Vector2)
-		return position.X >= 0 and position.X <= viewportSize.X and position.Y >= 0 and position.Y <= viewportSize.Y
-	end
-
-	return isInViewport(rect.Min) and isInViewport(rect.Max)
-	--]]
-	return true
-end
-
 -- Public
 
 function Screenshot.calculateScaleOS()
@@ -83,18 +63,22 @@ function Screenshot.calculateScaleOS()
 	return scale
 end
 
-function Screenshot.isViewportRect(rect: Rect)
+function Screenshot.isFullscreenAllowed()
+	return ALLOW_FULLSCREEN
+end
+
+function Screenshot.isFullscreenRect(rect: Rect)
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
-	return rect.Min == Vector2.zero and rect.Max == viewportSize
+	return ALLOW_FULLSCREEN and rect.Min == Vector2.zero and rect.Max == viewportSize
 end
 
 function Screenshot.rect(rect: Rect)
-	if Screenshot.isViewportRect(rect) then
+	if Screenshot.isFullscreenRect(rect) then
 		return screenshot()
 	else
 		assert(
-			validate(rect),
-			"Capture target is being clipped by the viewport or is larger than 1024 in width / height."
+			not (rect.Width > Image.MAX_EDIT_IMAGE_SIZE.X or rect.Height > Image.MAX_EDIT_IMAGE_SIZE.Y),
+			`Capture target is larger than {Image.MAX_EDIT_IMAGE_SIZE.X} x {Image.MAX_EDIT_IMAGE_SIZE.Y}.`
 		)
 
 		return screenshot(rect)

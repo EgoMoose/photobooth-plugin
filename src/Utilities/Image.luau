@@ -204,8 +204,8 @@ end
 function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableImage, position: Vector2, size: Vector2)
 	size = (position + size):Max(editableImage.Size) - position
 
-	local dx = math.ceil(size.X / 1024)
-	local dy = math.ceil(size.Y / 1024)
+	local dx = math.ceil(size.X / MAX_EDIT_IMAGE_WIDTH)
+	local dy = math.ceil(size.Y / MAX_EDIT_IMAGE_HEIGHT)
 
 	for x = 1, dx do
 		for y = 1, dy do

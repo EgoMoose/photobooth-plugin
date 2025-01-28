@@ -72,7 +72,7 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local trove = createIsCapturingTrove()
 
 	local hide = {}
-	if not Screenshot.isViewportRect(rect) then
+	if not Screenshot.isFullscreenRect(rect) then
 		local _success = pcall(function()
 			local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
 			local app = folder and folder:FindFirstChild("ViewportApp")
