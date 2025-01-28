@@ -17,6 +17,10 @@ export type Image = typeof(setmetatable(
 
 -- CONSTANTS
 
+local MAX_EDIT_IMAGE_SIZE = Vector2.new(1024, 1024)
+local MAX_EDIT_IMAGE_WIDTH = MAX_EDIT_IMAGE_SIZE.X
+local MAX_EDIT_IMAGE_HEIGHT = MAX_EDIT_IMAGE_SIZE.Y
+
 local NEIGHBOR_OFFSETS: { { number } } = {
 	{ -1, -1 },
 	{ 0, -1 },
@@ -27,6 +31,8 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 	{ 0, 1 },
 	{ 1, 1 },
 }
+
+ImageClass.MAX_EDIT_IMAGE_SIZE = MAX_EDIT_IMAGE_SIZE
 
 -- Constructors
 
@@ -44,19 +50,22 @@ function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	local origin = if crop then crop.Min:Min(fullSize) else Vector2.zero
 	local cropSize = if crop then (crop.Max - crop.Min):Min(fullSize) else fullSize
 
-	if cropSize.X > 1024 or cropSize.Y > 1024 then
-		-- if the input editable image is larger than 1024 x 1024 then we get an error when trying to read the pixel buffer
+	if cropSize.X > MAX_EDIT_IMAGE_WIDTH or cropSize.Y > MAX_EDIT_IMAGE_HEIGHT then
+		-- if the input editable image is larger than MAX_EDIT_IMAGE_SIZE then we get an error when trying to read the pixel buffer
 		-- as a result we need to read the buffer in chunks and then put it together again into its full size (very cool, thanks Roblox)
 
 		local resultBuffer = buffer.create(cropSize.X * cropSize.Y * 4)
 
-		local dx = math.ceil(cropSize.X / 1024)
-		local dy = math.ceil(cropSize.Y / 1024)
+		local dx = math.ceil(cropSize.X / MAX_EDIT_IMAGE_WIDTH)
+		local dy = math.ceil(cropSize.Y / MAX_EDIT_IMAGE_HEIGHT)
 
 		for x = 1, dx do
 			for y = 1, dy do
-				local offset = Vector2.new((x - 1) * 1024, (y - 1) * 1024)
-				local size = Vector2.new(math.min(1024, cropSize.X - offset.X), math.min(1024, cropSize.Y - offset.Y))
+				local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+				local size = Vector2.new(
+					math.min(MAX_EDIT_IMAGE_WIDTH, cropSize.X - offset.X),
+					math.min(MAX_EDIT_IMAGE_HEIGHT, cropSize.Y - offset.Y)
+				)
 
 				local chunkBuffer = editableImage:ReadPixelsBuffer(origin + offset, size)
 				for sourceY = 1, size.Y do
@@ -110,6 +119,10 @@ function ImageClass.Crop(self: Image, rect: Rect)
 	end
 
 	return ImageClass.fromBuffer(targetBuffer, Vector2.new(clampedWidth, clampedHeight))
+end
+
+function ImageClass.GetSize(self: Image)
+	return self.size
 end
 
 function ImageClass.GetWidth(self: Image)
@@ -188,8 +201,11 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 
 	for x = 1, dx do
 		for y = 1, dy do
-			local offset = Vector2.new((x - 1) * 1024, (y - 1) * 1024)
-			local cropSize = Vector2.new(math.min(1024, size.X - offset.X), math.min(1024, size.Y - offset.Y))
+			local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+			local cropSize = Vector2.new(
+				math.min(MAX_EDIT_IMAGE_WIDTH, size.X - offset.X),
+				math.min(MAX_EDIT_IMAGE_HEIGHT, size.Y - offset.Y)
+			)
 			local cropImage = self:Crop(Rect.new(offset, offset + cropSize))
 			editableImage:WritePixelsBuffer(position + offset, cropSize, cropImage.buffer)
 		end
