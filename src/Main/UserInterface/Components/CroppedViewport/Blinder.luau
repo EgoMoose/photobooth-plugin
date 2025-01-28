@@ -9,6 +9,7 @@ type Props = {
 	Size: UDim2,
 
 	MarginBump: number,
+	OverlapBump: number,
 
 	Transparency: number,
 	Color: Color3,
@@ -70,7 +71,7 @@ local function Blinder(props: Props)
 				centerYScale,
 				centerYOffset
 			),
-			Size = UDim2.new(2, 0, size.Y.Scale, size.Y.Offset - props.MarginBump * 2),
+			Size = UDim2.new(2, 0, size.Y.Scale, size.Y.Offset + (props.OverlapBump - props.MarginBump) * 2),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
@@ -83,7 +84,7 @@ local function Blinder(props: Props)
 				centerYScale,
 				centerYOffset
 			),
-			Size = UDim2.new(2, 0, size.Y.Scale, size.Y.Offset - props.MarginBump * 2),
+			Size = UDim2.new(2, 0, size.Y.Scale, size.Y.Offset + (props.OverlapBump - props.MarginBump) * 2),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
