@@ -10,7 +10,7 @@ local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
 
 local capturesRoot = script:FindFirstAncestor("Captures")
-local reverseBlend = require(capturesRoot.Composers.Parallel.ReverseBlend)
+local Composers = require(capturesRoot.Composers)
 
 type Background = Background.Background
 
@@ -53,7 +53,7 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	return reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	return Composers.reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
 end
 
 return operation

@@ -9,7 +9,7 @@ local SceneControl = require(photoRoot.SceneControl)
 local UIBounds = require(photoRoot.Tools.UIBounds)
 
 local capturesRoot = script:FindFirstAncestor("Captures")
-local reverseBlend = require(capturesRoot.Composers.Parallel.ReverseBlend)
+local Composers = require(capturesRoot.Composers)
 
 local function operation(uiBounds: UIBounds.UIBounds, trove: Trove.Trove)
 	local targetRect = uiBounds:GetRect()
@@ -25,7 +25,7 @@ local function operation(uiBounds: UIBounds.UIBounds, trove: Trove.Trove)
 	local colorCorrection = Instance.new("ColorCorrectionEffect")
 	trove:Add(colorCorrection)
 
-	return reverseBlend(onWhite, onBlack, nil, colorCorrection)
+	return Composers.reverseBlend(onWhite, onBlack, nil, colorCorrection)
 end
 
 return operation

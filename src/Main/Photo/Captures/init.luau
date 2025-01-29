@@ -4,8 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local composersRoot = script.Composers
-local alphaBleed = require(composersRoot.Parallel.AlphaBleed)
+local Composers = require(script.Composers)
 
 -- Private
 
@@ -19,7 +18,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for i, img in results do
-			results[i] = alphaBleed(img)
+			results[i] = Composers.alphaBleed(img)
 		end
 		return results
 	end
