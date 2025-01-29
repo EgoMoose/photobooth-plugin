@@ -77,7 +77,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 
 	local viewportSize = props.ViewportSize
-	local scaledViewport = viewportSize * scaleOS
+	local scaledViewport = Vector2.new(math.round(viewportSize.X * scaleOS.X), math.round(viewportSize.Y * scaleOS.Y))
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
 
