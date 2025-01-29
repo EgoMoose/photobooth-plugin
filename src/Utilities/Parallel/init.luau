@@ -188,16 +188,24 @@ function ParallelClass.WorkDeferred<T..., U...>(self: Parallel<T..., U...>)
 	self.isWorking = true
 
 	local results
+	local success, err: string?
 	local complete = false
 	local thread = coroutine.running()
 	task.defer(function()
-		results = work(self)
+		success, err = pcall(function()
+			results = work(self)
+		end)
+
 		complete = true
 		task.spawn(thread)
 	end)
 
 	while not complete do
 		coroutine.yield()
+	end
+
+	if not success then
+		error(err)
 	end
 
 	self.isWorking = false
