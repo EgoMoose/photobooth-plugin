@@ -1,6 +1,6 @@
 --!strict
 
-return function(script: Script)
+return function(script: LuaSourceContainer)
 	local actor = assert(script:GetActor(), "No actor found.")
 	local module = assert(actor.Parent and actor.Parent.Parent, "No module found.")
 	local resultsBinding = assert(module:FindFirstChild("Results"), "Not Results instance found.")
