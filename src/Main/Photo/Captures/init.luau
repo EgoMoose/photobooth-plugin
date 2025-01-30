@@ -42,12 +42,12 @@ export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
 
 local captureTypes = {
 	UserInterface = {
-		NoBackground = wrap(require(script.CaptureTypes.UserInterface.ReverseBlend)),
+		NoBackground = wrap(require(script.CaptureTypes.UserInterface.NoBackground)),
 		AlphaMask = wrap(require(script.CaptureTypes.UserInterface.AlphaMask)),
 	},
 	Viewport = {
 		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
-		NoSkybox = wrap(require(script.CaptureTypes.Viewport.ReverseBlend)),
+		NoSkybox = wrap(require(script.CaptureTypes.Viewport.NoSkybox)),
 	},
 }
 
