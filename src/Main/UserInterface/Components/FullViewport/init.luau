@@ -120,6 +120,10 @@ type HoverFadeProps = {
 }
 
 local function HoverFade(props: HoverFadeProps)
+	if props.HoverOnTransparency == props.HoverOffTransparency then
+		return React.createElement(React.Fragment, nil, props.children)
+	end
+
 	local goal, setGoal = React.useBinding(props.HoverOffTransparency)
 	local transparency, setTransparency = Hooks.useSpring(goal)
 
