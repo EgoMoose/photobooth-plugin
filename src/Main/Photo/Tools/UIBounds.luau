@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local RectHelper = require(pluginRoot.Utilities.RectHelper)
+local RenderRect = require(pluginRoot.Utilities.RenderRect)
 
 local ALWAYS_CLIPPED = true
 local ALWAYS_CLIP_TEXT = true
@@ -195,7 +195,7 @@ local function getBoundingRect(qualified: { GuiObject }): Rect
 		min = min:Min(corners[i])
 	end
 
-	return RectHelper.fromAbs(min, max - min)
+	return RenderRect.fromAbs(min, max - min)
 end
 
 local function getMinZIndex(qualified: { GuiObject }): number
@@ -242,7 +242,7 @@ end
 -- Public
 
 function UIBoundsClass.GetRect(self: UIBounds)
-	return RectHelper.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize)
+	return RenderRect.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize)
 end
 
 function UIBoundsClass.SetColor(self: UIBounds, color: Color3)

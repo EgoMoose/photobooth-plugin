@@ -2,7 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
-local RectHelper = require(pluginRoot.Utilities.RectHelper)
+local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Image = require(pluginRoot.Utilities.Image)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
@@ -102,14 +102,14 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	-- this is what renders
 	local lenseAbsSize = useLenseSize(size, viewportSize, 1 / scaleOS)
 	local lenseAbsPosition = ((viewportSize - lenseAbsSize) / 2):Floor()
-	local lenseRect = RectHelper.fromAbs(lenseAbsPosition, lenseAbsSize)
+	local lenseRect = RenderRect.fromAbs(lenseAbsPosition, lenseAbsSize)
 	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
 	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
 	-- this is used for displaying dimensions + capture rect
 	local scaledLenseAbsSize = lenseAbsSize * scaleOS
 	local scaledLenseAbsPosition = ((scaledViewport - scaledLenseAbsSize) / 2):Floor()
-	local scaledLenseRect = RectHelper.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
+	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
 
 	React.useEffect(function()
