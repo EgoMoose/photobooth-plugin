@@ -107,7 +107,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
 	-- this is used for displaying dimensions + capture rect
-	local scaledLenseAbsSize = lenseAbsSize * scaleOS
+	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1))
 	local scaledLenseAbsPosition = ((scaledViewport - scaledLenseAbsSize) / 2):Floor()
 	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)

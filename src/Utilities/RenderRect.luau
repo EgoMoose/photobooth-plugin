@@ -7,13 +7,13 @@
 local RenderRect = {}
 
 function RenderRect.fromAbs(position: Vector2, size: Vector2)
-	local px = math.round(position.X)
-	local py = math.round(position.Y)
+	local minX = math.round(position.X)
+	local minY = math.round(position.Y)
 
-	local sx = math.ceil(math.floor(position.X) + size.X - px)
-	local sy = math.ceil(math.floor(position.Y) + size.Y - py)
+	local maxX = math.round(position.X + size.X)
+	local maxY = math.round(position.Y + size.Y)
 
-	return Rect.new(px, py, px + sx, py + sy)
+	return Rect.new(minX, minY, maxX, maxY)
 end
 
 function RenderRect.fromRect(rect: Rect)
