@@ -45,7 +45,15 @@ end
 
 local function getRectFromGuiObject(subject: GuiObject)
 	local absPosition = subject.AbsolutePosition
-	return Rect.new(absPosition:Ceil(), (absPosition + subject.AbsoluteSize):Ceil())
+	local absSize = subject.AbsoluteSize
+
+	local minX = math.round(absPosition.X)
+	local minY = math.round(absPosition.Y)
+
+	local maxX = math.round(absPosition.X + absSize.X)
+	local maxY = math.round(absPosition.Y + absSize.Y)
+
+	return Rect.new(minX, minY, maxX, maxY)
 end
 
 -- Capture
