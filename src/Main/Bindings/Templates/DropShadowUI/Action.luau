@@ -33,10 +33,10 @@ local folder = screen.CaptureFolder
 
 -- Helpers
 
--- the box blur implementation in this code is based of the explanation in this video
--- https://www.youtube.com/watch?v=4Eh0y3LHTNU
-
 local function summedBuffer(imgBuffer: buffer, width: number, height: number)
+	-- use the "integral image" / "summed-area table" data structure
+	-- to quickly read kernel for a box blur
+
 	-- we store the sums in a buffer filled with u32s which does mean there could be a size limit
 	-- sqrt(2^32 / 256) = 4096
 
