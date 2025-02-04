@@ -18,6 +18,7 @@ local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Hooks = require(script.Hooks)
+local Icons = require(script.Icons)
 local Constants = require(script.Constants)
 
 local Gallery = require(script.Components.Gallery)
@@ -25,6 +26,13 @@ local FullViewport = require(script.Components.FullViewport)
 local CroppedViewport = require(script.Components.CroppedViewport)
 
 local UserInterface = {}
+
+-- Private
+
+local function getIcon(iconName: string)
+	local theme = settings().Studio.Theme
+	return assert(Icons[theme.Name:lower()][iconName] :: string?)
+end
 
 -- Public
 
@@ -37,8 +45,7 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 	)
 
 	local function onThemeChanged()
-		local theme = settings().Studio.Theme
-		captureButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].UserInterfacePluginButton}`
+		captureButton.Icon = getIcon("ui-plugin-button")
 	end
 
 	onThemeChanged()
@@ -88,8 +95,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 	local actionTrove = Trove.new()
 
 	local function onThemeChanged()
-		local theme = settings().Studio.Theme
-		openButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].CameraPluginButton}`
+		openButton.Icon = getIcon("camera-plugin-button")
 		actionTrove:Clean()
 
 		focusAction = actionTrove:Add(
@@ -97,7 +103,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 				"egomoose_photobooth_focus_action",
 				"Photobooth Viewport Focus",
 				"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
-				`rbxassetid://{Constants.Icons[theme.Name].FocusPluginAction}`,
+				getIcon("focus-plugin-action"),
 				true
 			)
 		)
@@ -108,7 +114,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					"egomoose_photobooth_fullscreen_action",
 					"Photobooth Viewport Fullscreen",
 					"Toggles between capturing the full viewport or a cropped portion of it.",
-					`rbxassetid://{Constants.Icons[theme.Name].FullscreenPluginAction}`,
+					getIcon("fullscreen-plugin-action"),
 					true
 				)
 			)
@@ -213,8 +219,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	)
 
 	local function onThemeChanged()
-		local theme = settings().Studio.Theme
-		openButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].GalleryPluginButton}`
+		openButton.Icon = getIcon("gallery-plugin-button")
 	end
 
 	onThemeChanged()
@@ -296,8 +301,7 @@ function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
 	)
 
 	local function onThemeChanged()
-		local theme = settings().Studio.Theme
-		importButton.Icon = `rbxassetid://{Constants.Icons[theme.Name].ImportPluginButton}`
+		importButton.Icon = getIcon("import-plugin-button")
 	end
 
 	onThemeChanged()
