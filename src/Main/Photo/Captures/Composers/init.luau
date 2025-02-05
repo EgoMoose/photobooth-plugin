@@ -1,8 +1,10 @@
 --!strict
 
-local rootFolder = script.Parallel
+local serialFolder = script.Serial
+local parallelFolder = script.Parallel
 
 return {
-	alphaBleed = require(rootFolder.AlphaBleed),
-	reverseBlend = require(rootFolder.ReverseBlend),
+	alphaBleed = require(parallelFolder.AlphaBleed),
+	reverseBlend = require(parallelFolder.ReverseBlend),
+	fullyOpaque = require(serialFolder.FullyOpaque),
 }
