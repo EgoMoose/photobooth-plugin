@@ -66,7 +66,9 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 				end
 			end
 
-			copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+			if contributing > 0 then
+				copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+			end
 		end
 
 		for _ = 1, length do
