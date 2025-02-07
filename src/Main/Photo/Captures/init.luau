@@ -4,7 +4,9 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
+local Configuration = require(script.Parent.Configuration)
 local Composers = require(script.Composers)
+local Types = require(script.Types)
 
 -- Private
 
@@ -17,8 +19,10 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 
 	local function wrapped(...: T...)
 		local results = { callback(...) }
-		for i, img in results do
-			results[i] = Composers.alphaBleed(img)
+		if Configuration.get().AlphaBleedingEnabled then
+			for i, img in results do
+				results[i] = Composers.alphaBleed(img)
+			end
 		end
 		return results
 	end
@@ -37,8 +41,8 @@ end
 
 -- Public
 
-export type UICaptureTypes = "NoBackground" | "AlphaMask"
-export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
+export type UICaptureTypes = Types.UICaptureTypes
+export type ViewportCaptureTypes = Types.ViewportCaptureTypes
 
 local captureTypes = {
 	UserInterface = {
@@ -53,12 +57,10 @@ local captureTypes = {
 
 return {
 	UserInterface = {
-		Default = "NoBackground" :: UICaptureTypes,
 		Order = getOrder(captureTypes.UserInterface),
 		Processors = captureTypes.UserInterface,
 	},
 	Viewport = {
-		Default = "NoSkybox" :: ViewportCaptureTypes,
 		Order = getOrder(captureTypes.Viewport),
 		Processors = captureTypes.Viewport,
 	},
