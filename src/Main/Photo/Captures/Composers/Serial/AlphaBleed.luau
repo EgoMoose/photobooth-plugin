@@ -4,7 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Deque = require(pluginRoot.Packages.Deque)
 
-local function alphaBleedSerial(img: Image.Image, thickness: number)
+local function alphaBleedSerial(img: Image.Image)
 	local copy = img:Clone()
 	local width, height = copy.size.X, copy.size.Y
 
@@ -39,7 +39,7 @@ local function alphaBleedSerial(img: Image.Image, thickness: number)
 		end
 	end
 
-	for _ = 1, thickness do
+	while true do
 		local length = queue:getLength()
 		if length == 0 then
 			break
