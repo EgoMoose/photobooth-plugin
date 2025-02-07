@@ -3,14 +3,10 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
-local Deque = require(pluginRoot.Packages.Deque)
 
-local function doWork(buffer: buffer, size: Vector2) end
-
-local required = {
-	script = script,
-	callback = doWork,
-}
+local HAS_VISITED = bit32.lshift(1, 0)
+local CAN_SAMPLE = bit32.lshift(1, 1)
+local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
 local function integralImgAlphaBuffer(img: Image.Image)
 	local width = img:GetWidth()
@@ -68,36 +64,61 @@ local function integralImgAlphaBuffer(img: Image.Image)
 	return readRadius
 end
 
-local function alphaBleedParallel(img: Image.Image)
-	local scheduler = Parallel.new(32, required)
+local function doWork(chunkBuffer: buffer, chunkSize: Vector2, fromIndex: number)
+	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
+	local readRadius = integralImgAlphaBuffer(chunkImg)
 
-	local readAlphaCountRadius = integralImgAlphaBuffer(img)
+	local height = chunkImg.size.Y
+	local width = chunkImg.size.X
+	local visited = buffer.create(width * height)
+	local pending = {}
 
-	local visited = {}
-	local canSample = {}
-	local queue = Deque.raw({})
-
-	for y = 1, img:GetHeight() do
-		for x = 1, img:GetWidth() do
-			local pixelIndex = img:GetPixelIndex(x, y)
-			local _, _, _, alpha = img:GetRGBA255(pixelIndex)
+	for y = 1, height do
+		for x = 1, width do
+			local index = chunkImg:GetPixelIndex(x, y)
+			local _, _, _, alpha = chunkImg:GetRGBA255(index)
 
 			if alpha ~= 0 then
-				visited[pixelIndex] = true
-				canSample[pixelIndex] = true
+				buffer.writeu8(visited, index - 1, BOTH)
 				continue
 			end
 
-			if readAlphaCountRadius(x, y, 1) > 0 then
-				visited[pixelIndex] = true
-				queue:pushBack(pixelIndex)
+			if readRadius(x, y, 1) > 0 then
+				table.insert(pending, index + fromIndex - 1)
+				buffer.writeu8(visited, index - 1, HAS_VISITED)
 			end
 		end
 	end
 
-	local packedResults = scheduler:WorkDeferred()
-
-	return img
+	return visited, pending
 end
 
-return Parallel.cast(required, alphaBleedParallel)
+local required = {
+	script = script,
+	callback = doWork,
+}
+
+local function firstPass(img: Image.Image)
+	local scheduler = Parallel.new(32, required)
+
+	for i, chunk in img:Split(scheduler:GetActorCount()) do
+		scheduler:Schedule(chunk.buffer, chunk.size, chunk.fromPixelIndex)
+	end
+
+	local packedResults = scheduler:WorkDeferred()
+	scheduler:Destroy()
+
+	local pending = {}
+	local copyIndex = 0
+	local visited = buffer.create(img:GetNumberOfPixels())
+	for _, unpackResult in packedResults do
+		local visitedStream, pendingStream = unpackResult()
+		buffer.copy(visited, copyIndex, visitedStream)
+		copyIndex = copyIndex + buffer.len(visitedStream)
+		table.move(pendingStream, 1, #pendingStream, #pending + 1, pending)
+	end
+
+	return visited, pending
+end
+
+return Parallel.cast(required, firstPass)

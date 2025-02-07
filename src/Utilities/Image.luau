@@ -158,22 +158,26 @@ end
 function ImageClass.GetNeighbors(self: Image, pixelIndex: number)
 	local width = self.size.X
 	local height = self.size.Y
-
 	local x, y = self:GetXYFromPixelIndex(pixelIndex)
 
-	local neighbors = {}
-	for _, offset in NEIGHBOR_OFFSETS do
-		local xn = x + offset[1]
-		local yn = y + offset[2]
+	local i = 0
+	return function()
+		while true do
+			i = i + 1
+			local offset = NEIGHBOR_OFFSETS[i]
 
-		if xn < 1 or xn > width or yn < 1 or yn > height then
-			continue
+			if not offset then
+				return nil :: any, nil :: any
+			end
+
+			local xn = x + offset[1]
+			local yn = y + offset[2]
+
+			if not (xn < 1 or xn > width or yn < 1 or yn > height) then
+				return i, self:GetPixelIndex(xn, yn)
+			end
 		end
-
-		table.insert(neighbors, self:GetPixelIndex(xn, yn))
 	end
-
-	return neighbors
 end
 
 function ImageClass.GetRGBA255(self: Image, pixelIndex: number): (number, number, number, number)
@@ -238,7 +242,12 @@ function ImageClass.Split(self: Image, n: number)
 			local chunkBuffer = buffer.create(chunkLen)
 			buffer.copy(chunkBuffer, 0, self.buffer, (fromPixelIndex - 1) * 4, chunkLen)
 
-			table.insert(chunks, ImageClass.fromBuffer(chunkBuffer, Vector2.new(width, (finish - start) + 1)))
+			table.insert(chunks, {
+				buffer = chunkBuffer,
+				size = Vector2.new(width, (finish - start) + 1),
+				fromPixelIndex = fromPixelIndex,
+				toPixelIndex = toPixelIndex,
+			})
 		end
 	end
 

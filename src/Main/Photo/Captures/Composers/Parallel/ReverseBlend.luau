@@ -46,7 +46,7 @@ local function doWork(
 			if compareByMargin(Wo, Wb, 0) and compareByMargin(Bo, Bb, 0) then
 				-- in both samples the pixels match their backgrounds perfectly
 				-- this means that this pixel is guaranteed to be a background pixel
-				onBlack:SetRGBA255(pixelIndex, 255, 255, 255, 0)
+				onBlack:SetRGBA255(pixelIndex, 0, 0, 0, 0)
 				continue
 			end
 
@@ -107,16 +107,16 @@ local function reverseBlendParallel(
 	local splitOnBlack = if onBlack then onBlack:Split(scheduler:GetActorCount()) else {}
 
 	for i = 1, #splitOnWhiteRetro do
-		local onWhiteRetroChunkImg = splitOnWhiteRetro[i]
-		local onBlackRetroChunkImg = splitOnBlackRetro[i]
-		local onBlackChunkImg = splitOnBlack[i]
+		local onWhiteRetroChunk = splitOnWhiteRetro[i]
+		local onBlackRetroChunk = splitOnBlackRetro[i]
+		local onBlackChunk = splitOnBlack[i]
 
 		scheduler:Schedule(
-			onWhiteRetroChunkImg.size,
+			onWhiteRetroChunk.size,
 			colorCorrection,
-			onWhiteRetroChunkImg.buffer,
-			onBlackRetroChunkImg.buffer,
-			if onBlackChunkImg then onBlackChunkImg.buffer else nil
+			onWhiteRetroChunk.buffer,
+			onBlackRetroChunk.buffer,
+			if onBlackChunk then onBlackChunk.buffer else nil
 		)
 	end
 

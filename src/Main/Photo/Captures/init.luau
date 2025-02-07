@@ -4,8 +4,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
-
 local Composers = require(script.Composers)
 
 -- Private
@@ -20,17 +18,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local function wrapped(...: T...)
 		local results = { callback(...) }
 		for i, img in results do
-			local dt1 = TimeIt(function()
-				--results[i] = Composers.alphaBleedSerial(img)
-			end)
-
-			print(dt1)
-
-			local dt2 = TimeIt(function()
-				Composers.alphaBleedParallel(img)
-			end)
-
-			print(dt2)
+			results[i] = Composers.alphaBleed(img)
 		end
 		return results
 	end

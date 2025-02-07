@@ -41,7 +41,7 @@ local function reverseBlendSerial(
 			if compareByMargin(Wo, Wb, 0) and compareByMargin(Bo, Bb, 0) then
 				-- in both samples the pixels match their backgrounds perfectly
 				-- this means that this pixel is guaranteed to be a background pixel
-				onBlack:SetRGBA255(pixelIndex, 255, 255, 255, 0)
+				onBlack:SetRGBA255(pixelIndex, 0, 0, 0, 0)
 				continue
 			end
 

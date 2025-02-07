@@ -147,7 +147,9 @@ local function work<T..., U...>(self: Parallel<T..., U...>)
 		end
 	end
 
-	self.schedules = {}
+	for actor, _ in self.schedules do
+		table.clear(self.schedules[actor])
+	end
 
 	local results = {}
 	for i, expect in expectations do
