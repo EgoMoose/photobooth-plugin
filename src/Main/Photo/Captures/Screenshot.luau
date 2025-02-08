@@ -9,6 +9,9 @@ local Future = require(pluginRoot.Utilities.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
 local Screenshot = {}
+
+local ALLOW_FULLSCREEN = true
+
 local bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
@@ -24,11 +27,11 @@ local function captureEditableImage()
 	local contentUri = contentUriFuture:expect()
 	local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(contentUri)) :: EditableImage
 
-	return editImage
+	return editImage, contentUri
 end
 
-local function screenshot(rect: Rect)
-	local editImage = captureEditableImage()
+local function screenshot(rect: Rect?)
+	local editImage, contentUri = captureEditableImage()
 
 	local bilinearScale = bilinearScaleContext:Use()
 	if bilinearScale then
@@ -40,7 +43,13 @@ local function screenshot(rect: Rect)
 	end
 
 	local img = Image.fromEditableImage(editImage, rect)
-	editImage:Destroy()
+
+	if rect then
+		editImage:Destroy()
+	else
+		img:SetTemplateUri(contentUri)
+	end
+
 	return img
 end
 
@@ -54,35 +63,26 @@ function Screenshot.calculateScaleOS()
 	return scale
 end
 
-function Screenshot.validate(rect: Rect)
-	-- first check if our target rect is greater than 1024x1024
-	if rect.Width > 1024 or rect.Height > 1024 then
-		return false
-	end
+function Screenshot.isFullscreenAllowed()
+	return ALLOW_FULLSCREEN
+end
 
-	--[[
-	-- DISABLED
-	-- this is turned off due to OS scaling also needed to get the correct viewport size
-	-- ultimately it is not needed b/c Image.fromEditableImage will clamp the rect 
-
-	-- next check that our target rect is entirely contained in the viewport
-	local viewportSize = workspace.CurrentCamera.ViewportSize
-	local function isInViewport(position: Vector2)
-		return position.X >= 0 and position.X <= viewportSize.X and position.Y >= 0 and position.Y <= viewportSize.Y
-	end
-
-	return isInViewport(rect.Min) and isInViewport(rect.Max)
-	--]]
-	return true
+function Screenshot.isFullscreenRect(rect: Rect)
+	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
+	return ALLOW_FULLSCREEN and rect.Min == Vector2.zero and rect.Max == viewportSize
 end
 
 function Screenshot.rect(rect: Rect)
-	assert(
-		Screenshot.validate(rect),
-		"Capture target is being clipped by the viewport or is larger than 1024 in width / height."
-	)
+	if Screenshot.isFullscreenRect(rect) then
+		return screenshot()
+	else
+		assert(
+			not (rect.Width > Image.MAX_EDIT_IMAGE_SIZE.X or rect.Height > Image.MAX_EDIT_IMAGE_SIZE.Y),
+			`Capture target is larger than {Image.MAX_EDIT_IMAGE_SIZE.X} x {Image.MAX_EDIT_IMAGE_SIZE.Y}.`
+		)
 
-	return screenshot(rect)
+		return screenshot(rect)
+	end
 end
 
 --

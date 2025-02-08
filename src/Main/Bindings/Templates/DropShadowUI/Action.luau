@@ -33,12 +33,18 @@ local folder = screen.CaptureFolder
 
 -- Helpers
 
--- the box blur implementation in this code is based of the explanation in this video
--- https://www.youtube.com/watch?v=4Eh0y3LHTNU
-
 local function summedBuffer(imgBuffer: buffer, width: number, height: number)
-	-- we store the sums in a buffer filled with u32s
-	-- this is okay b/c at worst the highest possible sum is 1024 * 1024 * 255
+	-- use the "integral image" / "summed-area table" data structure
+	-- to quickly read kernel for a box blur
+
+	-- we store the sums in a buffer filled with u32s which does mean there could be a size limit
+	-- sqrt(2^32 / 256) = 4096
+
+	-- we are assuming we're working w/ images w/ max dimensions of 1024 x 1024
+	-- however technically as long as the we have less than 4096^2 pixels then u32 is fine
+	-- it is worth considering memory here though, a single u32 takes 4 bytes so
+	-- total memory = (4 * 1024 * 1024) bytes which is ~ 4.2mb
+
 	local sumBuffer = buffer.create(width * height * 4 * 4)
 
 	local function readImg(x: number, y: number, channel: number)
