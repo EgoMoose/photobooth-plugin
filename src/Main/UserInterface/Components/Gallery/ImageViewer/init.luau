@@ -13,6 +13,9 @@ export type Props = {
 
 	EditableImage: EditableImage?,
 	EditableImageName: string,
+
+	BackgroundType: string,
+	SetBackgroundType: (string) -> (),
 }
 
 local function ImageViewer(props: Props)
@@ -42,6 +45,9 @@ local function ImageViewer(props: Props)
 
 			EditableImage = props.EditableImage,
 			EditableImageName = props.EditableImageName,
+
+			BackgroundType = props.BackgroundType,
+			SetBackgroundType = props.SetBackgroundType,
 		}),
 	})
 end

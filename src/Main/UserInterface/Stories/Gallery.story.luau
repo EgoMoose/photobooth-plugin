@@ -14,6 +14,7 @@ local CreateStory = require(stories.Helpers.CreateStory)
 local function Widget(props: { Size: UDim2 })
 	local theme = StudioComponents.useTheme()
 	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
+	local backgroundType, setBackgroundType = React.useState("Checkerboard")
 
 	return React.createElement("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -27,6 +28,9 @@ local function Widget(props: { Size: UDim2 })
 				print(details)
 				return true, 1234
 			end,
+
+			BackgroundType = backgroundType,
+			SetBackgroundType = setBackgroundType,
 
 			Disabled = disabled,
 		}),

@@ -25,11 +25,11 @@ def recolorFolder(folder_path, new_folder_path, r, g, b):
             recolored.save(os.path.join(new_folder_path, file_name))
 
 file_parent_path = os.path.join(os.path.abspath(__file__), os.path.pardir)
-output_folder_path = os.path.join(file_parent_path, "output")
+output_folder_path = os.path.join(file_parent_path, "asphalt", "processed")
 raw_path = os.path.join(file_parent_path, "raw")
 
 if os.path.isdir(output_folder_path):
-        shutil.rmtree(output_folder_path)
+    shutil.rmtree(output_folder_path)
 
 os.makedirs(output_folder_path)
 

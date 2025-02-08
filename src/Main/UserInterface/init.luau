@@ -31,7 +31,7 @@ local UserInterface = {}
 
 local function getIcon(iconName: string)
 	local theme = settings().Studio.Theme
-	return assert(Icons[theme.Name:lower()][iconName] :: string?)
+	return assert(Icons["processed"][theme.Name:lower()][iconName] :: string?)
 end
 
 -- Public
@@ -240,6 +240,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function GalleryApp(): React.ReactNode
+		local backgroundType, setBackgroundType = React.useState("Checkerboard")
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 
@@ -275,6 +276,9 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 				return result == Enum.CreateAssetResult.Success, value
 			end,
+
+			BackgroundType = backgroundType,
+			SetBackgroundType = setBackgroundType,
 
 			Disabled = isCapturing,
 		})
