@@ -3,8 +3,6 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 
-local TimeIt = require(pluginRoot.Utilities.TimeIt)
-
 local function integralImgAlphaBuffer(img: Image.Image)
 	local width = img:GetWidth()
 	local height = img:GetHeight()
@@ -26,22 +24,6 @@ local function integralImgAlphaBuffer(img: Image.Image)
 		buffer.writeu32(integralBuffer, i, value)
 	end
 
-	write(1, 1, readImg(1, 1))
-
-	for x = 2, width do
-		write(x, 1, readImg(x, 1) + read(x - 1, 1))
-	end
-
-	for y = 2, height do
-		write(1, y, readImg(1, y) + read(1, y - 1))
-	end
-
-	for x = 2, width do
-		for y = 2, height do
-			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
-		end
-	end
-
 	local function readClamped(x: number, y: number)
 		local cx = math.min(x, width)
 		local cy = math.min(y, height)
@@ -58,6 +40,22 @@ local function integralImgAlphaBuffer(img: Image.Image)
 			+ readClamped(x - radius - 1, y - radius - 1)
 	end
 
+	write(1, 1, readImg(1, 1))
+
+	for x = 2, width do
+		write(x, 1, readImg(x, 1) + read(x - 1, 1))
+	end
+
+	for y = 2, height do
+		write(1, y, readImg(1, y) + read(1, y - 1))
+	end
+
+	for x = 2, width do
+		for y = 2, height do
+			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
+		end
+	end
+
 	return readRadius
 end
 
@@ -72,73 +70,60 @@ local function alphaBleedSerial(img: Image.Image)
 	local pending = {}
 	local visited = buffer.create(width * height)
 
-	local readAlphaCountRadius
-	local dt1 = TimeIt(function()
-		readAlphaCountRadius = integralImgAlphaBuffer(copy)
-	end)
+	local readRadius = integralImgAlphaBuffer(copy)
 
-	print(dt1)
+	for y = 1, height do
+		for x = 1, width do
+			local index = copy:GetPixelIndex(x, y)
+			local _, _, _, alpha = copy:GetRGBA255(index)
 
-	local dt2 = TimeIt(function()
-		for y = 1, height do
-			for x = 1, width do
-				local index = copy:GetPixelIndex(x, y)
-				local _, _, _, alpha = copy:GetRGBA255(index)
+			if alpha ~= 0 then
+				buffer.writeu8(visited, index - 1, BOTH)
+				continue
+			end
 
-				if alpha ~= 0 then
-					buffer.writeu8(visited, index - 1, BOTH)
-					continue
-				end
-
-				if readAlphaCountRadius(x, y, 1) > 0 then
-					table.insert(pending, index)
-					buffer.writeu8(visited, index - 1, HAS_VISITED)
-				end
+			if readRadius(x, y, 1) > 0 then
+				table.insert(pending, index)
+				buffer.writeu8(visited, index - 1, HAS_VISITED)
 			end
 		end
-	end)
+	end
 
-	print(dt2)
+	while #pending > 0 do
+		local pendingNext = {}
 
-	local dt3 = TimeIt(function()
-		while #pending > 0 do
-			local pendingNext = {}
+		for i = 1, #pending do
+			local index = pending[i]
 
-			for i = 1, #pending do
-				local index = pending[i]
+			local rgb = { 0, 0, 0 }
+			local contributing = 0
 
-				local rgb = { 0, 0, 0 }
-				local contributing = 0
+			for _, neighborIndex in copy:GetNeighbors(index) do
+				if bit32.band(buffer.readu8(visited, neighborIndex - 1), CAN_SAMPLE) > 0 then
+					local r, g, b = copy:GetRGBA255(neighborIndex)
 
-				for _, neighborIndex in copy:GetNeighbors(index) do
-					if bit32.band(buffer.readu8(visited, neighborIndex - 1), CAN_SAMPLE) > 0 then
-						local r, g, b = copy:GetRGBA255(neighborIndex)
+					rgb[1] = rgb[1] + r
+					rgb[2] = rgb[2] + g
+					rgb[3] = rgb[3] + b
 
-						rgb[1] = rgb[1] + r
-						rgb[2] = rgb[2] + g
-						rgb[3] = rgb[3] + b
-
-						contributing = contributing + 1
-					elseif not (bit32.band(buffer.readu8(visited, neighborIndex - 1), HAS_VISITED) > 0) then
-						buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
-						table.insert(pendingNext, neighborIndex)
-					end
-				end
-
-				if contributing > 0 then
-					copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
+					contributing = contributing + 1
+				elseif not (bit32.band(buffer.readu8(visited, neighborIndex - 1), HAS_VISITED) > 0) then
+					buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
+					table.insert(pendingNext, neighborIndex)
 				end
 			end
 
-			for i = 1, #pending do
-				buffer.writeu8(visited, pending[i] - 1, BOTH)
+			if contributing > 0 then
+				copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
 			end
-
-			pending = pendingNext
 		end
-	end)
 
-	print(dt3)
+		for i = 1, #pending do
+			buffer.writeu8(visited, pending[i] - 1, BOTH)
+		end
+
+		pending = pendingNext
+	end
 
 	return copy
 end
