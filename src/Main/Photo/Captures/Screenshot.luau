@@ -8,11 +8,14 @@ local Context = require(pluginRoot.Utilities.Context)
 local Future = require(pluginRoot.Utilities.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
+local photoRoot = script:FindFirstAncestor("Photo")
+local Configuration = require(photoRoot.Configuration)
+
 local Screenshot = {}
 
 local ALLOW_FULLSCREEN = true
 
-local bilinearScaleContext = Context.new(nil :: Vector2?)
+local _bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
 
@@ -33,7 +36,15 @@ end
 local function screenshot(rect: Rect?)
 	local editImage, contentUri = captureEditableImage()
 
-	local bilinearScale = bilinearScaleContext:Use()
+	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
+	local scale = editImage.Size / viewportSize
+
+	if scale ~= Configuration.get().ScaleOS then
+		warn("OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.")
+		error("SKIP", 0)
+	end
+
+	local bilinearScale = nil --bilinearScaleContext:Use()
 	if bilinearScale then
 		editImage:DrawImageTransformed(Vector2.zero, bilinearScale, 0, editImage, {
 			CombineType = Enum.ImageCombineType.Overwrite,

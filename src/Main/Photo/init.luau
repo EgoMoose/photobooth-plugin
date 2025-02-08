@@ -62,7 +62,10 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 	trove:Destroy()
 
 	if not success then
-		error(err, 2)
+		if err ~= "SKIP" then
+			error(err, 2)
+		end
+		results = {}
 	end
 
 	return results
@@ -104,7 +107,10 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	trove:Destroy()
 
 	if not success then
-		error(err, 2)
+		if err ~= "SKIP" then
+			error(err, 2)
+		end
+		results = {}
 	end
 
 	return results
