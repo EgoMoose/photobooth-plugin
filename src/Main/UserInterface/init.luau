@@ -134,8 +134,13 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 		local isFullscreen, setIsFullscreen = React.useState(false)
 		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
+		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
 		openButton:SetActive(isEnabled)
+
+		React.useEffect(function()
+			Photo.setViewportApp(screenGuiRef.current)
+		end, { isEnabled })
 
 		React.useEffect(function()
 			local trove = Trove.new()
@@ -183,6 +188,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			Archivable = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
 				OnCapture = function(rect)

@@ -20,6 +20,7 @@ local UIHider = require(script.Tools.UIHider)
 export type Configuration = Configuration.Configuration
 
 local Photo = {}
+local viewportApp: LayerCollector?
 
 -- Private
 
@@ -72,14 +73,8 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local trove = createIsCapturingTrove()
 
 	local hide = {}
-	if not Screenshot.isFullscreenRect(rect) then
-		local _success = pcall(function()
-			local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
-			local app = folder and folder:FindFirstChild("ViewportApp")
-			if app and app:IsA("LayerCollector") then
-				table.insert(hide, app)
-			end
-		end)
+	if not Screenshot.isFullscreenRect(rect) and viewportApp then
+		table.insert(hide, viewportApp)
 	end
 
 	local uiHider = UIHider.new(hide, function(layerCollector)
@@ -119,6 +114,10 @@ end
 
 Photo.Flags = Flags
 Photo.Configuration = Configuration
+
+function Photo.setViewportApp(app: LayerCollector?)
+	viewportApp = app
+end
 
 function Photo.captureUI(subject: GuiObject, captureType: Captures.UICaptureTypes)
 	return captureUI(subject, Captures.UserInterface.Processors[captureType])
