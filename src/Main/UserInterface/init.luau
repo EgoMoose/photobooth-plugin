@@ -31,7 +31,7 @@ local UserInterface = {}
 
 local function getIcon(iconName: string)
 	local theme = settings().Studio.Theme
-	return assert(Icons[theme.Name:lower()][iconName] :: string?)
+	return assert(Icons["processed"][theme.Name:lower()][iconName] :: string?)
 end
 
 -- Public
@@ -134,8 +134,13 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 		local isFullscreen, setIsFullscreen = React.useState(false)
 		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
+		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
 		openButton:SetActive(isEnabled)
+
+		React.useEffect(function()
+			Photo.setViewportApp(screenGuiRef.current)
+		end, { isEnabled })
 
 		React.useEffect(function()
 			local trove = Trove.new()
@@ -183,6 +188,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			Archivable = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
 				OnCapture = function(rect)
@@ -240,6 +246,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function GalleryApp(): React.ReactNode
+		local backgroundType, setBackgroundType = React.useState("Checkerboard")
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 
@@ -275,6 +282,9 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 				return result == Enum.CreateAssetResult.Success, value
 			end,
+
+			BackgroundType = backgroundType,
+			SetBackgroundType = setBackgroundType,
 
 			Disabled = isCapturing,
 		})

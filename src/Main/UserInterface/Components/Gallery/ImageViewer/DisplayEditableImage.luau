@@ -4,6 +4,10 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 
+local uiRoot = script:FindFirstAncestor("UserInterface")
+local Hooks = require(uiRoot.Hooks)
+local Icons = require(uiRoot.Icons)
+
 export type Props = {
 	AnchorPoint: Vector2,
 	Position: UDim2,
@@ -11,11 +15,46 @@ export type Props = {
 
 	EditableImage: EditableImage,
 	EditableImageName: string,
+
+	BackgroundType: string,
+	SetBackgroundType: (string) -> (),
 }
+
+local function makeBackgroundTypeAction(text: string, backgroundType: string, setBackgroundType: (string) -> ())
+	local renderText = text
+	if text == backgroundType then
+		renderText = `>  {text}`
+	end
+
+	return {
+		Text = renderText,
+		Icon = Icons.menu[text:lower()],
+		OnTriggered = function()
+			setBackgroundType(text)
+		end,
+	}
+end
+
+local function usePluginMenu(backgroundType: string, setBackgroundType: (string) -> ())
+	return Hooks.usePluginMenu(React.useMemo(function()
+		return {
+			Title = "Photobooth",
+			Icon = "",
+
+			Actions = {
+				makeBackgroundTypeAction("Checkerboard", backgroundType, setBackgroundType),
+				makeBackgroundTypeAction("Black", backgroundType, setBackgroundType),
+				makeBackgroundTypeAction("White", backgroundType, setBackgroundType),
+				makeBackgroundTypeAction("None", backgroundType, setBackgroundType),
+			},
+		}
+	end, { backgroundType, setBackgroundType } :: { any }))
+end
 
 local function DisplayEditableImage(props: Props)
 	local theme = StudioComponents.useTheme()
 	local imgLabelRef = React.useRef(nil :: ImageLabel?)
+	local openMenu = usePluginMenu(props.BackgroundType, props.SetBackgroundType)
 
 	React.useEffect(function()
 		local imgLabel = imgLabelRef.current
@@ -24,7 +63,7 @@ local function DisplayEditableImage(props: Props)
 		end
 
 		imgLabel.ImageContent = Content.fromObject(props.EditableImage)
-	end, { imgLabelRef, props.EditableImage } :: { any })
+	end, { imgLabelRef.current, props.EditableImage } :: { any })
 
 	local size = props.EditableImage.Size
 	local aspectRatio = size.X / size.Y
@@ -41,13 +80,16 @@ local function DisplayEditableImage(props: Props)
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 		}, {
-			ImageLabel = React.createElement("ImageLabel", {
+			ImageLabel = React.createElement("ImageButton", {
 				ZIndex = 2,
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
 				ref = imgLabelRef,
+				[React.Event.MouseButton2Click] = function()
+					openMenu()
+				end,
 			}),
 			SizeConstraint = React.createElement("UISizeConstraint", {
 				MaxSize = size,
@@ -78,13 +120,13 @@ local function DisplayEditableImage(props: Props)
 				TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
 			}),
 
-			Grid = React.createElement("Frame", {
+			Background = React.createElement("Frame", {
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
 				ClipsDescendants = true,
 				ZIndex = 1,
 			}, {
-				Checkered = React.createElement("ImageLabel", {
+				Checkerboard = props.BackgroundType == "Checkerboard" and React.createElement("ImageLabel", {
 					BackgroundTransparency = 1,
 					Image = "rbxassetid://6032311304",
 					ScaleType = Enum.ScaleType.Tile,
@@ -92,6 +134,20 @@ local function DisplayEditableImage(props: Props)
 					Size = UDim2.new(1, 100, 1, 100),
 					Position = UDim2.fromOffset(-(size.X % 50) / 2, -(size.Y % 50) / 2),
 					ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+				}),
+
+				Black = props.BackgroundType == "Black" and React.createElement("Frame", {
+					BorderSizePixel = 0,
+					BackgroundTransparency = 0,
+					BackgroundColor3 = Color3.new(0, 0, 0),
+					Size = UDim2.fromScale(1, 1),
+				}),
+
+				White = props.BackgroundType == "White" and React.createElement("Frame", {
+					BorderSizePixel = 0,
+					BackgroundTransparency = 0,
+					BackgroundColor3 = Color3.new(1, 1, 1),
+					Size = UDim2.fromScale(1, 1),
 				}),
 			}),
 		}),

@@ -1,4 +1,4 @@
-asset_dir = "icons/output"
+asset_dir = "icons/asphalt"
 exclude_assets = []
 write_dir = "src/Main/UserInterface"
 
