@@ -4,6 +4,7 @@
 /placefiles
 
 /lune/**/*.png
+/icons/asphalt/processed
 
 sourcemap.json
 *.ds_store

@@ -12,21 +12,45 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Hooks = require(script.Hooks)
+local Icons = require(script.Icons)
 local Constants = require(script.Constants)
 
 local Gallery = require(script.Components.Gallery)
-local Viewport = require(script.Components.Viewport)
+local FullViewport = require(script.Components.FullViewport)
+local CroppedViewport = require(script.Components.CroppedViewport)
 
 local UserInterface = {}
 
+-- Private
+
+local function getIcon(iconName: string)
+	local theme = settings().Studio.Theme
+	return assert(Icons["processed"][theme.Name:lower()][iconName] :: string?)
+end
+
 -- Public
 
-function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolbarButton)
+function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
+	local captureButton = toolbar:CreateButton(
+		"egomoose_photobooth_capture_ui_button",
+		"Capture UI images",
+		"", "UI"
+	)
+
+	local function onThemeChanged()
+		captureButton.Icon = getIcon("ui-plugin-button")
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
+
 	local function getSelectedGuiObject()
 		local selection = SelectionService:Get()
 		local singleSelection = if #selection == 1 then selection[1] else nil
@@ -36,7 +60,7 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 	local selection: GuiObject?
 	local function refreshSelection()
 		selection = getSelectedGuiObject()
-		button.Enabled = not not selection
+		captureButton.Enabled = not not selection
 	end
 
 	refreshSelection()
@@ -44,7 +68,7 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 		refreshSelection()
 	end)
 
-	local clickConnection = button.Click:Connect(function()
+	local clickConnection = captureButton.Click:Connect(function()
 		if selection and not Photo.Flags.get("isCapturing") then
 			local captures = Photo.captureUI(selection, Photo.Configuration.get().UserInterfaceCaptureType)
 			local selection = Photo.export(captures, StarterGui)
@@ -58,16 +82,47 @@ function UserInterface.mountCaptureUIButton(plugin: Plugin, button: PluginToolba
 	end)
 end
 
-function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToolbarButton)
-	local focusAction = plugin:CreatePluginAction(
-		"photobooth_focus",
-		"Photobooth Focus",
-		"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport."
+function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
+	local openButton = toolbar:CreateButton(
+		"egomoose_photobooth_viewport_button", 
+		"Capture viewport images", 
+		"", "Viewport"
 	)
 
-	local function focusCurrentCameraToViewSize(viewportSize: Vector2)
-		return Camera.focus(workspace.CurrentCamera, SelectionService:Get(), viewportSize)
+	local focusAction: PluginAction
+	local fullscreenAction: PluginAction?
+	local actionTrove = Trove.new()
+
+	local function onThemeChanged()
+		openButton.Icon = getIcon("camera-plugin-button")
+		actionTrove:Clean()
+
+		focusAction = actionTrove:Add(
+			plugin:CreatePluginAction(
+				"egomoose_photobooth_focus_action",
+				"Photobooth Viewport Focus",
+				"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
+				getIcon("focus-plugin-action"),
+				true
+			)
+		)
+
+		if Screenshot.isFullscreenAllowed() then
+			fullscreenAction = actionTrove:Add(
+				plugin:CreatePluginAction(
+					"egomoose_photobooth_fullscreen_action",
+					"Photobooth Viewport Fullscreen",
+					"Toggles between capturing the full viewport or a cropped portion of it.",
+					getIcon("fullscreen-plugin-action"),
+					true
+				)
+			)
+		end
 	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local folder = Instance.new("Folder")
 	folder.Name = "EgoMoosePhotobooth"
@@ -77,12 +132,19 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 	local function ViewportApp(): React.ReactNode?
 		local isEnabled, setIsEnabled = React.useState(false)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
+		local isFullscreen, setIsFullscreen = React.useState(false)
+		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
+		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
-		button:SetActive(isEnabled)
+		openButton:SetActive(isEnabled)
+
+		React.useEffect(function()
+			Photo.setViewportApp(screenGuiRef.current)
+		end, { isEnabled })
 
 		React.useEffect(function()
 			local trove = Trove.new()
-			trove:Add(button.Click:Connect(function()
+			trove:Add(openButton.Click:Connect(function()
 				setIsEnabled(not isEnabled)
 			end))
 
@@ -90,6 +152,35 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 				trove:Destroy()
 			end
 		end)
+
+		React.useEffect(function()
+			local connection = focusAction.Triggered:Connect(function()
+				if isEnabled then
+					local focusLenseSize = focusLenseSizeRef.current
+					if focusLenseSize then
+						Camera.focus(workspace.CurrentCamera, SelectionService:Get(), focusLenseSize)
+					end
+				end
+			end)
+
+			return function()
+				connection:Disconnect()
+			end
+		end, { isEnabled })
+
+		React.useEffect(function()
+			local trove = Trove.new()
+			if fullscreenAction then
+				trove:Add(fullscreenAction.Triggered:Connect(function()
+					if isEnabled then
+						setIsFullscreen(not isFullscreen)
+					end
+				end))
+			end
+			return function()
+				trove:Destroy()
+			end
+		end, { isEnabled, isFullscreen })
 		
 		-- stylua: ignore
 		return isEnabled and React.createElement("ScreenGui", {
@@ -97,19 +188,17 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 			Archivable = false,
 			IgnoreGuiInset = true,
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			ref = screenGuiRef,
 		}, {
-			Content = React.createElement(Viewport, {
+			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 				end,
-				OnFocus = {
-					Trigger = focusAction.Triggered,
-					Callback = focusCurrentCameraToViewSize,
-				},
+				FocusLenseSizeRef = focusLenseSizeRef,
 				Disabled = isCapturing,
-			}),
+			})
 		})
 	end
 
@@ -122,12 +211,26 @@ function UserInterface.mountOpenViewportButton(plugin: Plugin, button: PluginToo
 
 	plugin.Unloading:Connect(function()
 		coreGuiRoot:unmount()
-		focusAction:Destroy()
+		actionTrove:Destroy()
 		folder:Destroy()
 	end)
 end
 
-function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginToolbarButton)
+function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
+	local openButton = toolbar:CreateButton(
+		"egomoose_photobooth_gallery_button",
+		"View photobooth images",
+		"", "Gallery"
+	)
+
+	local function onThemeChanged()
+		openButton.Icon = getIcon("gallery-plugin-button")
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
+
 	local info = DockWidgetPluginGuiInfo.new(
 		Enum.InitialDockState.Float, -- Widget will be initialized in floating panel
 		false, -- Widget will be initially enabled
@@ -143,11 +246,12 @@ function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginTool
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function GalleryApp(): React.ReactNode
+		local backgroundType, setBackgroundType = React.useState("Checkerboard")
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 
 		React.useEffect(function()
-			local buttonConnection = button.Click:Connect(function()
+			local buttonConnection = openButton.Click:Connect(function()
 				setIsEnabled(not dock.Enabled)
 			end)
 
@@ -162,7 +266,7 @@ function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginTool
 		end, {})
 
 		dock.Enabled = isEnabled
-		button:SetActive(isEnabled)
+		openButton:SetActive(isEnabled)
 
 		-- stylua: ignore
 		return isEnabled and React.createElement(Gallery, {
@@ -178,6 +282,9 @@ function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginTool
 
 				return result == Enum.CreateAssetResult.Success, value
 			end,
+
+			BackgroundType = backgroundType,
+			SetBackgroundType = setBackgroundType,
 
 			Disabled = isCapturing,
 		})
@@ -195,8 +302,24 @@ function UserInterface.mountOpenGalleryButton(plugin: Plugin, button: PluginTool
 	end)
 end
 
-function UserInterface.mountImportPngButton(plugin: Plugin, button: PluginToolbarButton)
-	local clickConnection = button.Click:Connect(function()
+function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
+	-- stylua: ignore
+	local importButton = toolbar:CreateButton(
+		"egomoose_photobooth_import_button",
+		"Import Png",
+		"", "Import"
+	)
+
+	local function onThemeChanged()
+		importButton.Icon = getIcon("import-plugin-button")
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
+
+	local clickConnection = importButton.Click:Connect(function()
+		importButton:SetActive(false)
+
 		-- only png is supported by Roblox currently
 		local files = (StudioService:PromptImportFiles({ "png" }) :: any) :: { File }
 		for _, file in files do

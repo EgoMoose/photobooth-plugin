@@ -3,6 +3,7 @@
 local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Trove = require(pluginRoot.Packages.Trove)
 local gt = require(pluginRoot.Packages.GreenTea)
 
@@ -30,11 +31,9 @@ local function captureViewport(rect: Rect, captureType: Captures.ViewportCapture
 	local viewportSize = camera.ViewportSize
 	local corner = ((viewportSize * scaleOS) - viewportSize) / 2
 
-	-- stylua: ignore
-	local scaledRect = Rect.new(
-		(rect.Min + corner):Ceil(),
-		(rect.Max + corner):Ceil()
-	)
+	local scaledRectAbsPosition = (rect.Min + corner)
+	local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
+	local scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
 
 	local prevCameraCF = camera.CFrame
 	local prevCameraType = camera.CameraType

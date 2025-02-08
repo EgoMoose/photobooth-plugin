@@ -15,6 +15,7 @@
         "insertable",
         "Interactable",
         "loadstring",
+        "lshift",
         "lucide",
         "Orthonormalize",
         "pcall",
@@ -35,6 +36,7 @@
         "Titlebar",
         "tonemapper",
         "Topbar",
+        "udim",
         "unhide",
         "writeu32",
         "writeu8"

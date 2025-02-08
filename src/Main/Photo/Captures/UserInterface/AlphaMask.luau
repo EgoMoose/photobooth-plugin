@@ -69,7 +69,7 @@ local function operation(uiBounds: UIBounds.UIBounds, trove: Trove.Trove)
 
 	uiBounds:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
-	local onWhite = Screenshot.rect(targetRect)
+	local onWhite = Screenshot.rect(targetRect) :: Image.Image
 
 	uiBounds:SetColor(Color3.new(0, 0, 0))
 	SceneControl.yieldUntilNextFrame()

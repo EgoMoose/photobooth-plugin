@@ -15,6 +15,8 @@ local ActionBar = require(script.ActionBar)
 
 export type Props = {
 	UploadCallback: UploadPrompt.UploadCallback,
+	BackgroundType: string,
+	SetBackgroundType: (string) -> (),
 	Disabled: boolean,
 }
 
@@ -117,6 +119,9 @@ local function Gallery(props: Props)
 
 						EditableImage = editImage,
 						EditableImageName = editImageName,
+
+						BackgroundType = props.BackgroundType,
+						SetBackgroundType = props.SetBackgroundType,
 					}),
 					ActionBar = React.createElement(ActionBar, {
 						AnchorPoint = Vector2.new(0, 1),

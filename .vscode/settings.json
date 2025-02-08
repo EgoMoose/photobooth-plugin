@@ -13,9 +13,6 @@
 	},
 	"luau-lsp.sourcemap.rojoProjectFile": "develop.project.json",
 	"stylua.targetReleaseVersion": "latest",
-	"luau-lsp.require.directoryAliases": {
-		"@lune/": "~/.lune/.typedefs/0.8.9/"
-	},
 	"luau-lsp.types.definitionFiles": [
 		".vscode/definitions.d.luau"
 	],

@@ -9,6 +9,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Configuration = require(script.Configuration)
 local Flags = require(script.Flags)
 
+local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
@@ -19,6 +20,7 @@ local UIHider = require(script.Tools.UIHider)
 export type Configuration = Configuration.Configuration
 
 local Photo = {}
+local viewportApp: LayerCollector?
 
 -- Private
 
@@ -71,13 +73,9 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local trove = createIsCapturingTrove()
 
 	local hide = {}
-	local _success = pcall(function()
-		local folder = CoreGui:FindFirstChild("EgoMoosePhotobooth")
-		local app = folder and folder:FindFirstChild("ViewportApp")
-		if app and app:IsA("LayerCollector") then
-			table.insert(hide, app)
-		end
-	end)
+	if not Screenshot.isFullscreenRect(rect) and viewportApp then
+		table.insert(hide, viewportApp)
+	end
 
 	local uiHider = UIHider.new(hide, function(layerCollector)
 		return layerCollector:IsA("ScreenGui")
@@ -116,6 +114,10 @@ end
 
 Photo.Flags = Flags
 Photo.Configuration = Configuration
+
+function Photo.setViewportApp(app: LayerCollector?)
+	viewportApp = app
+end
 
 function Photo.captureUI(subject: GuiObject, captureType: Captures.UICaptureTypes)
 	return captureUI(subject, Captures.UserInterface.Processors[captureType])

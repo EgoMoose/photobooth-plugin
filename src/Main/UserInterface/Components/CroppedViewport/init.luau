@@ -2,8 +2,12 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local Image = require(pluginRoot.Utilities.Image)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
+
+local ContainerSize = require(script.Parent.Shared.ContainerSize)
 
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
@@ -34,11 +38,9 @@ local ACTION_BAR = {
 	Padding = 8,
 }
 
-local ANCHOR_POINT = Vector2.new(0.5, 0.5)
-local POSITION = UDim2.fromScale(0.5, 0.5)
 local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
 
-local MAX_EDIT_IMAGE_SIZE = Vector2.new(1024, 1024)
+local MAX_EDIT_IMAGE_SIZE = Image.MAX_EDIT_IMAGE_SIZE
 
 local grabberMargin = GRABBERS.Padding + GRABBERS.Thickness
 if GRABBERS.MiddlesEnabled then
@@ -48,14 +50,9 @@ end
 local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
 local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
 
-local viewportSizeContext = React.createContext(Vector2.new(0, 0))
-
 export type Props = {
+	FocusLenseSizeRef: { current: Vector2? },
 	OnCapture: (Rect) -> (),
-	OnFocus: {
-		Trigger: RBXScriptSignal,
-		Callback: (Vector2) -> (),
-	},
 	Disabled: boolean,
 }
 
@@ -75,48 +72,49 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function Viewport(props: Props)
+local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
-	local viewportSize = React.useContext(viewportSizeContext)
-	local scaledViewport = viewportSize * scaleOS
+
+	local viewportSize = props.ViewportSize
+	local scaledViewport = Vector2.new(math.round(viewportSize.X * scaleOS.X), math.round(viewportSize.Y * scaleOS.Y))
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
 
-	local sizeInitiated, setSizeInitiated = React.useState(false)
 	local size, setSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
-	local prevSize, setPrevSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
-	local startDrag, setStartDrag = React.useState(nil :: Vector3?)
+	local sizeInitiated = React.useRef(false)
+	local prevSize = React.useRef(MAX_EDIT_IMAGE_SIZE / 2)
+	local startDrag = React.useRef(nil :: Vector3?)
 
 	React.useEffect(function()
 		local minX = grabberMin + grabberMargin * 2
 		local minY = grabberMin + actionBarMargin * 2
 
 		if viewportSize.X >= minX and viewportSize.Y >= minY then
-			local targetSize = if sizeInitiated then size else scaledViewport * INITIAL_SIZE_SCALE
+			local targetSize = if sizeInitiated.current then size else scaledViewport * INITIAL_SIZE_SCALE
 			local clamped = useLenseSize(targetSize, scaledViewport, Vector2.new(1, 1))
 			setSize(clamped)
-			setPrevSize(clamped)
-			setSizeInitiated(true)
+			prevSize.current = clamped
+			sizeInitiated.current = true
 		end
 	end, { viewportSize })
 
-	local lenseSize = useLenseSize(size, viewportSize, 1 / scaleOS)
-	local lenseSizeUDim2 = UDim2.fromOffset(math.ceil(lenseSize.X), math.ceil(lenseSize.Y))
+	-- this is what renders
+	local lenseAbsSize = useLenseSize(size, viewportSize, 1 / scaleOS)
+	local lenseAbsPosition = ((viewportSize - lenseAbsSize) / 2):Floor()
+	local lenseRect = RenderRect.fromAbs(lenseAbsPosition, lenseAbsSize)
+	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
+	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
+
+	-- this is used for displaying dimensions + capture rect
+	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1))
+	local scaledLenseAbsPosition = ((scaledViewport - scaledLenseAbsSize) / 2):Floor()
+	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
+	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
 
 	React.useEffect(function()
-		local connection = props.OnFocus.Trigger:Connect(function()
-			props.OnFocus.Callback(lenseSize:Ceil())
-		end)
-		return function()
-			connection:Disconnect()
-		end
-	end, { lenseSize, props.OnFocus.Trigger, props.OnFocus.Callback } :: { any })
-
-	local scaledLenseSize = lenseSize * scaleOS
-	local scaledLenseMin = ((scaledViewport - scaledLenseSize) / 2):Ceil()
-	local scaledLenseMax = ((scaledViewport + scaledLenseSize) / 2):Ceil()
-	local scaledLenseRect = Rect.new(scaledLenseMin, scaledLenseMax)
+		props.FocusLenseSizeRef.current = scaledLenseRectSize
+	end, { scaledLenseRectSize })
 
 	return React.createElement("Frame", {
 		Position = UDim2.fromScale(0, 0),
@@ -128,9 +126,9 @@ local function Viewport(props: Props)
 				aspectKeysDown[input.KeyCode] = true
 				setAspectKeysDown(aspectKeysDown)
 
-				if startDrag then
-					setPrevSize(size)
-					setStartDrag(input.Position)
+				if startDrag.current then
+					prevSize.current = size
+					startDrag.current = input.Position
 				end
 			end
 		end,
@@ -142,9 +140,9 @@ local function Viewport(props: Props)
 		end,
 	}, {
 		Focus = React.createElement("Frame", {
-			AnchorPoint = ANCHOR_POINT,
-			Position = POSITION,
-			Size = lenseSizeUDim2,
+			AnchorPoint = Vector2.zero,
+			Position = lenseUDim2Position,
+			Size = lenseUDim2Size,
 			BackgroundTransparency = 1,
 			ZIndex = 2,
 		}, {
@@ -171,17 +169,17 @@ local function Viewport(props: Props)
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
 				OnDragStart = function(_rbx, input)
-					setPrevSize(size)
-					setStartDrag(input.Position)
+					prevSize.current = size
+					startDrag.current = input.Position
 				end,
 
 				OnDragFinish = function()
-					setStartDrag(nil :: any)
+					startDrag.current = nil
 				end,
 
 				OnDrag = function(_rbx, input, direction)
-					if startDrag then
-						local delta3 = input.Position - startDrag
+					if startDrag.current then
+						local delta3 = input.Position - startDrag.current
 						local delta2 = Vector2.new(delta3.X, delta3.Y)
 
 						if next(aspectKeysDown) then
@@ -189,13 +187,13 @@ local function Viewport(props: Props)
 							local isDiagonal = directionAbsSum >= 2
 
 							if isDiagonal then
-								local projectionAxis = (prevSize * direction).Unit
+								local projectionAxis = (prevSize.current * direction).Unit
 								delta2 = delta2:Dot(projectionAxis) * projectionAxis
 							end
 						end
 
 						local offset = 2 * direction * scaleOS * delta2
-						local newSize = prevSize + offset
+						local newSize = prevSize.current + offset
 
 						setSize(useLenseSize(newSize, scaledViewport, Vector2.new(1, 1)))
 					end
@@ -208,7 +206,7 @@ local function Viewport(props: Props)
 				Position = UDim2.new(0.5, 0, 1, ACTION_BAR.Padding),
 				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
 
-				DisplayedAbsSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height),
+				DisplayedAbsSize = scaledLenseRectSize,
 				OnDimensionInput = function(dimensions)
 					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1)))
 				end,
@@ -222,13 +220,14 @@ local function Viewport(props: Props)
 		}),
 
 		Blinder = React.createElement(Blinder, {
-			AnchorPoint = ANCHOR_POINT,
-			Position = POSITION,
-			Size = lenseSizeUDim2,
+			AnchorPoint = Vector2.zero,
+			Position = lenseUDim2Position,
+			Size = lenseUDim2Size,
 
 			-- this should be hidden by the UI stroke
 			-- it acts as a margin of error against half-pixel scaling
 			MarginBump = -1,
+			OverlapBump = 10,
 
 			Color = Color3.new(0, 0, 0),
 			Transparency = 0.7,
@@ -240,32 +239,15 @@ local function Viewport(props: Props)
 end
 
 return function(props: Props)
-	local viewportSize, setViewportSize = React.useState(Vector2.new(0, 0))
-	local viewportRef = React.useRef(nil :: GuiObject?)
-
-	React.useEffect(function()
-		local frame = viewportRef.current :: GuiObject
-		setViewportSize(frame.AbsoluteSize)
-
-		local connection = frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-			setViewportSize(frame.AbsoluteSize)
-		end)
-
-		return function()
-			connection:Disconnect()
-		end
-	end, { viewportRef.current })
-
-	return React.createElement("Frame", {
-		Name = "ViewportSizeFrame",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ref = viewportRef,
+	local containerSize, setContainerSize = React.useState(Vector2.zero)
+	return React.createElement(ContainerSize, {
+		SetContainerSize = setContainerSize,
 	}, {
-		React.createElement(viewportSizeContext.Provider, {
-			value = viewportSize,
-		}, {
-			React.createElement(Viewport, props),
+		CroppedViewport = React.createElement(CroppedViewport, {
+			ViewportSize = containerSize,
+			FocusLenseSizeRef = props.FocusLenseSizeRef,
+			OnCapture = props.OnCapture,
+			Disabled = props.Disabled,
 		}),
 	})
 end

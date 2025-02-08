@@ -1,0 +1,63 @@
+[entries."icons/asphalt/menu/black.png"]
+hash = "187bfefd5457b5e4c7df30ac040a4352dd24168edc8a4bdfae915d10a766a16f"
+asset_id = 100163554161546
+
+[entries."icons/asphalt/menu/checkerboard.png"]
+hash = "066136dcb2d8afa7d7e294e6debbe2c364b26c3d15f0d6199793ff553a842dcd"
+asset_id = 88124589937993
+
+[entries."icons/asphalt/menu/none.png"]
+hash = "9c9af2b7bdb9791bcaaed2a188ee4d64944f5941b026fd404f311cfc0220d7bb"
+asset_id = 81132700836257
+
+[entries."icons/asphalt/menu/white.png"]
+hash = "d0d0dde2ca0d3afda00ca1080a41523d8c6bbe7622109d3fd240a21938d6be9e"
+asset_id = 131575500647776
+
+[entries."icons/asphalt/processed/dark/camera-plugin-button.png"]
+hash = "9ff1ce1f5dc8b0bcc1d7f3b58dfe2bc23784c7d8568c330c0aaf2c85042dab7d"
+asset_id = 131188633601831
+
+[entries."icons/asphalt/processed/dark/focus-plugin-action.png"]
+hash = "49a518f012f781c6d470adadcf85a4f21e6c70cdee9813c3b3c78b1d093c74e2"
+asset_id = 78500258546917
+
+[entries."icons/asphalt/processed/dark/fullscreen-plugin-action.png"]
+hash = "39fb9e9682838be279955aa1242ee4a55c66caf10075b7747291d9f76f48826e"
+asset_id = 137233628303920
+
+[entries."icons/asphalt/processed/dark/gallery-plugin-button.png"]
+hash = "1a353fda13efd7919ff2f28bcc189fc915294aa3cb66b6d0110c31f1a3150e8f"
+asset_id = 73631418475004
+
+[entries."icons/asphalt/processed/dark/import-plugin-button.png"]
+hash = "65455e8d2614de350ef8805e46cac8e19554a15de51a5c7395b35401642467a3"
+asset_id = 117524015648700
+
+[entries."icons/asphalt/processed/dark/ui-plugin-button.png"]
+hash = "1f53c25a46ea27144ff3742d2d93922beb84d0b1dd3dbf35f2fc858db10c5647"
+asset_id = 107602796794258
+
+[entries."icons/asphalt/processed/light/camera-plugin-button.png"]
+hash = "1ea8e39de87578706d8aeee106c466b733c840679ba17140679bed8e4d767df3"
+asset_id = 74699004820485
+
+[entries."icons/asphalt/processed/light/focus-plugin-action.png"]
+hash = "7bf3ca7ebb102f1b9bb8a740e89cbd89a1e2886377b9cf21a6298605059e5c29"
+asset_id = 109521150602385
+
+[entries."icons/asphalt/processed/light/fullscreen-plugin-action.png"]
+hash = "a267f47835c1f6aa7603af26f2a847e6ea60c27d6dd72e3b8883fd616064be14"
+asset_id = 112397251153211
+
+[entries."icons/asphalt/processed/light/gallery-plugin-button.png"]
+hash = "e87b11dea58a4565f9a7aceb6c997ac1a0eb80cc8619b146a11d674830da03a6"
+asset_id = 83204999559324
+
+[entries."icons/asphalt/processed/light/import-plugin-button.png"]
+hash = "0011a1b2f8d7f2d5b29e1fe3bf3be58831e349a53cbabc87497fd8073f266ef7"
+asset_id = 140092277696411
+
+[entries."icons/asphalt/processed/light/ui-plugin-button.png"]
+hash = "ab3f5cf3711957900b2065b908a3aaae39c903bbac4836efe137be4624e307c4"
+asset_id = 98108830157071
