@@ -15,6 +15,7 @@
         "insertable",
         "Interactable",
         "loadstring",
+        "lshift",
         "lucide",
         "Orthonormalize",
         "pcall",

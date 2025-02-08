@@ -2,16 +2,11 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
-local Trove = require(pluginRoot.Packages.Trove)
-
-local photoRoot = script:FindFirstAncestor("Photo")
-local Screenshot = require(photoRoot.Captures.Screenshot)
-local Background = require(photoRoot.Tools.Background)
-local SceneControl = require(photoRoot.SceneControl)
 
 local COMPARE_MARGIN = 0
 
-type Background = Background.Background
+local Wb = { 255, 255, 255, 255 }
+local Bb = { 0, 0, 0, 255 }
 
 local function compareByMargin(a: { number }, b: { number }, margin: number): boolean
 	-- stylua: ignore
@@ -22,15 +17,12 @@ local function compareByMargin(a: { number }, b: { number }, margin: number): bo
 	)
 end
 
-local function compose(
+local function reverseBlendSerial(
 	onWhiteRetro: Image.Image,
 	onBlackRetro: Image.Image,
-	onBlack: Image.Image,
+	onBlackBase: Image.Image?,
 	colorCorrection: ColorCorrectionEffect
 )
-	local Wb = { 255, 255, 255, 255 }
-	local Bb = { 0, 0, 0, 255 }
-
 	local brightness = colorCorrection.Brightness
 	local contrast = colorCorrection.Contrast + 1
 	local saturation = colorCorrection.Saturation + 1
@@ -38,6 +30,7 @@ local function compose(
 	local tintColor = colorCorrection.TintColor
 	local tint = { tintColor.R, tintColor.G, tintColor.B }
 
+	local onBlack = onBlackBase or onBlackRetro
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
@@ -48,7 +41,7 @@ local function compose(
 			if compareByMargin(Wo, Wb, 0) and compareByMargin(Bo, Bb, 0) then
 				-- in both samples the pixels match their backgrounds perfectly
 				-- this means that this pixel is guaranteed to be a background pixel
-				onBlack:SetRGBA255(pixelIndex, 255, 255, 255, 0)
+				onBlack:SetRGBA255(pixelIndex, 0, 0, 0, 0)
 				continue
 			end
 
@@ -91,46 +84,4 @@ local function compose(
 	return onBlack
 end
 
-local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
-	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
-		warn("Skybox cannot be removed when Atmosphere is present.")
-		return
-	end
-
-	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
-	trove:Add(colorCorrection)
-
-	local redoColorCorrection = SceneControl.Lighting.removeColorCorrection()
-	trove:Add(redoColorCorrection)
-
-	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
-	trove:Add(redoCloudsAndFog)
-
-	background:SetEnabled(true)
-	background:SetColor(Color3.new(0, 0, 0))
-
-	local onBlack: Image.Image?
-	if SceneControl.Lighting.getTonemapperPreset() ~= Enum.TonemapperPreset.Retro then
-		SceneControl.yieldUntilNextFrame()
-		onBlack = Screenshot.rect(rect)
-	end
-
-	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
-	trove:Add(undoRetroGrading)
-
-	SceneControl.yieldUntilNextFrame()
-	local onBlackRetro = Screenshot.rect(rect)
-
-	background:SetColor(Color3.new(1, 1, 1))
-	SceneControl.yieldUntilNextFrame()
-	local onWhiteRetro = Screenshot.rect(rect)
-
-	background:SetEnabled(false)
-	redoCloudsAndFog()
-	undoRetroGrading()
-	redoColorCorrection()
-
-	return compose(onWhiteRetro, onBlackRetro, onBlack or onBlackRetro, colorCorrection)
-end
-
-return operation
+return reverseBlendSerial

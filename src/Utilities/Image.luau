@@ -45,6 +45,10 @@ function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
 	return self
 end
 
+function ImageClass.fromSize(size: Vector2)
+	return ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
+end
+
 function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	local fullSize = editableImage.Size
 	local origin = if crop then crop.Min:Min(fullSize) else Vector2.zero
@@ -84,15 +88,19 @@ function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	return ImageClass.fromBuffer(resultBuffer, cropSize)
 end
 
-function ImageClass.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
+function ImageClass.fromRGBA255(r: number, g: number, b: number, a: number, size: Vector2)
 	local img = ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
 	for x = 1, size.X do
 		for y = 1, size.Y do
 			local pixelIndex = img:GetPixelIndex(x, y)
-			img:SetRGBA(pixelIndex, r, g, b, a)
+			img:SetRGBA255(pixelIndex, r, g, b, a)
 		end
 	end
 	return img
+end
+
+function ImageClass.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
+	return ImageClass.fromRGBA255(r * 255, g * 255, b * 255, a * 255, size)
 end
 
 -- Public Methods
@@ -150,22 +158,26 @@ end
 function ImageClass.GetNeighbors(self: Image, pixelIndex: number)
 	local width = self.size.X
 	local height = self.size.Y
-
 	local x, y = self:GetXYFromPixelIndex(pixelIndex)
 
-	local neighbors = {}
-	for _, offset in NEIGHBOR_OFFSETS do
-		local xn = x + offset[1]
-		local yn = y + offset[2]
+	local i = 0
+	return function()
+		while true do
+			i = i + 1
+			local offset = NEIGHBOR_OFFSETS[i]
 
-		if xn < 1 or xn > width or yn < 1 or yn > height then
-			continue
+			if not offset then
+				return nil :: any, nil :: any
+			end
+
+			local xn = x + offset[1]
+			local yn = y + offset[2]
+
+			if not (xn < 1 or xn > width or yn < 1 or yn > height) then
+				return i, self:GetPixelIndex(xn, yn)
+			end
 		end
-
-		table.insert(neighbors, self:GetPixelIndex(xn, yn))
 	end
-
-	return neighbors
 end
 
 function ImageClass.GetRGBA255(self: Image, pixelIndex: number): (number, number, number, number)
@@ -210,6 +222,48 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 			editableImage:WritePixelsBuffer(position + offset, cropSize, cropImage.buffer)
 		end
 	end
+end
+
+function ImageClass.Split(self: Image, n: number, yPadding: number?)
+	local width = self.size.X
+	local height = self.size.Y
+
+	local yPad = yPadding or 0
+	local linesPerWorker = math.ceil(height / n)
+
+	local chunks = {}
+	for i = 1, n do
+		local start = ((i - 1) * linesPerWorker) + 1
+		local finish = math.min(height, (i * linesPerWorker))
+
+		if start <= finish then
+			local startPadded = math.max(1, start - yPad)
+			local finishPadded = math.min(height, finish + yPad)
+
+			local minIndex = self:GetPixelIndex(1, startPadded)
+			local maxIndex = self:GetPixelIndex(width, finishPadded)
+
+			local chunkLen = (maxIndex - minIndex + 1) * 4
+			local chunkBuffer = buffer.create(chunkLen)
+			local chunkSize = Vector2.new(width, (finishPadded - startPadded) + 1)
+			buffer.copy(chunkBuffer, 0, self.buffer, (minIndex - 1) * 4, chunkLen)
+
+			local cropMinY = start - startPadded
+			local crop = Rect.new(0, cropMinY, width, cropMinY + finish - start + 1)
+
+			table.insert(chunks, {
+				minIndex = minIndex,
+				maxIndex = maxIndex,
+
+				buffer = chunkBuffer,
+				size = chunkSize,
+
+				crop = crop,
+			})
+		end
+	end
+
+	return chunks
 end
 
 function ImageClass.SetTemplateUri(self: Image, uri: string)

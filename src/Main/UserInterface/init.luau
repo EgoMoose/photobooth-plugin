@@ -308,6 +308,8 @@ function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
 	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local clickConnection = importButton.Click:Connect(function()
+		importButton:SetActive(false)
+
 		-- only png is supported by Roblox currently
 		local files = (StudioService:PromptImportFiles({ "png" }) :: any) :: { File }
 		for _, file in files do

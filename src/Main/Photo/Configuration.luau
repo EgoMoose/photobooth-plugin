@@ -1,17 +1,18 @@
 --!strict
 
-local Captures = require(script.Parent.Captures)
+local CapturesTypes = require(script.Parent.Captures.Types)
 
 export type Configuration = {
 	-- General
 	ScaleOS: Vector2,
+	AlphaBleedingEnabled: boolean,
 	BindingsEnabled: boolean,
 
 	-- Viewport
-	ViewportCaptureType: Captures.ViewportCaptureTypes,
+	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
 
 	-- User Interface
-	UserInterfaceCaptureType: Captures.UICaptureTypes,
+	UserInterfaceCaptureType: CapturesTypes.UICaptureTypes,
 }
 
 local Configuration = {}
@@ -22,23 +23,24 @@ local configurationChanged = Instance.new("BindableEvent")
 local configurationCurrent: Configuration = {
 	-- General
 	ScaleOS = Vector2.new(1, 1),
+	AlphaBleedingEnabled = true,
 	BindingsEnabled = false,
 
 	-- Viewport
-	ViewportCaptureType = Captures.Viewport.Default,
+	ViewportCaptureType = "NoSkybox",
 
 	-- User Interface
-	UserInterfaceCaptureType = Captures.UserInterface.Default,
+	UserInterfaceCaptureType = "NoBackground",
 }
 
 -- Public
 
 function Configuration.get()
-	return table.clone(configurationCurrent)
+	return configurationCurrent
 end
 
 function Configuration.set(configuration: Configuration)
-	configurationCurrent = table.clone(configuration)
+	configurationCurrent = table.freeze(table.clone(configuration))
 	configurationChanged:Fire()
 end
 
