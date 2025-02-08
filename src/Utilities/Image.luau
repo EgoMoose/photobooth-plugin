@@ -224,9 +224,11 @@ function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableIma
 	end
 end
 
-function ImageClass.Split(self: Image, n: number)
+function ImageClass.Split(self: Image, n: number, yPadding: number?)
 	local width = self.size.X
 	local height = self.size.Y
+
+	local yPad = yPadding or 0
 	local linesPerWorker = math.ceil(height / n)
 
 	local chunks = {}
@@ -235,18 +237,28 @@ function ImageClass.Split(self: Image, n: number)
 		local finish = math.min(height, (i * linesPerWorker))
 
 		if start <= finish then
-			local fromPixelIndex = self:GetPixelIndex(1, start)
-			local toPixelIndex = self:GetPixelIndex(width, finish)
+			local startPadded = math.max(1, start - yPad)
+			local finishPadded = math.min(height, finish + yPad)
 
-			local chunkLen = (toPixelIndex - fromPixelIndex + 1) * 4
+			local minIndex = self:GetPixelIndex(1, startPadded)
+			local maxIndex = self:GetPixelIndex(width, finishPadded)
+
+			local chunkLen = (maxIndex - minIndex + 1) * 4
 			local chunkBuffer = buffer.create(chunkLen)
-			buffer.copy(chunkBuffer, 0, self.buffer, (fromPixelIndex - 1) * 4, chunkLen)
+			local chunkSize = Vector2.new(width, (finishPadded - startPadded) + 1)
+			buffer.copy(chunkBuffer, 0, self.buffer, (minIndex - 1) * 4, chunkLen)
+
+			local cropMinY = start - startPadded
+			local crop = Rect.new(0, cropMinY, width, cropMinY + finish - start + 1)
 
 			table.insert(chunks, {
+				minIndex = minIndex,
+				maxIndex = maxIndex,
+
 				buffer = chunkBuffer,
-				size = Vector2.new(width, (finish - start) + 1),
-				fromPixelIndex = fromPixelIndex,
-				toPixelIndex = toPixelIndex,
+				size = chunkSize,
+
+				crop = crop,
 			})
 		end
 	end

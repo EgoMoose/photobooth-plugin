@@ -8,15 +8,15 @@ local HAS_VISITED = bit32.lshift(1, 0)
 local CAN_SAMPLE = bit32.lshift(1, 1)
 local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
-local function integralImgAlphaBuffer(img: Image.Image)
+local function integralImage(img: Image.Image)
 	local width = img:GetWidth()
 	local height = img:GetHeight()
 	local integralBuffer = buffer.create(width * height * 4)
 
 	local function readImg(x: number, y: number)
 		local i = img:GetPixelIndex(x, y)
-		local _, _, _, a = img:GetRGBA255(i)
-		return math.sign(a)
+		local _, _, _, alpha = img:GetRGBA255(i)
+		return math.sign(alpha)
 	end
 
 	local function read(x: number, y: number)
@@ -27,22 +27,6 @@ local function integralImgAlphaBuffer(img: Image.Image)
 	local function write(x: number, y: number, value: number)
 		local i = ((x - 1) + (y - 1) * width) * 4
 		buffer.writeu32(integralBuffer, i, value)
-	end
-
-	write(1, 1, readImg(1, 1))
-
-	for x = 2, width do
-		write(x, 1, readImg(x, 1) + read(x - 1, 1))
-	end
-
-	for y = 2, height do
-		write(1, y, readImg(1, y) + read(1, y - 1))
-	end
-
-	for x = 2, width do
-		for y = 2, height do
-			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
-		end
 	end
 
 	local function readClamped(x: number, y: number)
@@ -61,32 +45,48 @@ local function integralImgAlphaBuffer(img: Image.Image)
 			+ readClamped(x - radius - 1, y - radius - 1)
 	end
 
+	write(1, 1, readImg(1, 1))
+
+	for x = 2, width do
+		write(x, 1, readImg(x, 1) + read(x - 1, 1))
+	end
+
+	for y = 2, height do
+		write(1, y, readImg(1, y) + read(1, y - 1))
+	end
+
+	for x = 2, width do
+		for y = 2, height do
+			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
+		end
+	end
+
 	return readRadius
 end
 
-local function doWork(chunkBuffer: buffer, chunkSize: Vector2, fromIndex: number)
+local function doWork(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
 	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
-	local readRadius = integralImgAlphaBuffer(chunkImg)
+	local readRadius = integralImage(chunkImg)
 
-	local height = chunkImg.size.Y
-	local width = chunkImg.size.X
-	local visited = buffer.create(width * height)
 	local pending = {}
+	local visited = buffer.create(crop.Width * crop.Height)
 
-	for y = 1, height do
-		for x = 1, width do
-			local index = chunkImg:GetPixelIndex(x, y)
-			local _, _, _, alpha = chunkImg:GetRGBA255(index)
+	local fromIndex = chunkImg:GetPixelIndex(crop.Min.X + 1, crop.Min.Y + 1)
+	local toIndex = chunkImg:GetPixelIndex(crop.Max.X, crop.Max.Y)
 
-			if alpha ~= 0 then
-				buffer.writeu8(visited, index - 1, BOTH)
-				continue
-			end
+	for index = fromIndex, toIndex do
+		local croppedOffset = index - fromIndex
+		local _, _, _, alpha = chunkImg:GetRGBA255(index)
 
-			if readRadius(x, y, 1) > 0 then
-				table.insert(pending, index + fromIndex - 1)
-				buffer.writeu8(visited, index - 1, HAS_VISITED)
-			end
+		if alpha ~= 0 then
+			buffer.writeu8(visited, croppedOffset, BOTH)
+			continue
+		end
+
+		local x, y = chunkImg:GetXYFromPixelIndex(index)
+		if readRadius(x, y, 1) > 0 then
+			table.insert(pending, minIndex + fromIndex - 1 + croppedOffset)
+			buffer.writeu8(visited, croppedOffset, HAS_VISITED)
 		end
 	end
 
@@ -101,8 +101,8 @@ local required = {
 local function firstPass(img: Image.Image)
 	local scheduler = Parallel.new(32, required)
 
-	for i, chunk in img:Split(scheduler:GetActorCount()) do
-		scheduler:Schedule(chunk.buffer, chunk.size, chunk.fromPixelIndex)
+	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
+		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
 	end
 
 	local packedResults = scheduler:WorkDeferred()
@@ -112,10 +112,10 @@ local function firstPass(img: Image.Image)
 	local copyIndex = 0
 	local visited = buffer.create(img:GetNumberOfPixels())
 	for _, unpackResult in packedResults do
-		local visitedStream, pendingStream = unpackResult()
-		buffer.copy(visited, copyIndex, visitedStream)
-		copyIndex = copyIndex + buffer.len(visitedStream)
-		table.move(pendingStream, 1, #pendingStream, #pending + 1, pending)
+		local visitedChunk, pendingChunk = unpackResult()
+		buffer.copy(visited, copyIndex, visitedChunk)
+		copyIndex = copyIndex + buffer.len(visitedChunk)
+		table.move(pendingChunk, 1, #pendingChunk, #pending + 1, pending)
 	end
 
 	return visited, pending

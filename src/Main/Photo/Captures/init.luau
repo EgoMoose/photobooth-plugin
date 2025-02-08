@@ -22,6 +22,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 		if Configuration.get().AlphaBleedingEnabled then
 			for i, img in results do
 				results[i] = Composers.alphaBleed(img)
+				--results[i] = Composers.fullyOpaque(results[i])
 			end
 		end
 		return results
