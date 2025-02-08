@@ -165,7 +165,7 @@ local function HoverFade(props: HoverFadeProps)
 	})
 end
 
-local function InnerBorder(props: { Thickness: number, Disabled: boolean, children: React.ReactNode })
+local function InnerBorder(props: { Thickness: number, Padding: number, Disabled: boolean, children: React.ReactNode })
 	local theme = StudioComponents.useTheme()
 
 	return React.createElement("Frame", {
@@ -173,14 +173,30 @@ local function InnerBorder(props: { Thickness: number, Disabled: boolean, childr
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		ZIndex = 2,
 	}, {
-		UIStroke = React.createElement("UIStroke", {
-			Thickness = props.Thickness,
-			Transparency = 0,
-			Color = theme:GetColor(Enum.StudioStyleGuideColor.InputFieldBorder, Enum.StudioStyleGuideModifier.Selected),
+		StrokeFrame = React.createElement("Frame", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			ZIndex = 2,
+		}, {
+			UIStroke = React.createElement("UIStroke", {
+				Thickness = props.Thickness,
+				Transparency = 0,
+				LineJoinMode = Enum.LineJoinMode.Miter,
+				Color = theme:GetColor(
+					Enum.StudioStyleGuideColor.InputFieldBorder,
+					Enum.StudioStyleGuideModifier.Selected
+				),
+			}),
 		}),
-	}, props.children)
+		ChildFrame = React.createElement("Frame", {
+			Size = UDim2.new(1, -props.Padding * 2, 1, -props.Padding * 2),
+			Position = UDim2.fromScale(0.5, 0.5),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			ZIndex = 1,
+		}, props.children),
+	})
 end
 
 local function FullViewport(props: Props)
@@ -196,6 +212,7 @@ local function FullViewport(props: Props)
 	}, {
 		Outline = React.createElement(InnerBorder, {
 			Thickness = 2,
+			Padding = 1,
 			Disabled = false,
 		}, {
 			Dragger = React.createElement(FreeDrag, {
