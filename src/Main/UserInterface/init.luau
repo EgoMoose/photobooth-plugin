@@ -132,7 +132,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 	local function ViewportApp(): React.ReactNode?
 		local isEnabled, setIsEnabled = React.useState(false)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
-		local isFullscreen, setIsFullscreen = React.useState(false)
+		local configuration, setConfiguration = Hooks.usePhotoConfiguration()
 		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
 		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
@@ -173,14 +173,16 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			if fullscreenAction then
 				trove:Add(fullscreenAction.Triggered:Connect(function()
 					if isEnabled then
-						setIsFullscreen(not isFullscreen)
+						local config = table.clone(configuration)
+						config.IsFullscreen = not config.IsFullscreen
+						setConfiguration(config)
 					end
 				end))
 			end
 			return function()
 				trove:Destroy()
 			end
-		end, { isEnabled, isFullscreen })
+		end, { isEnabled, configuration.IsFullscreen })
 		
 		-- stylua: ignore
 		return isEnabled and React.createElement("ScreenGui", {
@@ -190,7 +192,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ref = screenGuiRef,
 		}, {
-			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
+			Content = React.createElement(if configuration.IsFullscreen then FullViewport else CroppedViewport, {
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)

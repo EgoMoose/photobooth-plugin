@@ -9,6 +9,7 @@ export type Configuration = {
 	BindingsEnabled: boolean,
 
 	-- Viewport
+	IsFullscreen: boolean,
 	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
 
 	-- User Interface
@@ -27,6 +28,7 @@ local configurationCurrent: Configuration = {
 	BindingsEnabled = false,
 
 	-- Viewport
+	IsFullscreen = false,
 	ViewportCaptureType = "NoSkybox",
 
 	-- User Interface
