@@ -1,6 +1,6 @@
 # Photobooth Plugin
 
-![](docs/assets/plugin/itch_header.png)
+![](docs/assets/readme/plugin/itch_header.png)
 
 Photobooth is a plugin that allows you to capture images of the workspace or UI elements entirely in Roblox studio.
 
