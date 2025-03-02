@@ -1,12 +1,50 @@
 # Photobooth Plugin
 
-![](docs/assets/plugin/logo.png)
+![](docs/assets/plugin/itch_header.png)
 
-This plugin allows you to capture images of the workspace or UI elements entirely in Roblox studio. It features the ability to remove the skybox from images and to upload any captures to Roblox for use as asset ids.
+Photobooth is a plugin that allows you to capture images of the workspace or UI elements entirely in Roblox studio.
 
-<img src="docs/assets/plugin/carousel1.png" height=200> <img src="docs/assets/plugin/carousel2.png" height=200> <img src="docs/assets/plugin/carousel3.png" height=200>
+Notably, it features the ability to remove skyboxes/backgrounds from images and bindings to allow developers to write their own capture workflows.
 
-[Link here.](https://create.roblox.com/store/asset/82716202460157/Photobooth)
+Results are output as editable images stored as a mesh part's texture.
+
+[![](docs/assets/readme/badges/roblox-marketplace-badge.svg)](https://create.roblox.com/store/asset/82716202460157) [![](docs/assets/readme/badges/itch-badge.svg)](https://egomoose.itch.io/rbx-photobooth-plugin)
+
+[Devforum post](https://devforum.roblox.com/t/3401720)
+
+<details>
+<summary>Examples</summary>
+
+![](docs/assets/readme/examples/RedDress.png)
+![](docs/assets/readme/examples/Candle.png)
+![](docs/assets/readme/examples/NeoVeg.png)
+![](docs/assets/readme/examples/Spaceship.png)
+![](docs/assets/readme/examples/Tree.png)
+</details>
+
+## Limitations
+
+Photobooth has a couple of limitations specific to the skybox removal preset. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before purchase.
+
+General:
+- No capture can be larger than 1024 x 1024 since that's the limit of editable images.
+  - As of v0.3.0 there are no longer size limits, but there are some stipulations. Please read the "Full Viewport Captures" section for more details.
+- Photobooth can only be used during edit mode in studio. It cannot be used to capture anything during a studio play session.
+- The built-in upload feature is currently disabled. You can still upload, but you have to write code to do it yourself. Read more about this further down the post.
+- Using the emulator + photobooth only works correctly when on "actual resolution"
+- The viewport must be visible when capturing. You cannot tab out of studio or switch to the script editor while a capture is in progress.
+
+Skybox removal:
+- No atmosphere / fog support.
+- Anything that cannot be frozen in place on screen is not supported. For example:
+	- Terrain grass.
+	- Force-field material.
+- Retro color grading is highly recommended for best results, but not mandatory.
+
+Bindings:
+- See the OS scaling section below
+
+**Warning: This plugin will cause the screen to flash when removing skyboxes. Those with photosensitive epilepsy are advised caution when using this plugin.**
 
 ## Bindings
 
@@ -14,9 +52,15 @@ This plugin can be used for automation purposes. An example use case might be ca
 
 To use this feature open the viewer and in the settings menu toggle "Bindings" to `true`.
 
-![](docs/assets/readme/bindings_enabled.png)
+![](docs/assets/readme/general/bindings_enabled.png)
+
+Roblox may prompt you for script injection permissions.
+
+![](docs/assets/readme/general/script_injection.png)
 
 This will create a `ModuleScript` underneath `ServerStorage` which provides a typed interface that can be used to create automated capture workflows. Included are a couple of common template workflows to get you started.
+
+For example:
 
 ```luau
 local Photobooth = require(game.ServerStorage.PhotoboothBindings)
@@ -26,14 +70,86 @@ capture.Name = "Example"
 capture.Parent = game.ServerStorage
 ```
 
-## Saving Captures
+### OS scaling
+
+With the advent of high resolution monitors many computers use scaling options built into their operating system to ensure that applications rendered on screen are not too small. Roblox however, always captures in full resolution leading to a number of UX problems.
+
+Photobooth will attempt to resolve this issue automatically, but for the highest quality image when using bindings it is strongly recommended to use your monitor's true resolution.
+
+![](docs/assets/readme/general/scale150.png)
+
+*i.e. use scale 100% and the display resolution that matches your monitor.*
+
+<details>
+<summary>Or on Mac</summary>
+
+![](docs/assets/readme/general/scale_mac.png)
+</details>
+
+## Full Viewport Captures
+
+Normally editable images have a 1024x1024 limit. However, it is possible to circumvent this by capturing the entire viewport window. You can toggle to full viewport capture mode by using the the "Photobooth Viewport Fullscreen" action.
+
+<img src="docs/assets/readme/general/actions.png" width=50%>
+
+Using this action while the Photobooth viewport is open will switch to a fullscreen capture mode. To set an arbitary size you can either resize your viewport (not recommended) or take advantage of custom device resolutions on the emulator.
+
+![](docs/assets/readme/general/emulator.jpg)
+
+It's very important that you use the "Actual Resolution" option when capturing in the emulator. For very large dimensions that don't fit on screen I recommend temporarily switching to "Fit to Window", setting up the scene, and then switching back to "Actual resolution" once you're ready to capture.
+
+## Saving Captures as PNGs
 
 If you want to save any of the plugin captures to your computer, you can do so by right clicking the exported mesh part and selecting "Export Selection".
 
-<img src="docs/assets/readme/export_selection.png" width=30%>
+<img src="docs/assets/readme/general/exportA.png" height=400>
+<img src="docs/assets/readme/general/exportB.png" height=400>
 
 This will prompt you to export the mesh in `.obj` format which will include the texture of the mesh in `.png` format. Both the `.obj` and `.mtl` files can be discarded.
 
-![](docs/assets/readme/car_viewport.png)
+If you want to export many images at the same time. First group all the mesh parts together as a model and then export that model.
 
-![](docs/assets/readme/car_exported.png)
+## Uploading
+
+**This feature is currently disabled!**
+
+Uploading will be enabled in the future once Roblox provides the proper security tooling to allow creator store plugins to upload assets on your behalf. More detail from Roblox [here.](https://devforum.roblox.com/t/beta-lua-asset-creation-for-creator-tooling-with-createassetasync/3294134)
+
+For now, developers will have to write their own code to upload editable images.
+
+<details>
+<summary>Sample Code</summary>
+
+```luau
+local ATTRIBUTE_NAME = "UploadResult"
+
+local AssetService = game:GetService("AssetService")
+local SelectionService = game:GetService("Selection")
+
+for _, selected in SelectionService:Get() do
+	if selected:IsA("MeshPart") and not selected:GetAttribute(ATTRIBUTE_NAME) then
+		local content = selected.TextureContent
+		local object = content and content.Object
+
+		if object and object:IsA("EditableImage") then
+			local result, value = AssetService:CreateAssetAsync(object, Enum.AssetType.Image, {
+				Name = selected.Name,
+				Description = "",
+				IsPackage = false,
+			})
+
+			if result == Enum.CreateAssetResult.Success then
+				selected:SetAttribute(ATTRIBUTE_NAME, `rbxassetid://{value}`)
+			end
+		end
+	end
+end
+```
+</details>
+<br/>
+
+When this feature is enabled this is what the upload process will look like:
+
+
+<img src="docs/assets/readme/general/uploadA.png" width=40%>
+<img src="docs/assets/readme/general/uploadB.png" width=40%>
