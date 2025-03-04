@@ -1,0 +1,54 @@
+{
+	"ClassName": "Frame",
+	"Properties": {
+		"BackgroundTransparency": 1,
+		"AnchorPoint": [0.5, 0.5],
+		"Position": { "UDim2": [[0.5, 0], [0.5, 0]] },
+		"Size": { "UDim2": [[0.5, 0], [0.5, 0]] }
+	},
+	"Children": [
+		{
+			"Name": "Blinder",
+			"ClassName": "UIStroke",
+			"Properties": {
+				"Thickness": 100000,
+				"Transparency": 0.6,
+				"Color": { "Color3": [0, 0, 0] }
+			}
+		},
+		{
+			"Name": "InnerFrame",
+			"ClassName": "Frame",
+			"Properties": {
+				"BackgroundTransparency": 1,
+				"Size": { "UDim2": [[1, 0], [1, 0]] }
+			},
+			"Children": [
+				{
+					"Name": "Outline",
+					"ClassName": "UIStroke",
+					"Properties": {
+						"Thickness": 4,
+						"Color": { "Color3": [0, 0.6352941176470588, 1] }
+					}
+				},
+				{
+					"Name": "Label",
+					"ClassName": "TextLabel",
+					"Properties": {
+						"BackgroundTransparency": 1,
+						"AnchorPoint": [1, 0],
+						"Position": { "UDim2": [[1, 0], [1, 8]] },
+						"Size": { "UDim2": [[1, 0], [0, 14]] },
+						"TextColor3": { "Color3": [1, 1, 1] },
+						"TextXAlignment": "Right",
+						"TextYAlignment": "Top",
+						"TextScaled": true,
+						"Font": "Roboto",
+						"Text": "Static Frame"
+					}
+				}
+			]
+		}
+	]
+}
