@@ -37,18 +37,18 @@ local function createBindings()
 	end
 
 	binding.OnInvoke = function(identifier: string, ...: any)
-		local results = table.pack()
+		local results
 		local packedArgs = table.pack(...)
 		local success, err = pcall(function()
 			local invocation = assert(invocationByIdentifier[identifier], `No invocation found for: {identifier}`)
 			results = table.pack(invocation.callback(table.unpack(packedArgs)))
 		end)
 
-		if not success then
-			warn(err)
+		if success then
+			return true, table.unpack(results)
 		end
 
-		return table.unpack(results)
+		return false, err
 	end
 
 	return interface

@@ -18,16 +18,8 @@ local typechecker = gt.fn(
 )
 
 local function callback(subject: GuiObject, captureType: Captures.UICaptureTypes)
-	local exported
-	local success, err = pcall(function()
-		local result = Photo.captureUI(subject, captureType)
-		exported = Photo.export(result, nil)
-	end)
-
-	if not success then
-		error(err)
-	end
-
+	local result = Photo.captureUI(subject, captureType)
+	local exported = Photo.export(result, nil)
 	return exported[1]
 end
 
