@@ -7,6 +7,12 @@
 			"PluginRoot": {
 				"$path": "plugin.project.json"
 			}
+		},
+		"ServerStorage": {
+			"$className": "ServerStorage",
+			"PhotoboothBindings": {
+				"$path": "src/Main/Bindings/Interface"
+			}
 		}
 	}
 }
