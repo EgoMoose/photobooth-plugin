@@ -31,7 +31,11 @@ local function ActionBar(props: ActionBarProps)
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 
-	local displaySize = (scaleOS * props.ContainerSize):Ceil()
+	-- stylua: ignore
+	local displaySize = Vector2.new(
+		math.round(scaleOS.X * props.ContainerSize.X),
+		math.round(scaleOS.Y * props.ContainerSize.Y)
+	)
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
