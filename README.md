@@ -88,11 +88,9 @@ Photobooth will attempt to resolve this issue automatically, but for the highest
 
 ## Full Viewport Captures
 
-Normally editable images have a 1024x1024 limit. However, it is possible to circumvent this by capturing the entire viewport window. You can toggle to full viewport capture mode by using the the "Photobooth Viewport Fullscreen" action.
+Normally editable images have a 1024x1024 limit. However, it is possible to circumvent this by capturing the entire viewport window. You can toggle to full viewport capture mode in the settings menu.
 
-<img src="docs/assets/readme/general/actions.png" width=50%>
-
-Using this action while the Photobooth viewport is open will switch to a fullscreen capture mode. To set an arbitary size you can either resize your viewport (not recommended) or take advantage of custom device resolutions on the emulator.
+To set an arbitrary size you can either resize your viewport (not recommended) or take advantage of custom device resolutions on the emulator.
 
 ![](docs/assets/readme/general/emulator.jpg)
 
