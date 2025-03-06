@@ -154,7 +154,7 @@ local function ViewportGroup(props: GroupsProps)
 		List = {
 			{
 				Name = "Fullscreen",
-				Node = React.createElement(React.Fragment, {}, {
+				Node = Screenshot.isFullscreenAllowed() and React.createElement(React.Fragment, {}, {
 					Padding = React.createElement("UIPadding", {
 						PaddingLeft = UDim.new(0, 5),
 						PaddingRight = UDim.new(0, 5),

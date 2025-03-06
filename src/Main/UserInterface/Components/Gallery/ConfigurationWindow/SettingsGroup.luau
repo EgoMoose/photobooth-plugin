@@ -7,9 +7,9 @@ local React = require(pluginRoot.Packages.React)
 
 local CAN_TOGGLE_EXPANDS = false
 
-type NodeInfo = {
+export type NodeInfo = {
 	Name: string,
-	Node: React.Node,
+	Node: React.Node?,
 }
 
 export type Props = {
@@ -86,8 +86,15 @@ local function SettingsGroup(props: Props)
 		then assert(Lucide.GetAsset("chevron-down", 16))
 		else assert(Lucide.GetAsset("chevron-right", 16))
 
+	local filteredEntries = {}
+	for i, entry in props.List do
+		if entry.Node then
+			table.insert(filteredEntries, entry)
+		end
+	end
+
 	return React.createElement("Frame", {
-		Size = UDim2.new(1, 0, 0, 26 + 24 * (if expanded then #props.List else 0)),
+		Size = UDim2.new(1, 0, 0, 26 + 24 * (if expanded then #filteredEntries else 0)),
 		BackgroundTransparency = 0.1,
 		LayoutOrder = props.LayoutOrder,
 	}, {
@@ -127,7 +134,14 @@ local function SettingsGroup(props: Props)
 			Position = UDim2.fromOffset(0, 26),
 			Size = UDim2.new(1, 0, 1, -26),
 		}, {
-			Content = React.createElement(ExpandedElements, props),
+			Content = React.createElement(ExpandedElements, {
+				Title = props.Title,
+				List = filteredEntries,
+				HorizontalSplit = props.HorizontalSplit,
+
+				LayoutOrder = props.LayoutOrder,
+				Disabled = props.Disabled,
+			}),
 		}),
 	})
 end
