@@ -52,6 +52,7 @@ local function Gallery(props: Props)
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
+		ClipsDescendants = true,
 		ZIndex = -1, -- Fixes dropdown issues
 	}, {
 		LoadingOverlay = props.Disabled and React.createElement("ImageButton", {
