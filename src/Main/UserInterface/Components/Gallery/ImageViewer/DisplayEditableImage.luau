@@ -12,7 +12,7 @@ local Hooks = require(uiRoot.Hooks)
 local Icons = require(uiRoot.Icons)
 
 local OUTLINE_THICKNESS = 2
-local DIMENSIONS_FONT_SIZE = 6
+local DIMENSIONS_FONT_SIZE = 7
 local DIMENSIONS_FONT = Font.fromEnum(Enum.Font.Legacy)
 
 export type Props = {
