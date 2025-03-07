@@ -16,6 +16,8 @@ export type Props = {
 	AnchorPoint: Vector2,
 	Size: UDim2,
 
+	Scale: number,
+
 	Disabled: boolean,
 	children: React.ReactNode,
 }
@@ -31,8 +33,8 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 	local position, setPosition = React.useState(props.InitialPosition)
 
 	local containerSize = props.ContainerSize
-	local absSize = convertToAbsSize(props.Size, containerSize)
-	local absAnchorPosition = convertToAbsSize(position, containerSize)
+	local absSize = convertToAbsSize(props.Size, containerSize) * props.Scale
+	local absAnchorPosition = convertToAbsSize(position, containerSize) * props.Scale
 	local absAnchorSize = props.AnchorPoint * absSize
 	local absPosition = absAnchorPosition - absAnchorSize
 
@@ -45,14 +47,17 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 	local dragger = Hooks.useMouseDrag({
 		onDragCallback = function(_rbx, input)
 			if dragStart.current then
-				local delta3 = input.Position - dragStart.current.input
+				local delta3 = (input.Position - dragStart.current.input) / props.Scale
 				setPosition(dragStart.current.position + UDim2.fromOffset(delta3.X, delta3.Y))
 			end
 		end,
 		onBeganCallback = function(_rbx, input)
 			dragStart.current = {
 				input = input.Position,
-				position = clampedPosition + UDim2.fromOffset(absAnchorSize.X, absAnchorSize.Y),
+				position = UDim2.fromOffset(
+					(clampedPosition.X.Offset + absAnchorSize.X) / props.Scale,
+					(clampedPosition.Y.Offset + absAnchorSize.Y) / props.Scale
+				),
 			}
 		end,
 	})
@@ -70,7 +75,7 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 	return React.createElement(isDraggingContext.Provider, {
 		value = isDragging,
 	}, {
-		React.createElement("ImageButton", {
+		Dragger = React.createElement("ImageButton", {
 			Size = props.Size,
 			Position = clampedPosition,
 			BackgroundTransparency = 1,
@@ -81,6 +86,10 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 			[React.Event.InputBegan] = dragger.onInputBegan,
 			[React.Event.InputChanged] = dragger.onInputChanged,
 			[React.Event.InputEnded] = dragger.onInputEnded,
+		}, {
+			UIScale = React.createElement("UIScale", {
+				Scale = props.Scale,
+			}),
 		}, props.children),
 	})
 end
@@ -98,6 +107,8 @@ return function(props: Props)
 			InitialPosition = props.InitialPosition,
 			AnchorPoint = props.AnchorPoint,
 			Size = props.Size,
+
+			Scale = props.Scale,
 
 			Disabled = props.Disabled,
 		}, props.children),

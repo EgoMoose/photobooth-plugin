@@ -211,6 +211,12 @@ local function FullViewport(props: Props)
 		props.FocusLenseSizeRef.current = containerSize
 	end, { containerSize })
 
+	local draggerScale = 1
+	local draggerSize = Vector2.new(120, 28)
+	if containerSize.X < draggerSize.X * 2 or containerSize.Y < draggerSize.Y * 2 then
+		draggerScale = math.min(containerSize.X / (draggerSize.X * 2), containerSize.Y / (draggerSize.Y * 2))
+	end
+
 	return React.createElement(ContainerSize, {
 		SetContainerSize = setContainerSize,
 	}, {
@@ -224,7 +230,9 @@ local function FullViewport(props: Props)
 
 				InitialPosition = UDim2.fromScale(0, 0),
 				AnchorPoint = Vector2.new(0, 0),
-				Size = UDim2.fromOffset(120, 28),
+				Size = UDim2.fromOffset(draggerSize.X, draggerSize.Y),
+
+				Scale = draggerScale,
 
 				Disabled = props.Disabled,
 			}, {
