@@ -11,4 +11,6 @@ return function(script: LuaSourceContainer)
 	actor:BindToMessageParallel("Work", function(index, ...)
 		resultsBinding:Fire(index, required.callback(...))
 	end)
+
+	actor:SetAttribute("IsReady", true)
 end

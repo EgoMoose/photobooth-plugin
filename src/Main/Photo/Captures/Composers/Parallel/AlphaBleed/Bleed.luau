@@ -59,10 +59,9 @@ local function bleed(img: Image.Image, visited: buffer, pending: { number })
 	-- not really taking advantage of parallel luau here
 	-- however, by using a worker we stop studio from getting hung up
 
-	local scheduler = Parallel.new(1, required)
+	local scheduler = Parallel.cached(1, required)
 	scheduler:Schedule(img.buffer, img.size, visited, pending)
-	local packedResults = scheduler:WorkDeferred()
-	scheduler:Destroy()
+	local packedResults = scheduler:Work()
 
 	local result = Image.fromBuffer(packedResults[1](), img.size)
 	result.templateUri = img.templateUri

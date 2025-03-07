@@ -100,7 +100,7 @@ local function reverseBlendParallel(
 	onBlack: Image.Image?,
 	colorCorrection: ColorCorrectionEffect
 )
-	local scheduler = Parallel.new(32, required)
+	local scheduler = Parallel.cached(32, required)
 
 	local splitOnWhiteRetro = onWhiteRetro:Split(scheduler:GetActorCount())
 	local splitOnBlackRetro = onBlackRetro:Split(scheduler:GetActorCount())
@@ -120,8 +120,7 @@ local function reverseBlendParallel(
 		)
 	end
 
-	local packedResults = scheduler:WorkDeferred()
-	scheduler:Destroy()
+	local packedResults = scheduler:Work()
 
 	local copyIndex = 0
 	local resultBuffer = buffer.create(onWhiteRetro:GetNumberOfPixels() * 4)

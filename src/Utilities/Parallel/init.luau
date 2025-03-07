@@ -22,7 +22,7 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 		schedules: { [Actor]: { () -> T... } },
 		isWorking: boolean,
 
-		callback: (T...) -> U...,
+		required: Required<T..., U...>,
 
 		module: ModuleScript,
 		resultsBinding: BindableEvent,
@@ -38,10 +38,10 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	self.schedules = {}
 	self.isWorking = false
 
-	self.callback = required.callback
+	self.required = required
 
 	self.module = required.script:Clone()
-	self.module.Name = "ParallelModule"
+	self.module.Name = `Parallel_{required.script.Name}`
 	self.module.Archivable = false
 	self.module.Parent = script
 
@@ -76,7 +76,31 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 		self.schedules[actor] = {}
 	end
 
+	for _, actor in self.actors do
+		while not actor:GetAttribute("IsReady") do
+			actor:GetAttributeChangedSignal("IsReady"):Wait()
+		end
+	end
+
 	return self
+end
+
+local ParallelCache: { [ModuleScript]: { Parallel<...any, ...any> } } = {}
+
+function ParallelStatic.cached<T..., U...>(n: number, required: Required<T..., U...>)
+	local cache = ParallelCache[required.script]
+	if not cache then
+		cache = {}
+		ParallelCache[required.script] = cache
+	end
+
+	local parallel: Parallel<T..., U...> = cache[n]
+	if not parallel then
+		parallel = ParallelStatic.new(n, required)
+		cache[n] = parallel
+	end
+
+	return parallel
 end
 
 function ParallelStatic.cast<T..., U..., V..., W...>(required: Required<T..., U...>, callback: (V...) -> W...)
@@ -126,7 +150,33 @@ local function packAsCallback<T...>(...: T...): () -> T...
 	end
 end
 
-local function work<T..., U...>(self: Parallel<T..., U...>)
+-- Public
+
+function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
+	return #self.actors
+end
+
+function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
+	self.ticket = self.ticket + 1
+	local myTicket = self.ticket
+
+	local actorIndex = ((myTicket - 1) % #self.actors) + 1
+	local actor = self.actors[actorIndex]
+
+	table.insert(self.schedules[actor], packAsCallback(...))
+end
+
+function ParallelClass.Clear<T..., U...>(self: Parallel<T..., U...>)
+	self.ticket = 0
+	for actor, _ in self.schedules do
+		table.clear(self.schedules[actor])
+	end
+end
+
+function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
+	assert(not self.isWorking, "Already working!")
+	self.isWorking = true
+
 	local expectations = {}
 	for i, actor in self.actors do
 		local schedule = self.schedules[actor]
@@ -147,67 +197,11 @@ local function work<T..., U...>(self: Parallel<T..., U...>)
 		end
 	end
 
-	for actor, _ in self.schedules do
-		table.clear(self.schedules[actor])
-	end
+	self:Clear()
 
 	local results = {}
 	for i, expect in expectations do
 		results[i] = expect()
-	end
-
-	return results
-end
-
--- Public
-
-function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
-	return #self.actors
-end
-
-function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
-	self.ticket = self.ticket + 1
-	local myTicket = self.ticket
-
-	local actorIndex = ((myTicket - 1) % #self.actors) + 1
-	local actor = self.actors[actorIndex]
-
-	table.insert(self.schedules[actor], packAsCallback(...))
-end
-
-function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
-	assert(not self.isWorking, "Already working!")
-	self.isWorking = true
-
-	local results = work(self)
-
-	self.isWorking = false
-	return results
-end
-
-function ParallelClass.WorkDeferred<T..., U...>(self: Parallel<T..., U...>)
-	assert(not self.isWorking, "Already working!")
-	self.isWorking = true
-
-	local results
-	local success, err: string?
-	local complete = false
-	local thread = coroutine.running()
-	task.defer(function()
-		success, err = pcall(function()
-			results = work(self)
-		end)
-
-		complete = true
-		task.spawn(thread)
-	end)
-
-	while not complete do
-		coroutine.yield()
-	end
-
-	if not success then
-		error(err)
 	end
 
 	self.isWorking = false
@@ -215,6 +209,14 @@ function ParallelClass.WorkDeferred<T..., U...>(self: Parallel<T..., U...>)
 end
 
 function ParallelClass.Destroy<T..., U...>(self: Parallel<T..., U...>)
+	local cache = ParallelCache[self.required.script]
+	if cache then
+		cache[#self.actors] = nil
+		if not next(cache) then
+			ParallelCache[self.required.script] = nil
+		end
+	end
+
 	self.resultsBinding:Destroy()
 	self.module:Destroy()
 	self.actors = {}
