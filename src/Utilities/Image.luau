@@ -229,12 +229,12 @@ function ImageClass.Split(self: Image, n: number, yPadding: number?)
 	local height = self.size.Y
 
 	local yPad = yPadding or 0
-	local linesPerWorker = math.ceil(height / n)
+	local linesPerWorker = math.floor(height / n)
 
 	local chunks = {}
 	for i = 1, n do
 		local start = ((i - 1) * linesPerWorker) + 1
-		local finish = math.min(height, (i * linesPerWorker))
+		local finish = math.min(height, if i == n then height else (i * linesPerWorker))
 
 		if start <= finish then
 			local startPadded = math.max(1, start - yPad)

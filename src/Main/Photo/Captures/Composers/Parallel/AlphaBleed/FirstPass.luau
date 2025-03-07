@@ -99,14 +99,13 @@ local required = {
 }
 
 local function firstPass(img: Image.Image)
-	local scheduler = Parallel.new(32, required)
+	local scheduler = Parallel.cached(32, required)
 
 	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
 		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
 	end
 
-	local packedResults = scheduler:WorkDeferred()
-	scheduler:Destroy()
+	local packedResults = scheduler:Work()
 
 	local pending = {}
 	local copyIndex = 0
