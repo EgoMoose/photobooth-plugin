@@ -17,22 +17,29 @@ local function story()
 	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
-	return React.createElement(FullViewport, {
-		OnCapture = function(rect)
-			setIsDisabled(true)
-			print(focusLenseSizeRef.current)
-			print(table.concat({
-				"",
-				"Viewport Capture",
-				`> Rect: {rect}`,
-				`> Size: ({rect.Width}, {rect.Height})`,
-			}, "\n"))
-			task.wait(1)
-			setIsDisabled(false)
-		end,
+	return React.createElement("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+	}, {
+		FullViewport = React.createElement(FullViewport, {
+			OnCapture = function(rect)
+				setIsDisabled(true)
+				print(focusLenseSizeRef.current)
+				print(table.concat({
+					"",
+					"Viewport Capture",
+					`> Rect: {rect}`,
+					`> Size: ({rect.Width}, {rect.Height})`,
+				}, "\n"))
+				task.wait(1)
+				setIsDisabled(false)
+			end,
 
-		FocusLenseSizeRef = focusLenseSizeRef,
-		Disabled = isDisabled or disabled,
+			FocusLenseSizeRef = focusLenseSizeRef,
+			Disabled = isDisabled or disabled,
+		}),
 	})
 end
 
