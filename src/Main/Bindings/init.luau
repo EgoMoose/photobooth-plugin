@@ -20,6 +20,10 @@ type Invocation = {
 local invocationByIdentifier = {}
 for _, invocationModule in script.Invocations:GetChildren() do
 	local invocation = require(invocationModule) :: Invocation
+	assert(
+		not invocationByIdentifier[invocation.identifier],
+		`Duplicate invocation identifier: {invocation.identifier}`
+	)
 	invocationByIdentifier[invocation.identifier] = invocation
 end
 

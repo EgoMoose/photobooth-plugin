@@ -25,28 +25,39 @@ local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
-	local corner = ((viewportSize * scaleOS) - viewportSize) / 2
-
-	local scaledRectAbsPosition = (rect.Min + corner)
-	local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
-	local scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
 
 	local prevCameraCF = camera.CFrame
 	local prevCameraType = camera.CameraType
-	if not (scaleOS.X == 1 and scaleOS.Y == 1) then
-		camera.CameraType = Enum.CameraType.Scriptable
+	camera.CameraType = Enum.CameraType.Scriptable
 
+	local scaledRect: Rect
+	if rect.Min == Vector2.zero and rect.Max == viewportSize then
 		-- stylua: ignore
-		camera.CFrame = prevCameraCF * Camera.distort(camera, {
-			anchor = Vector2.new(0.5, 0.5),
-			position = Vector2.new(0.5, 0.5),
-			size = 1 / scaleOS,
-			zoom = 1,
-			nearZ = 0,
-			rotation = 0,
-		})
+		local scaledViewportSize = Vector2.new(
+			math.round(viewportSize.X * scaleOS.X),
+			math.round(viewportSize.Y * scaleOS.Y)
+		)
 
-		SceneControl.yieldUntilNextFrame()
+		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
+	else
+		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
+		local scaledRectAbsPosition = (rect.Min + corner)
+		local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
+		scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
+
+		if not (scaleOS.X == 1 and scaleOS.Y == 1) then
+			-- stylua: ignore
+			camera.CFrame = prevCameraCF * Camera.distort(camera, {
+				anchor = Vector2.new(0.5, 0.5),
+				position = Vector2.new(0.5, 0.5),
+				size = 1 / scaleOS,
+				zoom = 1,
+				nearZ = 0,
+				rotation = 0,
+			})
+
+			SceneControl.yieldUntilNextFrame()
+		end
 	end
 
 	local exported
