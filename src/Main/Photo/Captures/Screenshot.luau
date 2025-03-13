@@ -79,8 +79,20 @@ function Screenshot.isFullscreenAllowed()
 end
 
 function Screenshot.isFullscreenRect(rect: Rect)
+	if not Screenshot.isFullscreenAllowed() then
+		return false
+	end
+
+	local scaleOS = Configuration.get().ScaleOS
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
-	return ALLOW_FULLSCREEN and rect.Min == Vector2.zero and rect.Max == viewportSize
+
+	-- stylua: ignore
+	local scaledViewportSize = Vector2.new(
+		math.round(viewportSize.X * scaleOS.X),
+		math.round(viewportSize.Y * scaleOS.Y)
+	)
+
+	return rect.Min == Vector2.zero and rect.Max == scaledViewportSize
 end
 
 function Screenshot.rect(rect: Rect)
