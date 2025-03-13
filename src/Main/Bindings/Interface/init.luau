@@ -18,6 +18,10 @@ end
 Bindings.cancellable = require(script.Helpers.Cancellable)
 Bindings.execute = require(script.Helpers.Execute)
 
+function Bindings.getVersion(): string
+	return invokeBinding("getVersion")
+end
+
 function Bindings.getOSScale(): Vector2
 	return invokeBinding("getOSScale")
 end
