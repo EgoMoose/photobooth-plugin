@@ -107,7 +107,7 @@ local function ActionBar(props: ActionBarProps)
 			},
 
 			OnActivated = function()
-				props.OnCapture(Rect.new(Vector2.zero, props.ContainerSize))
+				props.OnCapture(Rect.new(Vector2.zero, displaySize))
 			end,
 			Disabled = props.Disabled,
 			LayoutOrder = 5,
