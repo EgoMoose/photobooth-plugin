@@ -16,6 +16,6 @@ local function callback()
 end
 
 return {
-	identifier = "getOSScale",
+	identifier = "getVersion",
 	callback = gt.wrapFn(typechecker, callback),
 }
