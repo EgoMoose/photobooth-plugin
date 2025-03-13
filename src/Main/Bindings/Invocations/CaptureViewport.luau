@@ -25,11 +25,23 @@ local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
-	local corner = ((viewportSize * scaleOS) - viewportSize) / 2
 
-	local scaledRectAbsPosition = (rect.Min + corner)
-	local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
-	local scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
+	local scaledRect: Rect
+	if rect.Min == Vector2.zero and rect.Max == viewportSize then
+		-- stylua: ignore
+		local scaledViewportSize = Vector2.new(
+			math.round(viewportSize.X * scaleOS.X),
+			math.round(viewportSize.Y * scaleOS.Y)
+		)
+
+		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
+	else
+		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
+
+		local scaledRectAbsPosition = (rect.Min + corner)
+		local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
+		scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
+	end
 
 	local prevCameraCF = camera.CFrame
 	local prevCameraType = camera.CameraType
