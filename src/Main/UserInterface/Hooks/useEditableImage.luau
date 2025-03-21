@@ -3,14 +3,12 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
-local function getContentProperty(instance: Instance)
-	local contentProperty: string?
-	if instance:IsA("MeshPart") then
-		contentProperty = "TextureContent"
-	end
-
-	return contentProperty
-end
+local CLASS_TO_CONTENT_PROPERTY: { [string]: string } = {
+	-- ["Decal"] = "TextureContent",
+	["MeshPart"] = "TextureContent",
+	-- ["ImageLabel"] = "ImageContent",
+	-- ["ImageButton"] = "ImageContent",
+}
 
 local function tryGetEditImage(instance: Instance, contentProperty: string): EditableImage?
 	local content = (instance :: any)[contentProperty] :: Content
@@ -25,7 +23,7 @@ end
 
 local function useEditableImage(instance: Instance?)
 	local ticket, setTicket = React.useState(1)
-	local contentProperty = if instance then getContentProperty(instance) else nil
+	local contentProperty = if instance then CLASS_TO_CONTENT_PROPERTY[instance.ClassName] else nil
 
 	React.useEffect(function()
 		local connection: RBXScriptConnection?
