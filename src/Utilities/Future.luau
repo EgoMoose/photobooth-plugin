@@ -1,62 +1,66 @@
 --!strict
 
--- Using this as a lightweight alternative to Promises that also supports
--- typing. Futures in this context are not nearly as useful as promises, but I
--- prefer to having typing over a feature rich alternative
+local function packAsCallback<T...>(...: T...): () -> T...
+	local n = select("#", ...)
+	local packed = { select(1, ...) }
+	return function()
+		return unpack(packed, 1, n)
+	end
+end
+
+-- Class
+
+local FutureStatic = {}
 
 local FutureClass = {}
 FutureClass.__index = FutureClass
 FutureClass.ClassName = "Future"
 
-export type Future<T> = typeof(setmetatable(
+export type Future<T...> = typeof(setmetatable(
 	{} :: {
-		_typecast: T,
-
 		type: "Pending" | "Completed",
 		awaiting: { [thread]: boolean },
-		value: T?,
+		value: () -> T...,
 	},
 	FutureClass
 ))
 
 -- Constructors
 
-function FutureClass.raw<T>()
-	local self = setmetatable({}, FutureClass) :: Future<T>
-
-	self._typecast = (nil :: any) :: T
+function FutureStatic.raw<T...>()
+	local self = setmetatable({}, FutureClass) :: Future<T...>
 
 	self.type = "Pending"
 	self.awaiting = {}
-	self.value = nil
+	self.value = nil :: any
 
 	return self
 end
 
-function FutureClass.race<T>(futures: { Future<any> })
+function FutureStatic.race<T...>(futures: { Future<...any> })
 	for _, future in futures do
 		if future.type == "Completed" then
 			return future
 		end
 	end
 
-	local future = FutureClass.raw() :: Future<T>
+	local future = FutureStatic.raw() :: Future<T...>
 
 	task.spawn(function()
 		local thread = coroutine.running()
-		for _, future in futures do
-			assert(future.type == "Pending")
-			future.awaiting[thread] = true
+		for _, racingFuture in futures do
+			assert(racingFuture.type == "Pending", "Future is already completed.")
+			racingFuture.awaiting[thread] = true
 		end
 
-		local value = coroutine.yield()
-		for _, future in futures do
-			if future.type == "Pending" then
-				future.awaiting[thread] = nil
+		local packedValues = packAsCallback(coroutine.yield())
+		for _, racingFuture in futures do
+			if racingFuture.type == "Pending" then
+				racingFuture.awaiting[thread] = nil
 			end
 		end
 
-		future:complete(value)
+		future:complete(packedValues())
 	end)
 
 	return future
@@ -64,26 +68,26 @@ end
 
 -- Public
 
-function FutureClass.isCompleted<T>(self: Future<T>)
+function FutureClass.isCompleted<T...>(self: Future<T...>)
 	return self.type == "Completed"
 end
 
-function FutureClass.complete<T>(self: Future<T>, value: T)
+function FutureClass.complete<T...>(self: Future<T...>, ...: T...)
 	assert(self.type ~= "Completed", "Cannot complete a future that is already completed")
 
 	self.type = "Completed"
-	self.value = value
+	self.value = packAsCallback(...)
 
 	local awaiting = self.awaiting
 	self.awaiting = {}
 	for thread, _ in awaiting do
-		task.spawn(thread, value)
+		task.spawn(thread, ...)
 	end
 end
 
-function FutureClass.expect<T>(self: Future<T>): T
+function FutureClass.expect<T...>(self: Future<T...>): T...
 	if self.type == "Completed" then
-		return self.value :: T
+		return self.value()
 	end
 
 	local thread = coroutine.running()
@@ -93,4 +97,4 @@ end
 
 --
 
-return FutureClass
+return FutureStatic
