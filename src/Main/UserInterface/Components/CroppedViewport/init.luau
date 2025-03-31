@@ -99,18 +99,20 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 		end
 	end, { viewportSize })
 
-	-- this is what renders
-	local lenseAbsSize = useLenseSize(size, viewportSize, 1 / scaleOS)
-	local lenseAbsPosition = (viewportSize - lenseAbsSize) / 2
-	local lenseRect = RenderRect.fromAbs(lenseAbsPosition, lenseAbsSize)
-	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
-	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
-
 	-- this is used for displaying dimensions + capture rect
 	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1))
 	local scaledLenseAbsPosition = (scaledViewport - scaledLenseAbsSize) / 2
 	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
+
+	-- this is what renders
+	-- we convert the scaled lense back to roblox scale and from a rounding context ensure we
+	-- render the largest possible rect
+	local lenseAbsSize = (scaledLenseRectSize / scaleOS):Ceil()
+	local lenseAbsPosition = (scaledLenseRect.Min / scaleOS):Floor()
+	local lenseRect = Rect.new(lenseAbsPosition, lenseAbsPosition + lenseAbsSize)
+	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
+	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
 	React.useEffect(function()
 		props.FocusLenseSizeRef.current = scaledLenseRectSize
@@ -153,10 +155,11 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 				UIStroke = React.createElement("UIStroke", {
 					Thickness = 2,
 					Transparency = 0,
-					Color = theme:GetColor(
-						Enum.StudioStyleGuideColor.InputFieldBorder,
-						Enum.StudioStyleGuideModifier.Selected
-					),
+					Color = Color3.new(1, 0, 0),
+					-- Color = theme:GetColor(
+					-- 	Enum.StudioStyleGuideColor.InputFieldBorder,
+					-- 	Enum.StudioStyleGuideModifier.Selected
+					-- ),
 				}),
 			}),
 			Grabbers = React.createElement(Grabbers, {
