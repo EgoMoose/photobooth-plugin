@@ -12,7 +12,7 @@ ParallelClass.ClassName = "Parallel"
 
 export type Required<T..., U...> = {
 	script: ModuleScript,
-	callback: (T...) -> U...,
+	typecast: (T...) -> U...,
 }
 
 export type Parallel<T..., U...> = typeof(setmetatable(
@@ -24,8 +24,8 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 
 		required: Required<T..., U...>,
 
-		module: ModuleScript,
-		resultsBinding: BindableEvent,
+		moduleRef: ObjectValue,
+		binding: BindableEvent,
 	},
 	ParallelClass
 ))
@@ -40,21 +40,22 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 
 	self.required = required
 
-	self.module = required.script:Clone()
-	self.module.Name = `Parallel_{required.script.Name}`
-	self.module.Archivable = false
-	self.module.Parent = script
+	self.moduleRef = Instance.new("ObjectValue")
+	self.moduleRef.Name = `Parallel_{required.script.Name}`
+	self.moduleRef.Value = required.script
+	self.moduleRef.Archivable = false
+	self.moduleRef.Parent = script
 
-	self.resultsBinding = Instance.new("BindableEvent")
-	self.resultsBinding.Name = "Results"
-	self.resultsBinding.Parent = self.module
+	self.binding = Instance.new("BindableEvent")
+	self.binding.Name = "Binding"
+	self.binding.Parent = self.moduleRef
 
 	local workerModule = script.Worker:Clone()
-	workerModule.Parent = self.module
+	workerModule.Parent = self.moduleRef
 
 	local actorFolder = Instance.new("Folder")
 	actorFolder.Name = "Actors"
-	actorFolder.Parent = self.module
+	actorFolder.Parent = self.moduleRef
 
 	local template = script.ClientWorker
 	if script:FindFirstAncestorWhichIsA("Plugin") then
@@ -83,34 +84,6 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	end
 
 	return self
-end
-
-local ParallelCache: { [ModuleScript]: { Parallel<...any, ...any> } } = {}
-
-function ParallelStatic.cached<T..., U...>(n: number, required: Required<T..., U...>)
-	local cache = ParallelCache[required.script]
-	if not cache then
-		cache = {}
-		ParallelCache[required.script] = cache
-	end
-
-	local parallel: Parallel<T..., U...> = cache[n]
-	if not parallel then
-		parallel = ParallelStatic.new(n, required)
-		cache[n] = parallel
-	end
-
-	return parallel
-end
-
-function ParallelStatic.cast<T..., U..., V..., W...>(required: Required<T..., U...>, callback: (V...) -> W...)
-	local meta = setmetatable(table.clone(required), {
-		__call = function(self, ...)
-			return callback(...)
-		end,
-	})
-
-	return (meta :: any) :: (V...) -> W...
 end
 
 -- Private
@@ -186,7 +159,7 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 			expectations[k] = expect
 
 			local connection
-			connection = self.resultsBinding.Event:Connect(function(index: number, ...: any)
+			connection = self.binding.Event:Connect(function(index: number, ...: any)
 				if k == index then
 					complete(packAsCallback(...) :: () -> U...)
 					connection:Disconnect()
@@ -209,16 +182,8 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 end
 
 function ParallelClass.Destroy<T..., U...>(self: Parallel<T..., U...>)
-	local cache = ParallelCache[self.required.script]
-	if cache then
-		cache[#self.actors] = nil
-		if not next(cache) then
-			ParallelCache[self.required.script] = nil
-		end
-	end
-
-	self.resultsBinding:Destroy()
-	self.module:Destroy()
+	self.binding:Destroy()
+	self.moduleRef:Destroy()
 	self.actors = {}
 	self.schedules = {}
 end
