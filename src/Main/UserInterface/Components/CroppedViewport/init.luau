@@ -155,11 +155,10 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 				UIStroke = React.createElement("UIStroke", {
 					Thickness = 2,
 					Transparency = 0,
-					Color = Color3.new(1, 0, 0),
-					-- Color = theme:GetColor(
-					-- 	Enum.StudioStyleGuideColor.InputFieldBorder,
-					-- 	Enum.StudioStyleGuideModifier.Selected
-					-- ),
+					Color = theme:GetColor(
+						Enum.StudioStyleGuideColor.InputFieldBorder,
+						Enum.StudioStyleGuideModifier.Selected
+					),
 				}),
 			}),
 			Grabbers = React.createElement(Grabbers, {
