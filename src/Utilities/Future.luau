@@ -1,8 +1,6 @@
 --!strict
 
--- Using this as a lightweight alternative to Promises that also supports
--- typing. Futures in this context are not nearly as useful as promises, but I
--- prefer to having typing over a feature rich alternative
+local FutureStatic = {}
 
 local FutureClass = {}
 FutureClass.__index = FutureClass
@@ -21,7 +19,7 @@ export type Future<T> = typeof(setmetatable(
 
 -- Constructors
 
-function FutureClass.raw<T>()
+function FutureStatic.raw<T>()
 	local self = setmetatable({}, FutureClass) :: Future<T>
 
 	self._typecast = (nil :: any) :: T
@@ -33,26 +31,26 @@ function FutureClass.raw<T>()
 	return self
 end
 
-function FutureClass.race<T>(futures: { Future<any> })
+function FutureStatic.race<T>(futures: { Future<any> })
 	for _, future in futures do
 		if future.type == "Completed" then
 			return future
 		end
 	end
 
-	local future = FutureClass.raw() :: Future<T>
+	local future = FutureStatic.raw() :: Future<T>
 
 	task.spawn(function()
 		local thread = coroutine.running()
-		for _, future in futures do
-			assert(future.type == "Pending")
-			future.awaiting[thread] = true
+		for _, racingFuture in futures do
+			assert(racingFuture.type == "Pending", "Cannot race completed future.")
+			racingFuture.awaiting[thread] = true
 		end
 
 		local value = coroutine.yield()
-		for _, future in futures do
-			if future.type == "Pending" then
-				future.awaiting[thread] = nil
+		for _, racingFuture in futures do
+			if racingFuture.type == "Pending" then
+				racingFuture.awaiting[thread] = nil
 			end
 		end
 
@@ -93,4 +91,4 @@ end
 
 --
 
-return FutureClass
+return FutureStatic
