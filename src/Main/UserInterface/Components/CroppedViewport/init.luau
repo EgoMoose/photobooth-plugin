@@ -110,7 +110,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	-- render the largest possible rect
 	local lenseAbsSize = (scaledLenseRectSize / scaleOS):Ceil()
 	local lenseAbsPosition = (scaledLenseRect.Min / scaleOS):Floor()
-	local lenseRect = Rect.new(lenseAbsPosition, lenseAbsPosition + lenseAbsSize)
+	local lenseRect = Rect.new(lenseAbsPosition - Vector2.one, lenseAbsPosition + lenseAbsSize + Vector2.one)
 	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
 	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
