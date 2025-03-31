@@ -5,3 +5,10 @@ globals:
   require:
     args:
     - type: string
+
+  # changes assert rules to allow optional second arg
+  assert:
+    args:
+      - type: any
+      - type: string
+        required: false

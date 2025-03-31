@@ -1,7 +1,6 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 
 local HAS_VISITED = bit32.lshift(1, 0)
@@ -64,7 +63,7 @@ local function integralImage(img: Image.Image)
 	return readRadius
 end
 
-local function doWork(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
+local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
 	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
 	local readRadius = integralImage(chunkImg)
 
@@ -93,31 +92,4 @@ local function doWork(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIn
 	return visited, pending
 end
 
-local required = {
-	script = script,
-	callback = doWork,
-}
-
-local function firstPass(img: Image.Image)
-	local scheduler = Parallel.cached(32, required)
-
-	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
-		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
-	end
-
-	local packedResults = scheduler:Work()
-
-	local pending = {}
-	local copyIndex = 0
-	local visited = buffer.create(img:GetNumberOfPixels())
-	for _, unpackResult in packedResults do
-		local visitedChunk, pendingChunk = unpackResult()
-		buffer.copy(visited, copyIndex, visitedChunk)
-		copyIndex = copyIndex + buffer.len(visitedChunk)
-		table.move(pendingChunk, 1, #pendingChunk, #pending + 1, pending)
-	end
-
-	return visited, pending
-end
-
-return Parallel.cast(required, firstPass)
+return workerAction
