@@ -2,6 +2,11 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add reversible wrapper in binding helpers.
+
+### Changes
+- Refactor history change service tracking in bindings.
 
 ## [0.5.4]
 ### Changed
