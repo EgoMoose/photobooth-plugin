@@ -16,6 +16,7 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 end
 
 Bindings.cancellable = require(script.Helpers.Cancellable)
+Bindings.reversible = require(script.Helpers.Reversible)
 Bindings.execute = require(script.Helpers.Execute)
 
 function Bindings.getVersion(): string
