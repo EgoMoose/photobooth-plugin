@@ -1,16 +1,8 @@
 --!strict
 
-local Invoke = require(script.Parent.Parent.Invoke)
+local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
 
 local criticalRoots = {}
-
-local function packAsCallback<T...>(...: T...): () -> T...
-	local n = select("#", ...)
-	local packed = { select(1, ...) }
-	return function()
-		return unpack(packed, 1, n)
-	end
-end
 
 local function quickFuture<T>()
 	local result: T
@@ -48,7 +40,7 @@ local function quickFuture<T>()
 	}
 end
 
-local function critical<T..., U...>(level: number, callback: (T...) -> U...)
+local function critical(level: number, callback: () -> ())
 	local stack = level
 	local rootCallback: (() -> ())?
 	while not rootCallback do
@@ -61,24 +53,22 @@ local function critical<T..., U...>(level: number, callback: (T...) -> U...)
 	end
 
 	if rootCallback then
-		local unpackCallback
 		local future = quickFuture()
 		criticalRoots[rootCallback] = future
 		task.spawn(function()
-			unpackCallback = packAsCallback(callback())
+			callback()
 			future.complete(nil)
 		end)
 		future.expect()
-		return unpackCallback()
 	else
-		return callback()
+		callback()
 	end
 end
 
 local function wrap(callback: () -> ())
 	criticalRoots[callback] = quickFuture()
 
-	local identifier = Invoke("tryBeginRecording") :: string
+	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_bindings", "Photobooth"))
 
 	local callbackFuture = quickFuture()
 	local finishedFuture = quickFuture()
@@ -114,9 +104,9 @@ local function wrap(callback: () -> ())
 	task.spawn(function()
 		callbackFuture.expect()
 		if success then
-			Invoke("finishRecording", identifier, Enum.FinishRecordingOperation.Commit)
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
 		else
-			Invoke("finishRecording", identifier, Enum.FinishRecordingOperation.Cancel)
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
 		end
 		criticalRoots[callback] = nil
 		finishedFuture.complete(nil)

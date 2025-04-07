@@ -31,7 +31,7 @@ end
 
 local function createBindings()
 	local interface = script.Interface:Clone()
-	local binding = interface.Invoke.Binding
+	local binding = interface.Binding
 	interface.Name = "PhotoboothBindings"
 
 	local descendants = interface:GetDescendants()
