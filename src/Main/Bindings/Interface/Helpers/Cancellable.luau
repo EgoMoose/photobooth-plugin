@@ -1,6 +1,5 @@
 --!strict
 
-local HttpService = game:GetService("HttpService") :: HttpService
 local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
 
 local function quickFuture<T>()
@@ -19,6 +18,7 @@ local function quickFuture<T>()
 			for thread, _ in awaiting do
 				task.spawn(thread)
 			end
+			awaiting = {}
 		end
 	end
 
@@ -38,33 +38,37 @@ local function quickFuture<T>()
 	}
 end
 
-local function undoToWaypoint(waypoint: string)
-	local undoFuture = quickFuture()
-	local eventFuture = quickFuture()
+local criticalRoots = {}
 
-	local connection = ChangeHistoryService.OnUndo:Connect(function(wp)
-		if wp == waypoint then
-			undoFuture.complete(nil)
+local function critical<T..., U...>(level: number, callback: () -> ())
+	local stack = level
+	local rootCallback: (() -> ())?
+	while not rootCallback do
+		stack = stack + 1
+		local potentialCallback = debug.info(stack, "f")
+		if not potentialCallback then
+			break
 		end
-		eventFuture.complete(nil)
-	end)
+		rootCallback = if criticalRoots[potentialCallback] then potentialCallback else nil
+	end
 
-	task.spawn(function()
-		while not undoFuture.isComplete() and ChangeHistoryService:GetCanUndo() do
-			eventFuture = quickFuture()
-			ChangeHistoryService:Undo()
-			eventFuture.expect()
-		end
-	end)
-
-	undoFuture.expect()
-	connection:Disconnect()
+	if rootCallback then
+		local future = quickFuture()
+		criticalRoots[rootCallback] = future
+		task.spawn(function()
+			callback()
+			future.complete(nil)
+		end)
+		future.expect()
+	else
+		callback()
+	end
 end
 
-local function cancellable(callback: () -> ())
-	local identifier = HttpService:GenerateGUID()
-	local startWaypoint = `{identifier}_start`
-	ChangeHistoryService:SetWaypoint(startWaypoint)
+local function wrap(callback: () -> ())
+	criticalRoots[callback] = quickFuture()
+
+	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_cancel", "Photobooth"))
 
 	local callbackFuture = quickFuture()
 	local finishedFuture = quickFuture()
@@ -81,6 +85,11 @@ local function cancellable(callback: () -> ())
 	local function cancel()
 		if not hasCancelled and not callbackFuture.isComplete() then
 			hasCancelled = true
+
+			while criticalRoots[callback].isComplete() do
+				criticalRoots[callback].expect()
+			end
+
 			coroutine.close(thread)
 			success, err = false, "Cancelled"
 			callbackFuture.complete(nil)
@@ -92,28 +101,21 @@ local function cancellable(callback: () -> ())
 		return success, err
 	end
 
-	local waypointUndone = false
-	local connection = ChangeHistoryService.OnUndo:Connect(function(wp)
-		if wp == startWaypoint then
-			waypointUndone = true
-		end
-		cancel()
-	end)
-
 	task.spawn(function()
 		callbackFuture.expect()
-		connection:Disconnect()
 		if success then
-			ChangeHistoryService:SetWaypoint(`{identifier}_finish`)
-		elseif not waypointUndone then
-			waypointUndone = true
-			--undoToWaypoint(startWaypoint)
-			print(startWaypoint)
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
+		else
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
 		end
+		criticalRoots[callback] = nil
 		finishedFuture.complete(nil)
 	end)
 
 	return expectResult, cancel
 end
 
-return cancellable
+return {
+	critical = critical,
+	wrap = wrap,
+}
