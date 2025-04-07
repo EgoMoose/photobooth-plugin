@@ -2,6 +2,8 @@
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
 
+local criticalRoots = {}
+
 local function quickFuture<T>()
 	local result: T
 	local completed = false
@@ -37,8 +39,6 @@ local function quickFuture<T>()
 		expect = expect,
 	}
 end
-
-local criticalRoots = {}
 
 local function critical<T..., U...>(level: number, callback: () -> ())
 	local stack = level
