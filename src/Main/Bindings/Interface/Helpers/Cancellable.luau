@@ -1,8 +1,16 @@
 --!strict
 
-local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
+local Invoke = require(script.Parent.Parent.Invoke)
 
 local criticalRoots = {}
+
+local function packAsCallback<T...>(...: T...): () -> T...
+	local n = select("#", ...)
+	local packed = { select(1, ...) }
+	return function()
+		return unpack(packed, 1, n)
+	end
+end
 
 local function quickFuture<T>()
 	local result: T
@@ -40,7 +48,7 @@ local function quickFuture<T>()
 	}
 end
 
-local function critical<T..., U...>(level: number, callback: () -> ())
+local function critical<T..., U...>(level: number, callback: (T...) -> U...)
 	local stack = level
 	local rootCallback: (() -> ())?
 	while not rootCallback do
@@ -53,22 +61,24 @@ local function critical<T..., U...>(level: number, callback: () -> ())
 	end
 
 	if rootCallback then
+		local unpackCallback
 		local future = quickFuture()
 		criticalRoots[rootCallback] = future
 		task.spawn(function()
-			callback()
+			unpackCallback = packAsCallback(callback())
 			future.complete(nil)
 		end)
 		future.expect()
+		return unpackCallback()
 	else
-		callback()
+		return callback()
 	end
 end
 
 local function wrap(callback: () -> ())
 	criticalRoots[callback] = quickFuture()
 
-	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_cancel", "Photobooth"))
+	local identifier = Invoke("tryBeginRecording") :: string
 
 	local callbackFuture = quickFuture()
 	local finishedFuture = quickFuture()
@@ -104,9 +114,9 @@ local function wrap(callback: () -> ())
 	task.spawn(function()
 		callbackFuture.expect()
 		if success then
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
+			Invoke("finishRecording", identifier, Enum.FinishRecordingOperation.Commit)
 		else
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+			Invoke("finishRecording", identifier, Enum.FinishRecordingOperation.Cancel)
 		end
 		criticalRoots[callback] = nil
 		finishedFuture.complete(nil)

@@ -18,18 +18,20 @@ type Invocation = {
 }
 
 local invocationByIdentifier = {}
-for _, invocationModule in script.Invocations:GetChildren() do
-	local invocation = require(invocationModule) :: Invocation
-	assert(
-		not invocationByIdentifier[invocation.identifier],
-		`Duplicate invocation identifier: {invocation.identifier}`
-	)
-	invocationByIdentifier[invocation.identifier] = invocation
+for _, invocationModule in script.Invocations:GetDescendants() do
+	if invocationModule:IsA("ModuleScript") then
+		local invocation = require(invocationModule) :: Invocation
+		assert(
+			not invocationByIdentifier[invocation.identifier],
+			`Duplicate invocation identifier: {invocation.identifier}`
+		)
+		invocationByIdentifier[invocation.identifier] = invocation
+	end
 end
 
 local function createBindings()
 	local interface = script.Interface:Clone()
-	local binding = interface.Binding
+	local binding = interface.Invoke.Binding
 	interface.Name = "PhotoboothBindings"
 
 	local descendants = interface:GetDescendants()
