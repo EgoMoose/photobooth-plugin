@@ -88,13 +88,14 @@ end
 
 validate()
 
-local _success, err = Photobooth.cancellable(script, function()
+local expect, _cancel = Photobooth.track(function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
 	results.Parent = StarterGui
 end)
 
-if err then
-	error("Photobooth: " .. err)
+local success, err = expect()
+if not success then
+	error(err)
 end
