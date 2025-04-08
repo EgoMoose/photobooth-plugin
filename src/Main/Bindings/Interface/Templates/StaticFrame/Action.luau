@@ -88,7 +88,7 @@ end
 
 validate()
 
-local expect, _cancel = Photobooth.record(function()
+local expect, _cancel = Photobooth.track(function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false
