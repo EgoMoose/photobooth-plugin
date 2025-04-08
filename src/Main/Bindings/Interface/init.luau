@@ -23,7 +23,7 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	return table.unpack(results, 2)
 end
 
-Bindings.cancellable = Cancellable.wrap
+Bindings.track = Cancellable.wrap
 Bindings.execute = require(script.Helpers.Execute)
 
 function Bindings.getVersion(): string
