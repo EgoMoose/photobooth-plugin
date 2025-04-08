@@ -100,6 +100,7 @@ local function quickFuture<T>()
 			for thread, _ in awaiting do
 				task.spawn(thread)
 			end
+			awaiting = {}
 		end
 	end
 
