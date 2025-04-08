@@ -2,6 +2,8 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0]
 ### Changes
 - Refactor history change service tracking in bindings.
 - Removed `PhotoboothBindings.cancellable` in favor of `PhotoboothBindings.track`.
