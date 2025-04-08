@@ -40,6 +40,16 @@ local function quickFuture<T>()
 	}
 end
 
+local function copyCurrentCamera()
+	local currentCamera = workspace.CurrentCamera :: Camera
+	local archivable = currentCamera.Archivable
+	currentCamera.Archivable = true
+	local copy = currentCamera:Clone()
+	currentCamera.Archivable = archivable
+	copy.Archivable = archivable
+	return copy
+end
+
 local function critical(level: number, callback: () -> ())
 	local stack = level
 	local rootCallback: (() -> ())?
@@ -68,6 +78,7 @@ end
 local function wrap(callback: () -> ())
 	criticalRoots[callback] = quickFuture()
 
+	local cameraCopy = copyCurrentCamera()
 	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_bindings", "Photobooth"))
 
 	local callbackFuture = quickFuture()
@@ -105,9 +116,18 @@ local function wrap(callback: () -> ())
 		callbackFuture.expect()
 		if success then
 			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
+			cameraCopy:Destroy()
 		else
 			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+
+			local camera = workspace.CurrentCamera :: Camera
+			camera.CameraType = cameraCopy.CameraType
+			camera.CameraSubject = cameraCopy.CameraSubject
+			camera.FieldOfView = cameraCopy.FieldOfView
+			camera.CFrame = cameraCopy.CFrame
+			camera.Focus = cameraCopy.Focus
 		end
+
 		criticalRoots[callback] = nil
 		finishedFuture.complete(nil)
 	end)

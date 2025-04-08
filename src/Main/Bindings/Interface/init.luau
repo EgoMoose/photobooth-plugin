@@ -11,7 +11,7 @@ export type UICaptureTypes = "NoBackground" | "AlphaMask"
 local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	local results
 	local args = table.pack(...)
-	Cancellable.critical(4, function()
+	Cancellable.critical(3, function()
 		results = table.pack(binding:Invoke(identifier, table.unpack(args)))
 	end)
 
