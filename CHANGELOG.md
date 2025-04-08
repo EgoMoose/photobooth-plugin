@@ -2,6 +2,8 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Fixes an issue where futures in the parallel module were wasting memory.
 
 ## [0.5.4]
 ### Changed
