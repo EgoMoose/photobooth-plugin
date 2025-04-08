@@ -6,9 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.6.0]
 ### Changes
 - Refactor history change service tracking in bindings.
-- Removed `PhotoboothBindings.cancellable` in favor of `PhotoboothBindings.track`.
+- Removed `PhotoboothBindings.cancellable` in favor of `PhotoboothBindings.reversible`.
   - If an error occurs in the callback block the changes made via code in that block will be reverted.
-  - Alternatively, the author can manually cancel the block which will also revert.
+  - Alternatively, the author can manually cancel / revert an in-progress block.
 
 ### Fixed
 - Fixes an issue where futures in the parallel module were wasting memory.

@@ -1,6 +1,6 @@
 --!strict
 
-local Cancellable = require(script.Helpers.Cancellable)
+local Reversible = require(script.Helpers.Reversible)
 
 local Bindings = {}
 local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
@@ -11,7 +11,7 @@ export type UICaptureTypes = "NoBackground" | "AlphaMask"
 local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	local results
 	local args = table.pack(...)
-	Cancellable.critical(3, function()
+	Reversible.critical(3, function()
 		results = table.pack(binding:Invoke(identifier, table.unpack(args)))
 	end)
 
@@ -23,7 +23,7 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	return table.unpack(results, 2)
 end
 
-Bindings.track = Cancellable.wrap
+Bindings.reversible = Reversible.wrap
 Bindings.execute = require(script.Helpers.Execute)
 
 function Bindings.getVersion(): string
