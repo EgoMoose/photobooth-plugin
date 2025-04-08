@@ -2,11 +2,11 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-- Add reversible wrapper in binding helpers.
-
 ### Changes
 - Refactor history change service tracking in bindings.
+- Removed `PhotoboothBindings.cancellable` in favor of `PhotoboothBindings.track`.
+  - If an error occurs in the callback block the changes made via code in that block will be reverted.
+  - Alternatively, the author can manually cancel the block which will also revert.
 
 ## [0.5.4]
 ### Changed
