@@ -21,6 +21,7 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 		actors: { Actor },
 		schedules: { [Actor]: { () -> T... } },
 		isWorking: boolean,
+		isReady: boolean,
 
 		required: Required<T..., U...>,
 
@@ -37,6 +38,7 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	self.actors = {}
 	self.schedules = {}
 	self.isWorking = false
+	self.isReady = false
 
 	self.required = required
 
@@ -77,11 +79,15 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 		self.schedules[actor] = {}
 	end
 
-	for _, actor in self.actors do
-		while not actor:GetAttribute("IsReady") do
-			actor:GetAttributeChangedSignal("IsReady"):Wait()
+	task.spawn(function()
+		for _, actor in self.actors do
+			while not actor:GetAttribute("IsReady") do
+				actor:GetAttributeChangedSignal("IsReady"):Wait()
+			end
 		end
-	end
+
+		self.isReady = true
+	end)
 
 	return self
 end
@@ -127,10 +133,13 @@ end
 -- Public
 
 function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
+	assert(self.isReady, "Not ready!")
 	return #self.actors
 end
 
 function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
+	assert(self.isReady, "Not ready!")
+
 	self.ticket = self.ticket + 1
 	local myTicket = self.ticket
 
@@ -141,6 +150,8 @@ function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T..
 end
 
 function ParallelClass.Clear<T..., U...>(self: Parallel<T..., U...>)
+	assert(self.isReady, "Not ready!")
+
 	self.ticket = 0
 	for actor, _ in self.schedules do
 		table.clear(self.schedules[actor])
@@ -148,6 +159,7 @@ function ParallelClass.Clear<T..., U...>(self: Parallel<T..., U...>)
 end
 
 function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
+	assert(self.isReady, "Not ready!")
 	assert(not self.isWorking, "Already working!")
 	self.isWorking = true
 
