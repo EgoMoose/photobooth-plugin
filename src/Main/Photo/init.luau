@@ -1,6 +1,7 @@
 --!strict
 
 local CoreGui = game:GetService("CoreGui") :: CoreGui
+local HttpService = game:GetService("HttpService") :: HttpService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
@@ -134,6 +135,23 @@ function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCapture
 end
 
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
+	local isServing = false
+	local port = Configuration.get().ServePort
+	if port > 0 then
+		pcall(function()
+			local result = HttpService:RequestAsync({
+				Compress = Enum.HttpCompression.None,
+				Url = `http://localhost:{port}/ping`,
+				Method = "POST",
+				Body = "",
+			})
+
+			if result.StatusCode == 200 then
+				isServing = true
+			end
+		end)
+	end
+
 	local results = {}
 	for i, img in imgs do
 		local meshPart = Instance.new("MeshPart")
@@ -147,6 +165,20 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 		meshPart.Size = Vector3.new(1, 1, 1)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent
+
+		if isServing and port > 0 then
+			task.spawn(function()
+				pcall(function()
+					HttpService:RequestAsync({
+						Compress = Enum.HttpCompression.None,
+						Url = `http://localhost:{port}/send`,
+						Method = "POST",
+						Headers = { ["content-type"] = "application/json" },
+						Body = "",
+					})
+				end)
+			end)
+		end
 
 		table.insert(results, meshPart)
 	end
