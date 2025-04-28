@@ -1,7 +1,6 @@
 --!strict
 
 local CoreGui = game:GetService("CoreGui") :: CoreGui
-local HttpService = game:GetService("HttpService") :: HttpService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
@@ -15,6 +14,7 @@ local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
 local Background = require(script.Tools.Background)
+local PngServe = require(script.Tools.PngServe)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
@@ -135,25 +135,13 @@ function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCapture
 end
 
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
-	local isServing = false
-	local port = Configuration.get().ServePort
-	if port > 0 then
-		pcall(function()
-			local result = HttpService:RequestAsync({
-				Compress = Enum.HttpCompression.None,
-				Url = `http://localhost:{port}/ping`,
-				Method = "POST",
-				Body = "",
-			})
-
-			if result.StatusCode == 200 then
-				isServing = true
-			end
-		end)
-	end
-
 	local results = {}
+
+	local port = Configuration.get().ServePort
+	local serveCallback = PngServe.create(port)
+
 	for i, img in imgs do
+		local name = `{DateTime.now():ToIsoDate()}_{i}`
 		local meshPart = Instance.new("MeshPart")
 		meshPart.Locked = true
 		meshPart.Archivable = false
@@ -161,24 +149,12 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 		meshPart.CanCollide = false
 		meshPart.CanTouch = false
 		meshPart.Transparency = 0 -- cannot be transparent
-		meshPart.Name = `{DateTime.now():ToIsoDate()}_{i}`
+		meshPart.Name = name
 		meshPart.Size = Vector3.new(1, 1, 1)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent
 
-		if isServing and port > 0 then
-			task.spawn(function()
-				pcall(function()
-					HttpService:RequestAsync({
-						Compress = Enum.HttpCompression.None,
-						Url = `http://localhost:{port}/send`,
-						Method = "POST",
-						Headers = { ["content-type"] = "application/json" },
-						Body = "",
-					})
-				end)
-			end)
-		end
+		serveCallback(name, img)
 
 		table.insert(results, meshPart)
 	end
