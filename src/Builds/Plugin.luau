@@ -11,7 +11,7 @@ local Photo = require(pluginRoot.Main.Photo)
 local Plugin = {}
 
 local DISPLAY_SCALE_WARNING = false
-local PLUGIN_SAVED_KEY = "egomoose_photobooth_configuration"
+local PLUGIN_SAVED_KEY = "egomoose_photobooth_save"
 
 -- Private
 
