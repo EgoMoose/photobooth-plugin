@@ -3,6 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.6.1]
+### Changes
+- Settings are now saved between sessions.
+
 ## [0.6.0]
 ### Changes
 - Refactor history change service tracking in bindings.
