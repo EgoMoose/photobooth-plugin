@@ -64,6 +64,7 @@ function Plugin.build(plugin: Plugin)
 	UserInterface.mountCaptureViewport(plugin, toolbar)
 	UserInterface.mountCaptureUI(plugin, toolbar)
 	UserInterface.mountGallery(plugin, toolbar)
+	UserInterface.mountServePng(plugin, toolbar)
 	--UserInterface.mountImportPng(plugin, toolbar)
 
 	Bindings.setup(plugin)

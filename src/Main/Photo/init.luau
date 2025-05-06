@@ -134,11 +134,20 @@ function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCapture
 	return captureViewport(rect, Captures.Viewport.Processors[captureType])
 end
 
+function Photo.serve(port: number, serving: { { name: string, img: Image.Image } })
+	local successCount = 0
+	local serveCallback = PngServe.create(port)
+	for _, target in serving do
+		local result = serveCallback(target.name, target.img)
+		if result:expect() then
+			successCount = successCount + 1
+		end
+	end
+	return successCount
+end
+
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
 	local results = {}
-
-	local port = Configuration.get().ServePort
-	local serveCallback = PngServe.create(port)
 
 	for i, img in imgs do
 		local name = `{DateTime.now():ToIsoDate()}_{i}`
@@ -153,8 +162,6 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 		meshPart.Size = Vector3.new(1, 1, 1)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent
-
-		serveCallback(name, img)
 
 		table.insert(results, meshPart)
 	end

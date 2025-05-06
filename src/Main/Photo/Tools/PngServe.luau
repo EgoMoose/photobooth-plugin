@@ -44,8 +44,20 @@ end
 
 -- Public
 
-function PngServe.ping(port: number)
+function PngServe.ping(port: number, timeout: number?)
 	local pingFuture = Future.raw()
+	local timeoutFuture = Future.raw()
+
+	if timeout and timeout > 0 then
+		task.delay(timeout, function()
+			timeoutFuture:complete(false)
+		end)
+	end
+
+	local resultFuture = Future.race({
+		pingFuture,
+		timeoutFuture,
+	}) :: Future.Future<boolean>
 
 	task.spawn(function()
 		local success, _err = pcall(function()
@@ -63,11 +75,23 @@ function PngServe.ping(port: number)
 		end
 	end)
 
-	return pingFuture
+	return resultFuture
 end
 
-function PngServe.send(port: number, name: string, img: Image.Image)
+function PngServe.send(port: number, name: string, img: Image.Image, timeout: number?)
 	local sendFuture = Future.raw()
+	local timeoutFuture = Future.raw()
+
+	local resultFuture = Future.race({
+		sendFuture,
+		timeoutFuture,
+	}) :: Future.Future<boolean>
+
+	if timeout and timeout > 0 then
+		task.delay(timeout, function()
+			timeoutFuture:complete(false)
+		end)
+	end
 
 	task.spawn(function()
 		local success, _err = pcall(function()
@@ -91,11 +115,14 @@ function PngServe.send(port: number, name: string, img: Image.Image)
 		end
 	end)
 
-	return sendFuture
+	return resultFuture
 end
 
 function PngServe.create(port: number)
-	local pingFuture = if port > 0 then PngServe.ping(port) else Future.completed(false)
+	local pingFuture = Future.completed(false)
+	if port > 0 then
+		pingFuture = PngServe.ping(port, 0.025)
+	end
 
 	return function(name: string, img: Image.Image)
 		local sendFuture = Future.raw()

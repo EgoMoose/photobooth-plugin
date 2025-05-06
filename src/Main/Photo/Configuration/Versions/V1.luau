@@ -13,7 +13,6 @@ export type Configuration = {
 	ScaleOS: Vector2,
 	AlphaBleedingEnabled: boolean,
 	BindingsEnabled: boolean,
-	ServePort: number,
 
 	-- Viewport
 	IsFullscreen: boolean,
@@ -46,7 +45,6 @@ function ConfigurationFormatV1.default(): Configuration
 		ScaleOS = Vector2.new(1, 1),
 		AlphaBleedingEnabled = true,
 		BindingsEnabled = false,
-		ServePort = -1,
 
 		-- Viewport
 		IsFullscreen = false,

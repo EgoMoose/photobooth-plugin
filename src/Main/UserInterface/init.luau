@@ -274,6 +274,61 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	end)
 end
 
+function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
+	local serveButton = toolbar:CreateButton(
+		"egomoose_photobooth_serve_button",
+		"Send selected editable images to the photobooth localhost",
+		"rbxassetid://102790924790695",
+		"Serve"
+	)
+
+	local servePort = 1816 -- Camera invention date!
+	local classToContentProperty: { [string]: string } = {
+		["MeshPart"] = "TextureContent",
+	}
+
+	local function tryGetEditImage(instance: Instance): EditableImage?
+		for className, contentProperty in classToContentProperty do
+			if instance:IsA(className) then
+				local content = (instance :: any)[contentProperty] :: Content
+				local object = content and content.Object
+
+				if object and object:IsA("EditableImage") then
+					return object
+				end
+			end
+		end
+		return nil
+	end
+
+	local clickConnection = serveButton.Click:Connect(function()
+		serveButton.Enabled = false
+
+		local gathered = {}
+		for _, selected in SelectionService:Get() do
+			local editImage = tryGetEditImage(selected)
+			if editImage then
+				table.insert(gathered, {
+					name = selected.Name:gsub("[^a-z0-9%- ]+", "_"),
+					img = Image.fromEditableImage(editImage),
+				})
+			end
+		end
+
+		local successCount = Photo.serve(servePort, gathered)
+		if successCount >= 0 then
+			print(`Successfully sent {successCount} images.`)
+		end
+
+		serveButton:SetActive(false)
+		serveButton.Enabled = true
+	end)
+
+	plugin.Unloading:Connect(function()
+		clickConnection:Disconnect()
+	end)
+end
+
 function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
 	-- stylua: ignore
 	local importButton = toolbar:CreateButton(
