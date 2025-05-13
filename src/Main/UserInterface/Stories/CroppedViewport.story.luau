@@ -18,6 +18,10 @@ local function story()
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement(CroppedViewport, {
+		OnMaximize = function()
+			print("Maximize")
+		end,
+
 		OnCapture = function(rect)
 			setIsDisabled(true)
 			print(focusLenseSizeRef.current)

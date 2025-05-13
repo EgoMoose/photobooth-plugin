@@ -7,17 +7,20 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
+local Constants = require(uiRoot.Constants)
 local Hooks = require(uiRoot.Hooks)
 
 local FreeDrag = require(script.FreeDrag)
 
 export type Props = {
+	OnMinimize: () -> (),
 	OnCapture: (Rect) -> (),
 	FocusLenseSizeRef: { current: Vector2? },
 	Disabled: boolean,
 }
 
 type ActionBarProps = {
+	OnMinimize: () -> (),
 	OnCapture: (Rect) -> (),
 	IsDragging: boolean,
 	ContainerSize: Vector2,
@@ -27,6 +30,7 @@ type ActionBarProps = {
 local function ActionBar(props: ActionBarProps)
 	local moveIcon = assert(Lucide.GetAsset("move", 16))
 	local cameraIcon = assert(Lucide.GetAsset("camera", 16))
+	local minimizeIcon = assert(Lucide.GetAsset("minimize", 16))
 
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
@@ -36,6 +40,11 @@ local function ActionBar(props: ActionBarProps)
 		math.round(scaleOS.X * props.ContainerSize.X),
 		math.round(scaleOS.Y * props.ContainerSize.Y)
 	)
+
+	local labelWithOffset = 0
+	if Constants.FullscreenActionBarButton then
+		labelWithOffset = -24 - 4
+	end
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -74,7 +83,7 @@ local function ActionBar(props: ActionBarProps)
 		}),
 
 		Label = React.createElement("TextLabel", {
-			Size = UDim2.new(1, -24 - 16 - 4 - 6, 1, 0),
+			Size = UDim2.new(1, -24 - 16 - 4 - 6 + labelWithOffset, 1, 0),
 			BackgroundTransparency = 1,
 
 			Text = `{displaySize.X} x {displaySize.Y}`,
@@ -91,6 +100,30 @@ local function ActionBar(props: ActionBarProps)
 			Size = UDim2.new(0, 6, 1, 0),
 			BackgroundTransparency = 1,
 			LayoutOrder = 4,
+		}),
+
+		Minimize = Constants.FullscreenActionBarButton and React.createElement(StudioComponents.Button, {
+			Size = UDim2.new(0, 24, 1, 0),
+
+			Icon = {
+				Image = minimizeIcon.Url,
+				RectSize = minimizeIcon.ImageRectSize,
+				RectOffset = minimizeIcon.ImageRectOffset,
+
+				Size = minimizeIcon.ImageRectSize,
+				Transparency = if props.Disabled then 0.7 else 0,
+				UseThemeColor = true,
+			},
+
+			OnActivated = props.OnMinimize,
+			Disabled = props.Disabled,
+			LayoutOrder = 5,
+		}),
+
+		Spacing3 = Constants.FullscreenActionBarButton and React.createElement("Frame", {
+			Size = UDim2.new(0, 4, 1, 0),
+			BackgroundTransparency = 1,
+			LayoutOrder = 6,
 		}),
 
 		Capture = React.createElement(StudioComponents.MainButton, {
@@ -110,7 +143,7 @@ local function ActionBar(props: ActionBarProps)
 				props.OnCapture(Rect.new(Vector2.zero, displaySize))
 			end,
 			Disabled = props.Disabled,
-			LayoutOrder = 5,
+			LayoutOrder = 7,
 		}),
 	})
 end
@@ -131,7 +164,7 @@ local function HoverFade(props: HoverFadeProps)
 	local goal, setGoal = React.useBinding(props.HoverOffTransparency)
 	local transparency, setTransparency = Hooks.useSpring(goal)
 
-	React.useMemo(function()
+	React.useEffect(function()
 		if not props.IsDragging then
 			setTransparency(props.HoverOnTransparency)
 		end
@@ -213,6 +246,11 @@ local function FullViewport(props: Props)
 
 	local draggerScale = 1
 	local draggerSize = Vector2.new(120, 28)
+
+	if Constants.FullscreenActionBarButton then
+		draggerSize = Vector2.new(148, 28)
+	end
+
 	if containerSize.X < draggerSize.X * 2 or containerSize.Y < draggerSize.Y * 2 then
 		draggerScale = math.min(containerSize.X / (draggerSize.X * 2), containerSize.Y / (draggerSize.Y * 2))
 	end
@@ -245,6 +283,7 @@ local function FullViewport(props: Props)
 					ActionBar = React.createElement(ActionBar, {
 						IsDragging = isDragging,
 						ContainerSize = containerSize,
+						OnMinimize = props.OnMinimize,
 						OnCapture = props.OnCapture,
 						Disabled = props.Disabled,
 					}),

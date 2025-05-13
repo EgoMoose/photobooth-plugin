@@ -163,6 +163,11 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if configuration.IsFullscreen then FullViewport else CroppedViewport, {
+				[if configuration.IsFullscreen then "OnMinimize" else "OnMaximize"] = function()
+					local config = table.clone(Photo.Configuration.get())
+					config.IsFullscreen = not config.IsFullscreen
+					Photo.Configuration.set(config)
+				end,
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)

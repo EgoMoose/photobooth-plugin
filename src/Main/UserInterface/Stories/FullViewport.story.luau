@@ -24,6 +24,10 @@ local function story()
 		BackgroundTransparency = 1,
 	}, {
 		FullViewport = React.createElement(FullViewport, {
+			OnMinimize = function()
+				print("Minimize")
+			end,
+
 			OnCapture = function(rect)
 				setIsDisabled(true)
 				print(focusLenseSizeRef.current)

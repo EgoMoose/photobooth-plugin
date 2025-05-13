@@ -14,6 +14,7 @@ local Grabbers = require(script.Grabbers)
 local Blinder = require(script.Blinder)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
+local Constants = require(uiRoot.Constants)
 local Hooks = require(uiRoot.Hooks)
 
 local GRABBERS = {
@@ -33,7 +34,7 @@ local GRABBERS = {
 }
 
 local ACTION_BAR = {
-	Width = 120,
+	Width = if Constants.FullscreenActionBarButton then 148 else 120,
 	Height = 28,
 	Padding = 8,
 }
@@ -47,12 +48,13 @@ if GRABBERS.MiddlesEnabled then
 	ACTION_BAR.Padding = ACTION_BAR.Padding + grabberMargin
 end
 
-local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
+local grabberMin = GRABBERS.Length * 3 --+ ACTION_BAR.Width
 local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
 
 export type Props = {
 	FocusLenseSizeRef: { current: Vector2? },
 	OnCapture: (Rect) -> (),
+	OnMaximize: () -> (),
 	Disabled: boolean,
 }
 
@@ -216,6 +218,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1)))
 				end,
 
+				OnMaximize = props.OnMaximize,
 				OnCapture = function()
 					props.OnCapture(scaledLenseRect)
 				end,
@@ -251,6 +254,7 @@ return function(props: Props)
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportSize = containerSize,
 			FocusLenseSizeRef = props.FocusLenseSizeRef,
+			OnMaximize = props.OnMaximize,
 			OnCapture = props.OnCapture,
 			Disabled = props.Disabled,
 		}),
