@@ -11,7 +11,6 @@ local Captures = require(pluginRoot.Main.Photo.Captures)
 local Photo = require(pluginRoot.Main.Photo)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local Constants = require(uiRoot.Constants)
 local Hooks = require(uiRoot.Hooks)
 
 local SettingsGroup = require(script.SettingsGroup)
