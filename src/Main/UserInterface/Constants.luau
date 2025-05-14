@@ -1,6 +1,6 @@
 --!strict
 
 return {
-	ShowFullscreenActionBarButton = true,
+	ShowFullscreenActionBarButton = false,
 	DockWidgetSize = Vector2.new(260, 320),
 }
