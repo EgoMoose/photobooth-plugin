@@ -78,6 +78,10 @@ function Screenshot.isFullscreenAllowed()
 	return ALLOW_FULLSCREEN
 end
 
+function Screenshot.isUnitScaleOS(scaleOS: Vector2)
+	return scaleOS.X == 1 and scaleOS.Y == 1
+end
+
 function Screenshot.isFullscreenRect(rect: Rect)
 	if not Screenshot.isFullscreenAllowed() then
 		return false
