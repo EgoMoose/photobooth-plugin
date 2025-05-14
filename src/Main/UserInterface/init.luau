@@ -12,6 +12,7 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
@@ -165,7 +166,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if configuration.IsFullscreen then FullViewport else CroppedViewport, {
-				[onFullscreenCallbackKey] = Constants.ShowFullscreenActionBarButton and function()
+				[onFullscreenCallbackKey] = Screenshot.isFullscreenAllowed() and Constants.ShowFullscreenActionBarButton and function()
 					local config = table.clone(Photo.Configuration.get())
 					config.IsFullscreen = not config.IsFullscreen
 					Photo.Configuration.set(config)
