@@ -6,7 +6,7 @@ local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local Constants = require(uiRoot.Constants)
+local BaseButton = require(uiRoot.Components.Shared.BaseButton)
 
 type Props = {
 	AnchorPoint: Vector2,
@@ -16,7 +16,7 @@ type Props = {
 	DisplayedAbsSize: Vector2,
 	OnDimensionInput: (Vector2) -> (),
 
-	OnMaximize: () -> (),
+	OnMaximize: () -> ()?,
 	OnCapture: () -> (),
 
 	Disabled: boolean,
@@ -124,7 +124,7 @@ local function ActionBar(props: Props)
 	local maximizeIcon = assert(Lucide.GetAsset("maximize", 16))
 
 	local dimensionsWidthOffset = 0
-	if Constants.FullscreenActionBarButton then
+	if props.OnMaximize then
 		dimensionsWidthOffset = -24 - 4
 	end
 
@@ -132,7 +132,7 @@ local function ActionBar(props: Props)
 		AnchorPoint = props.AnchorPoint,
 		Position = props.Position,
 		Size = props.Size,
-		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		Padding = React.createElement("UIPadding", {
@@ -153,42 +153,27 @@ local function ActionBar(props: Props)
 			Disabled = props.Disabled,
 		}),
 
-		Maximize = Constants.FullscreenActionBarButton and React.createElement("Frame", {
-			BackgroundTransparency = 1,
+		Maximize = props.OnMaximize and React.createElement(BaseButton, {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.new(1, -24 - 4, 0, 0),
 			Size = UDim2.new(0, 24, 1, 0),
-		}, {
-			BorderFrame = React.createElement("Frame", {
-				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 1),
-				ZIndex = 2,
-			}, {
-				UIStroke = React.createElement("UIStroke", {
-					Thickness = 1,
-					Transparency = 0,
-					Color = theme:GetColor(
-						Enum.StudioStyleGuideColor.InputFieldBorder,
-						Enum.StudioStyleGuideModifier.Disabled
-					),
-				}),
-			}),
-			Button = React.createElement(StudioComponents.Button, {
-				Size = UDim2.fromScale(1, 1),
 
-				Icon = {
-					Image = maximizeIcon.Url,
-					RectSize = maximizeIcon.ImageRectSize,
-					RectOffset = maximizeIcon.ImageRectOffset,
+			BackgroundColorStyle = Enum.StudioStyleGuideColor.Button,
+			BorderColorStyle = Enum.StudioStyleGuideColor.Border,
+			TextColorStyle = Enum.StudioStyleGuideColor.ButtonText,
 
-					Size = maximizeIcon.ImageRectSize,
-					Transparency = if props.Disabled then 0.7 else 0,
-					UseThemeColor = true,
-				},
+			Icon = {
+				Image = maximizeIcon.Url,
+				RectSize = maximizeIcon.ImageRectSize,
+				RectOffset = maximizeIcon.ImageRectOffset,
 
-				OnActivated = props.OnMaximize,
-				Disabled = props.Disabled,
-			}),
+				Size = maximizeIcon.ImageRectSize,
+				Transparency = if props.Disabled then 0.7 else 0,
+				UseThemeColor = true,
+			},
+
+			OnActivated = props.OnMaximize,
+			Disabled = props.Disabled,
 		}),
 
 		Capture = React.createElement(StudioComponents.MainButton, {

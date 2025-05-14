@@ -5,6 +5,7 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local FullViewport = require(uiRoot.Components.FullViewport)
+local Constants = require(uiRoot.Constants)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
@@ -24,9 +25,11 @@ local function story()
 		BackgroundTransparency = 1,
 	}, {
 		FullViewport = React.createElement(FullViewport, {
-			OnMinimize = function()
-				print("Minimize")
-			end,
+			OnMinimize = if Constants.ShowFullscreenActionBarButton
+				then function()
+					print("Minimize")
+				end
+				else nil,
 
 			OnCapture = function(rect)
 				setIsDisabled(true)

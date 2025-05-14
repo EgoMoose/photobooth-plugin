@@ -5,6 +5,7 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local CroppedViewport = require(uiRoot.Components.CroppedViewport)
+local Constants = require(uiRoot.Constants)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
@@ -18,9 +19,11 @@ local function story()
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement(CroppedViewport, {
-		OnMaximize = function()
-			print("Maximize")
-		end,
+		OnMaximize = if Constants.ShowFullscreenActionBarButton
+			then function()
+				print("Maximize")
+			end
+			else nil,
 
 		OnCapture = function(rect)
 			setIsDisabled(true)

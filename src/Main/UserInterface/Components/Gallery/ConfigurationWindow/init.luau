@@ -11,6 +11,7 @@ local Captures = require(pluginRoot.Main.Photo.Captures)
 local Photo = require(pluginRoot.Main.Photo)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
+local Constants = require(uiRoot.Constants)
 local Hooks = require(uiRoot.Hooks)
 
 local SettingsGroup = require(script.SettingsGroup)
@@ -154,24 +155,25 @@ local function ViewportGroup(props: GroupsProps)
 		List = {
 			{
 				Name = "Fullscreen",
-				Node = Screenshot.isFullscreenAllowed() and React.createElement(React.Fragment, {}, {
-					Padding = React.createElement("UIPadding", {
-						PaddingLeft = UDim.new(0, 5),
-						PaddingRight = UDim.new(0, 5),
-						PaddingTop = UDim.new(0, 4),
-						PaddingBottom = UDim.new(0, 4),
+				Node = (not Constants.ShowFullscreenActionBarButton and Screenshot.isFullscreenAllowed())
+					and React.createElement(React.Fragment, {}, {
+						Padding = React.createElement("UIPadding", {
+							PaddingLeft = UDim.new(0, 5),
+							PaddingRight = UDim.new(0, 5),
+							PaddingTop = UDim.new(0, 4),
+							PaddingBottom = UDim.new(0, 4),
+						}),
+						Checkbox = React.createElement(StudioComponents.Checkbox, {
+							Disabled = props.RootProps.Disabled,
+							Size = UDim2.fromScale(1, 1),
+							Value = props.Configuration.IsFullscreen,
+							OnChanged = function()
+								local config = table.clone(props.Configuration)
+								config.IsFullscreen = not config.IsFullscreen
+								props.SetConfiguration(config)
+							end,
+						}),
 					}),
-					Checkbox = React.createElement(StudioComponents.Checkbox, {
-						Disabled = props.RootProps.Disabled,
-						Size = UDim2.fromScale(1, 1),
-						Value = props.Configuration.IsFullscreen,
-						OnChanged = function()
-							local config = table.clone(props.Configuration)
-							config.IsFullscreen = not config.IsFullscreen
-							props.SetConfiguration(config)
-						end,
-					}),
-				}),
 			},
 			{
 				Name = "Capture Type",

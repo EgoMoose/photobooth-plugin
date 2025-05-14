@@ -7,20 +7,20 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
-local Constants = require(uiRoot.Constants)
+local BaseButton = require(uiRoot.Components.Shared.BaseButton)
 local Hooks = require(uiRoot.Hooks)
 
 local FreeDrag = require(script.FreeDrag)
 
 export type Props = {
-	OnMinimize: () -> (),
+	OnMinimize: () -> ()?,
 	OnCapture: (Rect) -> (),
 	FocusLenseSizeRef: { current: Vector2? },
 	Disabled: boolean,
 }
 
 type ActionBarProps = {
-	OnMinimize: () -> (),
+	OnMinimize: () -> ()?,
 	OnCapture: (Rect) -> (),
 	IsDragging: boolean,
 	ContainerSize: Vector2,
@@ -42,13 +42,13 @@ local function ActionBar(props: ActionBarProps)
 	)
 
 	local labelWithOffset = 0
-	if Constants.FullscreenActionBarButton then
+	if props.OnMinimize then
 		labelWithOffset = -24 - 4
 	end
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		Padding = React.createElement("UIPadding", {
@@ -102,8 +102,12 @@ local function ActionBar(props: ActionBarProps)
 			LayoutOrder = 4,
 		}),
 
-		Minimize = Constants.FullscreenActionBarButton and React.createElement(StudioComponents.Button, {
+		Minimize = props.OnMinimize and React.createElement(BaseButton, {
 			Size = UDim2.new(0, 24, 1, 0),
+
+			BackgroundColorStyle = Enum.StudioStyleGuideColor.Button,
+			BorderColorStyle = Enum.StudioStyleGuideColor.Border,
+			TextColorStyle = Enum.StudioStyleGuideColor.ButtonText,
 
 			Icon = {
 				Image = minimizeIcon.Url,
@@ -120,7 +124,7 @@ local function ActionBar(props: ActionBarProps)
 			LayoutOrder = 5,
 		}),
 
-		Spacing3 = Constants.FullscreenActionBarButton and React.createElement("Frame", {
+		Spacing3 = props.OnMinimize and React.createElement("Frame", {
 			Size = UDim2.new(0, 4, 1, 0),
 			BackgroundTransparency = 1,
 			LayoutOrder = 6,
@@ -244,13 +248,12 @@ local function FullViewport(props: Props)
 		props.FocusLenseSizeRef.current = containerSize
 	end, { containerSize })
 
-	local draggerScale = 1
 	local draggerSize = Vector2.new(120, 28)
-
-	if Constants.FullscreenActionBarButton then
+	if props.OnMinimize then
 		draggerSize = Vector2.new(148, 28)
 	end
 
+	local draggerScale = 1
 	if containerSize.X < draggerSize.X * 2 or containerSize.Y < draggerSize.Y * 2 then
 		draggerScale = math.min(containerSize.X / (draggerSize.X * 2), containerSize.Y / (draggerSize.Y * 2))
 	end
