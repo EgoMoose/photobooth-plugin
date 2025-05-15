@@ -12,28 +12,15 @@ local SERVE_PORT = 1816
 type ImageJSON = {
 	name: string,
 	size: { number },
-	buffer: { string },
+	buffer: { { string } },
 }
 
 local function processPng(request: net.ServeRequest): net.ServeResponse
 	local imgJSON = serde.decode("json", request.body) :: ImageJSON
 
-	local len = 0
-	local buffers = {}
-	for i, b64 in imgJSON.buffer do
-		buffers[i] = Base64.decode(b64)
-		len = len + buffer.len(buffers[i])
+	for _, b in imgJSON.buffer do
+		print(b[1])
 	end
-
-	local offset = 0
-	local imgBuffer = buffer.create(len)
-	for _, b in buffers do
-		buffer.copy(imgBuffer, offset, b)
-		offset = offset + buffer.len(b)
-	end
-
-	local contents = PngEncoder.encode(imgJSON.size[1], imgJSON.size[2], imgBuffer)
-	fs.writeFile(`@self/output/{imgJSON.name}.png`, contents)
 
 	return {
 		status = 200,

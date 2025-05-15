@@ -15,6 +15,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
+local PngServe = require(pluginRoot.Main.Photo.Tools.PngServe)
 
 local Hooks = require(script.Hooks)
 local Icons = require(script.Icons)
@@ -70,8 +71,8 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 	local clickConnection = captureButton.Click:Connect(function()
 		if selection and not Photo.Flags.get("isCapturing") then
 			local captures = Photo.captureUI(selection, Photo.Configuration.get().UserInterfaceCaptureType)
-			local selection = Photo.export(captures, StarterGui)
-			SelectionService:Set(selection :: any)
+			local exported = Photo.export(captures, StarterGui)
+			SelectionService:Set(exported :: any)
 		end
 	end)
 
@@ -282,7 +283,6 @@ function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
 		"Serve"
 	)
 
-	local servePort = 1816 -- Camera invention date!
 	local classToContentProperty: { [string]: string } = {
 		["MeshPart"] = "TextureContent",
 	}
@@ -315,7 +315,7 @@ function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
 			end
 		end
 
-		local successCount = Photo.serve(servePort, gathered)
+		local successCount = Photo.serve(Constants.ServePort, gathered)
 		if successCount >= 0 then
 			print(`Successfully sent {successCount} images.`)
 		end

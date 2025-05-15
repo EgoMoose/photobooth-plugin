@@ -4,7 +4,6 @@ local HttpService = game:GetService("HttpService") :: HttpService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Future = require(pluginRoot.Utilities.Future)
-local Base64 = require(pluginRoot.Utilities.Base64)
 local Image = require(pluginRoot.Utilities.Image)
 
 local BUFFER_ENCODE_MAX_LENGTH = 3_000_000
@@ -17,7 +16,7 @@ local function encodeBuffer(b: buffer)
 	-- it is recommended to keep buffer size below 3mb when encoding
 	-- https://devforum.roblox.com/t/introducing-luau-buffer-type-beta/2724894/123
 
-	local encoded: { string } = {}
+	local encoded: { { string } } = {}
 
 	local bufferLength = buffer.len(b)
 	local splitN = math.ceil(bufferLength / BUFFER_ENCODE_MAX_LENGTH)
@@ -28,7 +27,16 @@ local function encodeBuffer(b: buffer)
 		local splitBuffer = buffer.create(length)
 		buffer.copy(splitBuffer, 0, b, from, length)
 
-		table.insert(encoded, Base64.encode(splitBuffer))
+		local json = HttpService:JSONEncode(splitBuffer)
+
+		local encodeType = "zbase64"
+		local encodeValue = json:match([["zbase64":(%b"")]])
+		if not encodeValue then
+			encodeType = "base64"
+			encodeValue = json:match([["base64":(%b"")]])
+		end
+
+		table.insert(encoded, { encodeType, (encodeValue :: string):sub(2, -2) })
 	end
 
 	return encoded
@@ -87,7 +95,6 @@ function PngServe.send(port: number, name: string, img: Image.Image, timeout: nu
 
 	task.spawn(function()
 		local success, _err = pcall(function()
-			print("sending")
 			local sendResult = HttpService:RequestAsync({
 				Compress = Enum.HttpCompression.None,
 				Headers = { ["content-type"] = "application/json" },
@@ -100,7 +107,6 @@ function PngServe.send(port: number, name: string, img: Image.Image, timeout: nu
 				}),
 			})
 
-			print("sent", sendResult)
 			sendFuture:complete(sendResult.StatusCode == 200)
 		end)
 
@@ -115,7 +121,7 @@ end
 function PngServe.create(port: number)
 	local pingFuture = Future.completed(false)
 	if port > 0 then
-		pingFuture = PngServe.ping(port, 0.025)
+		pingFuture = PngServe.ping(port, 1)
 	end
 
 	return function(name: string, img: Image.Image)
@@ -123,7 +129,6 @@ function PngServe.create(port: number)
 		task.spawn(function()
 			local result = false
 			if pingFuture:expect() then
-				print("ping success")
 				result = PngServe.send(port, name, img):expect()
 			end
 			sendFuture:complete(result)
