@@ -145,4 +145,6 @@ local function encode(width: number, height: number, rgba: buffer)
 	return table.concat(stream, "")
 end
 
-return encode
+return {
+	encode = encode,
+}
