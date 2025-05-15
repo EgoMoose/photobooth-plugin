@@ -36,23 +36,18 @@ local function u32(num: number)
 	return string.char((num - low3) / 2 ^ 24, (low3 - low2) / 2 ^ 16, (low2 - low1) / 2 ^ 8, low1)
 end
 
-local function calcADLER32(data: { number })
+local function calcADLER32(data: buffer)
 	local s1, s2 = 1, 0
-	for i = 1, #data do
-		local abs = data[i] >= 0 and data[i] or data[i] + 256
+	for i = 0, buffer.len(data) - 1 do
+		local c = buffer.readu8(data, i)
+		local abs = c >= 0 and c or c + 256
 		s1 = (s1 + abs) % 65521
 		s2 = (s2 + s1) % 65521
 	end
 	return s2 * 2 ^ 16 + s1
 end
 
-local function writeUncompressedBlock(
-	stream: { string },
-	isLast: boolean,
-	data: { number },
-	offset: number,
-	len: number
-)
+local function writeUncompressedBlock(stream: { string }, isLast: boolean, data: buffer, offset: number, len: number)
 	local nlen = bit32.band(bit32.bnot(len), 0xFFFF)
 	local lenFF, nlenFF = bit32.band(len, 0xFF), bit32.band(nlen, 0xFF)
 
@@ -63,12 +58,20 @@ local function writeUncompressedBlock(
 	stream[#stream + 1] = string.char(bit32.rshift(nlen - nlenFF, 8))
 
 	for i = 1, len, 512 do
-		stream[#stream + 1] = string.char(unpack(data, offset + i, offset + math.min(i + 511, len)))
+		local from = offset + i - 1
+		local to = offset + math.min(i + 511, len) - 1
+
+		local values = {}
+		for j = from, to do
+			values[j - from + 1] = buffer.readu8(data, j)
+		end
+
+		stream[#stream + 1] = string.char(unpack(values))
 	end
 end
 
-local function uncompressedWrite(data: { number })
-	local subs, pos, n = { BYTES }, 0, #data
+local function uncompressedWrite(data: buffer)
+	local subs, pos, n = { BYTES }, 0, buffer.len(data)
 
 	repeat
 		local left = n - pos
@@ -118,19 +121,16 @@ local function toChunk(stream: { string }, id: string, bytes: string)
 	stream[#stream + 1] = u32(bit32.bnot(crc))
 end
 
-local function encode(width: number, height: number, rgba: { number })
-	-- table overflow occurs if the table is greater than (4096^2) * 4
-	assert(#rgba + height <= (4096 ^ 2) * 4, "The rgba array is too large!")
-
-	local data = table.create(#rgba + height, 0)
-	local i, j = 1, 1
+local function encode(width: number, height: number, rgba: buffer)
+	local i, j = 0, 0
+	local data = buffer.create(buffer.len(rgba) + height)
 
 	for _ = 1, height do
-		data[i] = 0
+		buffer.writei8(data, i, 0)
 		i = i + 1
 
 		for _ = 1, width * 4 do
-			data[i] = rgba[j]
+			buffer.writei8(data, i, buffer.readu8(rgba, j))
 			i = i + 1
 			j = j + 1
 		end

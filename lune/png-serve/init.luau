@@ -1,19 +1,19 @@
 local fs = require("@lune/fs")
 local encoder = require("@self/png-encoder")
 
-local width = 3840
-local height = 2160
-local rgba = table.create(width * height * 4)
+local width = 4096
+local height = 4096
+local rgba = buffer.create(width * height * 4)
 
 for y = 1, height do
 	for x = 1, width do
 		local i = (y - 1) * width + x - 1
-		local j = (i * 4) + 1
+		local j = (i * 4)
 
-		rgba[j + 0] = 255
-		rgba[j + 1] = 0
-		rgba[j + 2] = 255
-		rgba[j + 3] = 100
+		buffer.writeu8(rgba, j + 0, 255)
+		buffer.writeu8(rgba, j + 1, 0)
+		buffer.writeu8(rgba, j + 2, 0)
+		buffer.writeu8(rgba, j + 3, 255)
 	end
 end
 
