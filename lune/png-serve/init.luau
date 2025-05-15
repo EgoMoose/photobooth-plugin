@@ -1,8 +1,8 @@
 local fs = require("@lune/fs")
 local encoder = require("@self/png-encoder")
 
-local width = 100
-local height = 100
+local width = 3840
+local height = 2160
 local rgba = table.create(width * height * 4)
 
 for y = 1, height do

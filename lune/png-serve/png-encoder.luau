@@ -119,7 +119,10 @@ local function toChunk(stream: { string }, id: string, bytes: string)
 end
 
 local function encode(width: number, height: number, rgba: { number })
-	local data = {}
+	-- table overflow occurs if the table is greater than (4096^2) * 4
+	assert(#rgba + height <= (4096 ^ 2) * 4, "The rgba array is too large!")
+
+	local data = table.create(#rgba + height, 0)
 	local i, j = 1, 1
 
 	for _ = 1, height do
