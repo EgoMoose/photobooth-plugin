@@ -1,7 +1,7 @@
 --!strict
 
 return {
-	ServeEnabled = true,
+	ServeEnabled = false,
 	ServePort = 1816, -- Camera invention date!
 
 	DockWidgetSize = { 260, 320 },
