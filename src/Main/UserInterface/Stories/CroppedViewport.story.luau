@@ -3,9 +3,10 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
+local Constants = require(pluginRoot.Constants)
+
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local CroppedViewport = require(uiRoot.Components.CroppedViewport)
-local Constants = require(uiRoot.Constants)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
@@ -38,6 +39,7 @@ local function story()
 			setIsDisabled(false)
 		end,
 
+		InitialSize = UDim2.fromScale(0.5, 0.5),
 		FocusLenseSizeRef = focusLenseSizeRef,
 		Disabled = isDisabled or disabled,
 	})
