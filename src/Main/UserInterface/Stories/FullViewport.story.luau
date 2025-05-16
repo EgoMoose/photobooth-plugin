@@ -3,6 +3,8 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
+local Constants = require(pluginRoot.Constants)
+
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local FullViewport = require(uiRoot.Components.FullViewport)
 
@@ -24,6 +26,12 @@ local function story()
 		BackgroundTransparency = 1,
 	}, {
 		FullViewport = React.createElement(FullViewport, {
+			OnMinimize = if Constants.ShowFullscreenActionBarButton
+				then function()
+					print("Minimize")
+				end
+				else nil,
+
 			OnCapture = function(rect)
 				setIsDisabled(true)
 				print(focusLenseSizeRef.current)

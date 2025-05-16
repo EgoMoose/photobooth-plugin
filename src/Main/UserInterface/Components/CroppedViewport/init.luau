@@ -33,30 +33,27 @@ local GRABBERS = {
 }
 
 local ACTION_BAR = {
-	Width = 120,
 	Height = 28,
 	Padding = 8,
 }
 
-local INITIAL_SIZE_SCALE = Vector2.new(0.5, 0.5)
-
 local MAX_EDIT_IMAGE_SIZE = Image.MAX_EDIT_IMAGE_SIZE
 
 local grabberMargin = GRABBERS.Padding + GRABBERS.Thickness
-if GRABBERS.MiddlesEnabled then
-	ACTION_BAR.Padding = ACTION_BAR.Padding + grabberMargin
-end
-
-local grabberMin = GRABBERS.Length * 3 + ACTION_BAR.Width
-local actionBarMargin = ACTION_BAR.Height + ACTION_BAR.Padding
+local actionBarPadding = if GRABBERS.MiddlesEnabled
+	then ACTION_BAR.Padding + grabberMargin
+	else ACTION_BAR.Padding + grabberMargin
+local actionBarMargin = ACTION_BAR.Height + actionBarPadding
 
 export type Props = {
+	InitialSize: UDim2,
 	FocusLenseSizeRef: { current: Vector2? },
 	OnCapture: (Rect) -> (),
+	OnMaximize: () -> ()?,
 	Disabled: boolean,
 }
 
-local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2)
+local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2, grabberMin: number)
 	local width = viewportSize.X - grabberMargin * 2
 	local height = viewportSize.Y - actionBarMargin * 2
 
@@ -86,13 +83,21 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local prevSize = React.useRef(MAX_EDIT_IMAGE_SIZE / 2)
 	local startDrag = React.useRef(nil :: Vector3?)
 
+	local actionBarWidth = if props.OnMaximize then 148 else 120
+	local grabberMin = GRABBERS.Length * 3
+
 	React.useEffect(function()
 		local minX = grabberMin + grabberMargin * 2
 		local minY = grabberMin + actionBarMargin * 2
 
 		if viewportSize.X >= minX and viewportSize.Y >= minY then
-			local targetSize = if sizeInitiated.current then size else scaledViewport * INITIAL_SIZE_SCALE
-			local clamped = useLenseSize(targetSize, scaledViewport, Vector2.new(1, 1))
+			local initialSize = Vector2.new(
+				props.InitialSize.X.Offset + props.InitialSize.X.Scale * scaledViewport.X,
+				props.InitialSize.Y.Offset + props.InitialSize.Y.Scale * scaledViewport.Y
+			)
+
+			local targetSize = if sizeInitiated.current then size else initialSize
+			local clamped = useLenseSize(targetSize, scaledViewport, Vector2.new(1, 1), grabberMin)
 			setSize(clamped)
 			prevSize.current = clamped
 			sizeInitiated.current = true
@@ -100,7 +105,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	end, { viewportSize })
 
 	-- this is used for displaying dimensions + capture rect
-	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1))
+	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1), grabberMin)
 	local scaledLenseAbsPosition = (scaledViewport - scaledLenseAbsSize) / 2
 	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
 	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
@@ -195,7 +200,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 						local offset = 2 * direction * scaleOS * delta2
 						local newSize = prevSize.current + offset
 
-						setSize(useLenseSize(newSize, scaledViewport, Vector2.new(1, 1)))
+						setSize(useLenseSize(newSize, scaledViewport, Vector2.new(1, 1), grabberMin))
 					end
 				end,
 
@@ -203,14 +208,15 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 			}),
 			ActionBar = React.createElement(ActionBar, {
 				AnchorPoint = Vector2.new(0.5, 0),
-				Position = UDim2.new(0.5, 0, 1, ACTION_BAR.Padding),
-				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
+				Position = UDim2.new(0.5, 0, 1, actionBarPadding),
+				Size = UDim2.fromOffset(actionBarWidth, ACTION_BAR.Height),
 
 				DisplayedAbsSize = scaledLenseRectSize,
 				OnDimensionInput = function(dimensions)
-					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1)))
+					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1), grabberMin))
 				end,
 
+				OnMaximize = props.OnMaximize,
 				OnCapture = function()
 					props.OnCapture(scaledLenseRect)
 				end,
@@ -245,7 +251,9 @@ return function(props: Props)
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportSize = containerSize,
+			InitialSize = props.InitialSize,
 			FocusLenseSizeRef = props.FocusLenseSizeRef,
+			OnMaximize = props.OnMaximize,
 			OnCapture = props.OnCapture,
 			Disabled = props.Disabled,
 		}),

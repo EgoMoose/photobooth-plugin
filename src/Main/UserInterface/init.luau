@@ -14,6 +14,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 
 local Constants = require(pluginRoot.Constants)
 
+local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
@@ -120,10 +121,19 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		local isEnabled, setIsEnabled = React.useState(false)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
 		local configuration = Hooks.usePhotoConfiguration()
+
+		local initialLenseSizeRef = React.useRef(UDim2.fromScale(0.5, 0.5))
 		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
 		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
-		openButton:SetActive(isEnabled)
+		local onFullscreenCallbackKey = if configuration.IsFullscreen then "OnMinimize" else "OnMaximize"
+
+		local updateInitialLenseSizeRef = React.useCallback(function()
+			local focusLenseSize = focusLenseSizeRef.current
+			if not configuration.IsFullscreen and focusLenseSize then
+				initialLenseSizeRef.current = UDim2.fromOffset(focusLenseSize.X, focusLenseSize.Y)
+			end
+		end, { configuration })
 
 		React.useEffect(function()
 			Photo.setViewportApp(screenGuiRef.current)
@@ -132,6 +142,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		React.useEffect(function()
 			local trove = Trove.new()
 			trove:Add(openButton.Click:Connect(function()
+				updateInitialLenseSizeRef()
 				setIsEnabled(not isEnabled)
 			end))
 
@@ -155,6 +166,8 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			end
 		end, { isEnabled })
 
+		openButton:SetActive(isEnabled)
+
 		-- stylua: ignore
 		return isEnabled and React.createElement("ScreenGui", {
 			Name = "ViewportApp",
@@ -164,11 +177,18 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if configuration.IsFullscreen then FullViewport else CroppedViewport, {
+				[onFullscreenCallbackKey] = Screenshot.isFullscreenAllowed() and Constants.ShowFullscreenActionBarButton and function()
+					updateInitialLenseSizeRef()
+					local config = table.clone(Photo.Configuration.get())
+					config.IsFullscreen = not config.IsFullscreen
+					Photo.Configuration.set(config)
+				end,
 				OnCapture = function(rect)
 					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 				end,
+				InitialSize = initialLenseSizeRef.current,
 				FocusLenseSizeRef = focusLenseSizeRef,
 				Disabled = isCapturing,
 			})

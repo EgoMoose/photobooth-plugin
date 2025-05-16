@@ -28,7 +28,6 @@ export type Serialized = {
 	BindingsEnabled: boolean,
 
 	-- Viewport
-	IsFullscreen: boolean,
 	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
 
 	-- User Interface
@@ -68,7 +67,6 @@ function ConfigurationFormatV1.serialize(configuration: Configuration): Serializ
 		BindingsEnabled = configuration.BindingsEnabled,
 
 		-- Viewport
-		IsFullscreen = configuration.IsFullscreen,
 		ViewportCaptureType = configuration.ViewportCaptureType,
 
 		-- User Interface
@@ -83,7 +81,6 @@ function ConfigurationFormatV1.deserialize(serialized: Serialized): Configuratio
 		BindingsEnabled = serialized.BindingsEnabled,
 
 		-- Viewport
-		IsFullscreen = serialized.IsFullscreen,
 		ViewportCaptureType = serialized.ViewportCaptureType,
 
 		-- User Interface
