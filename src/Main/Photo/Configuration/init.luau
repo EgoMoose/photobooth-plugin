@@ -1,5 +1,8 @@
 --!strict
 
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local OrderedDictionary = require(pluginRoot.Packages.OrderedDictionary)
+
 local Versions = require(script.Versions)
 
 export type Configuration = Versions.Configuration
@@ -13,8 +16,16 @@ local Configuration = {}
 
 -- Private
 
-local configurationChanged = Instance.new("BindableEvent")
 local configurationCurrent = Versions.Current.default()
+
+local configurationChanged = Instance.new("BindableEvent")
+local configurationChangedInstantCallbacks = OrderedDictionary.new()
+local function fireConfigurationChanged()
+	configurationChanged:Fire()
+	for callback, _ in configurationChangedInstantCallbacks:iterate() do
+		task.spawn(callback)
+	end
+end
 
 -- Public
 
@@ -24,13 +35,20 @@ end
 
 function Configuration.set(configuration: Configuration)
 	configurationCurrent = table.freeze(table.clone(configuration))
-	configurationChanged:Fire()
+	fireConfigurationChanged()
 end
 
 function Configuration.onChanged(callback: () -> ())
 	local connection = configurationChanged.Event:Connect(callback)
 	return function()
 		connection:Disconnect()
+	end
+end
+
+function Configuration.onChangedInstant(callback: () -> ())
+	configurationChangedInstantCallbacks:set(callback, true)
+	return function()
+		configurationChangedInstantCallbacks:set(callback, nil)
 	end
 end
 
