@@ -76,12 +76,16 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
-	local hide = {}
-	if not Screenshot.isFullscreenRect(rect) and viewportApp then
-		table.insert(hide, viewportApp)
+	local exclusions = {}
+	if
+		viewportApp
+		and not Screenshot.isFullscreenRect(rect)
+		and Screenshot.isUnitScaleOS(Configuration.get().ScaleOS)
+	then
+		table.insert(exclusions, viewportApp)
 	end
 
-	local uiHider = UIHider.new(hide, function(layerCollector)
+	local uiHider = UIHider.new(exclusions, function(layerCollector)
 		return layerCollector:IsA("ScreenGui")
 	end)
 
