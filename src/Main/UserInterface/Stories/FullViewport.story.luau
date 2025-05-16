@@ -3,9 +3,10 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
+local Constants = require(pluginRoot.Constants)
+
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local FullViewport = require(uiRoot.Components.FullViewport)
-local Constants = require(uiRoot.Constants)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
