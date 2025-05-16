@@ -2,6 +2,9 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+## [0.6.3]
 ### Fixed
 - Fixed cropped viewport size retaining when toggling fullscreen through the settings menu
 
