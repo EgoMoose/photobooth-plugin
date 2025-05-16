@@ -2,6 +2,8 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.2]
 ### Added
 - Add fullscreen toggle bar on viewport capture action bar UI
 - Add lune serve workflow for sending images over network for debug purposes
