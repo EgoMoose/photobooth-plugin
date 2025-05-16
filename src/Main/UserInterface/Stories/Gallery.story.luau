@@ -4,9 +4,10 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 
+local Constants = require(pluginRoot.Constants)
+
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Gallery = require(uiRoot.Components.Gallery)
-local Constants = require(uiRoot.Constants)
 
 local stories = script:FindFirstAncestor("Stories")
 local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
@@ -48,7 +49,7 @@ local function story()
 		["Small"] = {
 			LayoutOrder = 1,
 			Content = React.createElement(Widget, {
-				Size = UDim2.fromOffset(Constants.DockWidgetSize.X, Constants.DockWidgetSize.Y),
+				Size = UDim2.fromOffset(Constants[1], Constants[2]),
 			}),
 		},
 		["Medium"] = {

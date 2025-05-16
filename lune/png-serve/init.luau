@@ -6,8 +6,7 @@ local serde = require("@lune/serde")
 
 local PngEncoder = require("@self/png-encoder")
 local Base64 = require("@root/src/Utilities/Base64")
-
-local SERVE_PORT = 1816
+local Constants = require("@root/src/Constants")
 
 type ImageJSON = {
 	name: string,
@@ -29,7 +28,7 @@ local function processPng(request: net.ServeRequest): net.ServeResponse
 end
 
 local function init()
-	net.serve(SERVE_PORT, function(request)
+	net.serve(Constants.ServePort, function(request)
 		if request.path == "/ping" then
 			return {
 				status = 200,
@@ -45,7 +44,7 @@ local function init()
 		}
 	end)
 
-	print(`Serving on port {SERVE_PORT}`)
+	print(`Serving on port {Constants.ServePort}`)
 	print("Press ctrl + c to cancel")
 end
 

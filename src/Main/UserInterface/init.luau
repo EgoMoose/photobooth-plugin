@@ -12,14 +12,14 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Constants = require(pluginRoot.Constants)
+
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
-local PngServe = require(pluginRoot.Main.Photo.Tools.PngServe)
 
 local Hooks = require(script.Hooks)
 local Icons = require(script.Icons)
-local Constants = require(script.Constants)
 
 local Gallery = require(script.Components.Gallery)
 local FullViewport = require(script.Components.FullViewport)
@@ -208,10 +208,10 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 		Enum.InitialDockState.Float, -- Widget will be initialized in floating panel
 		false, -- Widget will be initially enabled
 		false, -- Don't override the previous enabled state
-		Constants.DockWidgetSize.X, -- Default width of the floating window
-		Constants.DockWidgetSize.Y, -- Default height of the floating window
-		Constants.DockWidgetSize.X, -- Minimum width of the floating window
-		Constants.DockWidgetSize.Y -- Minimum height of the floating window
+		Constants.DockWidgetSize[1], -- Default width of the floating window
+		Constants.DockWidgetSize[2], -- Default height of the floating window
+		Constants.DockWidgetSize[1], -- Minimum width of the floating window
+		Constants.DockWidgetSize[2] -- Minimum height of the floating window
 	)
 
 	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothViewer", info)
@@ -276,12 +276,23 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 end
 
 function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
+	if not Constants.ServeEnabled then
+		return
+	end
+
+	-- stylua: ignore
 	local serveButton = toolbar:CreateButton(
 		"egomoose_photobooth_serve_button",
 		"Send selected editable images to the photobooth localhost",
-		"rbxassetid://102790924790695",
-		"Serve"
+		"", "Serve"
 	)
+
+	local function onThemeChanged()
+		serveButton.Icon = getIcon("serve-png-button")
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
 
 	local classToContentProperty: { [string]: string } = {
 		["MeshPart"] = "TextureContent",
