@@ -3,6 +3,7 @@
 local HttpService = game:GetService("HttpService") :: HttpService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Base64 = require(pluginRoot.Utilities.Base64)
 local Future = require(pluginRoot.Utilities.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
@@ -12,11 +13,11 @@ local PngServe = {}
 
 -- Private
 
-local function encodeBuffer(b: buffer)
+local function bufferToBase64Chunks(b: buffer)
 	-- it is recommended to keep buffer size below 3mb when encoding
 	-- https://devforum.roblox.com/t/introducing-luau-buffer-type-beta/2724894/123
 
-	local encoded: { { string } } = {}
+	local base64Chunks: { string } = {}
 
 	local bufferLength = buffer.len(b)
 	local splitN = math.ceil(bufferLength / BUFFER_ENCODE_MAX_LENGTH)
@@ -27,19 +28,13 @@ local function encodeBuffer(b: buffer)
 		local splitBuffer = buffer.create(length)
 		buffer.copy(splitBuffer, 0, b, from, length)
 
-		local json = HttpService:JSONEncode(splitBuffer)
+		local buffer64 = Base64.encode(splitBuffer)
+		local base64 = buffer.tostring(buffer64)
 
-		local encodeType = "zbase64"
-		local encodeValue = json:match([["zbase64":(%b"")]])
-		if not encodeValue then
-			encodeType = "base64"
-			encodeValue = json:match([["base64":(%b"")]])
-		end
-
-		table.insert(encoded, { encodeType, (encodeValue :: string):sub(2, -2) })
+		table.insert(base64Chunks, base64)
 	end
 
-	return encoded
+	return base64Chunks
 end
 
 -- Public
@@ -103,7 +98,7 @@ function PngServe.send(port: number, name: string, img: Image.Image, timeout: nu
 				Body = HttpService:JSONEncode({
 					name = name,
 					size = { img:GetWidth(), img:GetHeight() },
-					buffer = encodeBuffer(img.buffer),
+					base64Chunks = bufferToBase64Chunks(img.buffer),
 				}),
 			})
 
