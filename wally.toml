@@ -10,6 +10,7 @@ Sift = "csqrl/sift@0.0.9"
 Deque = "egomoose/deque@0.2.1"
 Trove = "sleitnick/trove@1.5.0"
 GreenTea = "corecii/greentea@0.4.11"
+OrderedDictionary = "egomoose/ordered-dictionary@0.2.0"
 
 React = "jsdotlua/react@17.2.1"
 ReactRoblox = "jsdotlua/react-roblox@17.2.1"

@@ -140,6 +140,14 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		end, { isEnabled })
 
 		React.useEffect(function()
+			return Photo.Configuration.onChangedInstant(function()
+				if configuration.IsFullscreen ~= Photo.Configuration.get().IsFullscreen then
+					updateInitialLenseSizeRef()
+				end
+			end)
+		end, { configuration })
+
+		React.useEffect(function()
 			local trove = Trove.new()
 			trove:Add(openButton.Click:Connect(function()
 				updateInitialLenseSizeRef()
