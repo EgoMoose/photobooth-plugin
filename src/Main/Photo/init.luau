@@ -14,6 +14,7 @@ local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
 local Background = require(script.Tools.Background)
+local PngServe = require(script.Tools.PngServe)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
@@ -75,12 +76,16 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
-	local hide = {}
-	if not Screenshot.isFullscreenRect(rect) and viewportApp then
-		table.insert(hide, viewportApp)
+	local exclusions = {}
+	if
+		viewportApp
+		and not Screenshot.isFullscreenRect(rect)
+		and Screenshot.isUnitScaleOS(Configuration.get().ScaleOS)
+	then
+		table.insert(exclusions, viewportApp)
 	end
 
-	local uiHider = UIHider.new(hide, function(layerCollector)
+	local uiHider = UIHider.new(exclusions, function(layerCollector)
 		return layerCollector:IsA("ScreenGui")
 	end)
 
@@ -133,9 +138,23 @@ function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCapture
 	return captureViewport(rect, Captures.Viewport.Processors[captureType])
 end
 
+function Photo.serve(port: number, serving: { { name: string, img: Image.Image } })
+	local successCount = 0
+	local serveCallback = PngServe.create(port)
+	for _, target in serving do
+		local result = serveCallback(target.name, target.img)
+		if result:expect() then
+			successCount = successCount + 1
+		end
+	end
+	return successCount
+end
+
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
 	local results = {}
+
 	for i, img in imgs do
+		local name = `{DateTime.now():ToIsoDate()}_{i}`
 		local meshPart = Instance.new("MeshPart")
 		meshPart.Locked = true
 		meshPart.Archivable = false
@@ -143,7 +162,7 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 		meshPart.CanCollide = false
 		meshPart.CanTouch = false
 		meshPart.Transparency = 0 -- cannot be transparent
-		meshPart.Name = `{DateTime.now():ToIsoDate()}_{i}`
+		meshPart.Name = name
 		meshPart.Size = Vector3.new(1, 1, 1)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent

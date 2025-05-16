@@ -1,63 +1,55 @@
-[entries."icons/asphalt/menu/black.png"]
-hash = "187bfefd5457b5e4c7df30ac040a4352dd24168edc8a4bdfae915d10a766a16f"
-asset_id = 100163554161546
+version = 2
 
-[entries."icons/asphalt/menu/checkerboard.png"]
-hash = "066136dcb2d8afa7d7e294e6debbe2c364b26c3d15f0d6199793ff553a842dcd"
-asset_id = 88124589937993
+[inputs.assets.08d231df96f415f4b30f1217138464a95a41fb9e47068342a42bf7f9ed5ac5ea]
+asset_id = 125013376553663
 
-[entries."icons/asphalt/menu/none.png"]
-hash = "9c9af2b7bdb9791bcaaed2a188ee4d64944f5941b026fd404f311cfc0220d7bb"
-asset_id = 81132700836257
+[inputs.assets.0e085004c1a6b321875a58a83dfe76827276fe25f420a5c3a07d5f4049ecccca]
+asset_id = 115826925245652
 
-[entries."icons/asphalt/menu/white.png"]
-hash = "d0d0dde2ca0d3afda00ca1080a41523d8c6bbe7622109d3fd240a21938d6be9e"
-asset_id = 131575500647776
+[inputs.assets.1134304f82b2264279ab33d78304f80f218f05008d21aed22edf19249c821eab]
+asset_id = 134305674841615
 
-[entries."icons/asphalt/processed/dark/camera-plugin-button.png"]
-hash = "9ff1ce1f5dc8b0bcc1d7f3b58dfe2bc23784c7d8568c330c0aaf2c85042dab7d"
-asset_id = 131188633601831
+[inputs.assets.15a54a9380adc4d8eaade99538b051474a9edbb86ba82a8b6c6a1724ee6bc40f]
+asset_id = 79927009455662
 
-[entries."icons/asphalt/processed/dark/focus-plugin-action.png"]
-hash = "49a518f012f781c6d470adadcf85a4f21e6c70cdee9813c3b3c78b1d093c74e2"
-asset_id = 78500258546917
+[inputs.assets.214dfdab3f4cf1b756c2959a5e7a33a6c7052254229fb898a246ad6b32fb1b7d]
+asset_id = 109437490397871
 
-[entries."icons/asphalt/processed/dark/fullscreen-plugin-action.png"]
-hash = "39fb9e9682838be279955aa1242ee4a55c66caf10075b7747291d9f76f48826e"
-asset_id = 137233628303920
+[inputs.assets.2f3708a71ea796e3194d345cac6f8729b33c21c7ce7c2e3149683454122d0de4]
+asset_id = 103463040793452
 
-[entries."icons/asphalt/processed/dark/gallery-plugin-button.png"]
-hash = "1a353fda13efd7919ff2f28bcc189fc915294aa3cb66b6d0110c31f1a3150e8f"
-asset_id = 73631418475004
+[inputs.assets.556cb1892d4e487178167f742384f0cf25e6b1b3e055eac236491926b3bc3104]
+asset_id = 127226900416614
 
-[entries."icons/asphalt/processed/dark/import-plugin-button.png"]
-hash = "65455e8d2614de350ef8805e46cac8e19554a15de51a5c7395b35401642467a3"
-asset_id = 117524015648700
+[inputs.assets.6431ccc203aef1496f8118a3fbc6d57542e01dfebab9955af4e4e17f524eac9a]
+asset_id = 130771320706172
 
-[entries."icons/asphalt/processed/dark/ui-plugin-button.png"]
-hash = "1f53c25a46ea27144ff3742d2d93922beb84d0b1dd3dbf35f2fc858db10c5647"
-asset_id = 107602796794258
+[inputs.assets.92d1f9b72a7939b606e78e7e8e3a9da46b334ef9eb6a3ed2706448e68d009db3]
+asset_id = 78176835188672
 
-[entries."icons/asphalt/processed/light/camera-plugin-button.png"]
-hash = "1ea8e39de87578706d8aeee106c466b733c840679ba17140679bed8e4d767df3"
-asset_id = 74699004820485
+[inputs.assets.a6a124c1030308c11c967d53548d69cd9911cf85f089810db2e70d9f76c60a55]
+asset_id = 116050068213742
 
-[entries."icons/asphalt/processed/light/focus-plugin-action.png"]
-hash = "7bf3ca7ebb102f1b9bb8a740e89cbd89a1e2886377b9cf21a6298605059e5c29"
-asset_id = 109521150602385
+[inputs.assets.a78320d524cd596f3648f2e8597e12a8ce3f24837f3ebd89a49277d8a0dba07d]
+asset_id = 78612054048052
 
-[entries."icons/asphalt/processed/light/fullscreen-plugin-action.png"]
-hash = "a267f47835c1f6aa7603af26f2a847e6ea60c27d6dd72e3b8883fd616064be14"
-asset_id = 112397251153211
+[inputs.assets.b61ad8f4c8d2dc217edf8ed8baebb7b94ac2874ff441a1be6d561f9038bbabd3]
+asset_id = 131054580832784
 
-[entries."icons/asphalt/processed/light/gallery-plugin-button.png"]
-hash = "e87b11dea58a4565f9a7aceb6c997ac1a0eb80cc8619b146a11d674830da03a6"
-asset_id = 83204999559324
+[inputs.assets.bd0e83c34facb5e209b7449a6f0955df830a9ecfb29661698c59e8b0ca218583]
+asset_id = 119342172787498
 
-[entries."icons/asphalt/processed/light/import-plugin-button.png"]
-hash = "0011a1b2f8d7f2d5b29e1fe3bf3be58831e349a53cbabc87497fd8073f266ef7"
-asset_id = 140092277696411
+[inputs.assets.d0d72dea285b19479e41c99d0d3ef9d00cca4f58aef7383220392e59c79f08f8]
+asset_id = 89737423754794
 
-[entries."icons/asphalt/processed/light/ui-plugin-button.png"]
-hash = "ab3f5cf3711957900b2065b908a3aaae39c903bbac4836efe137be4624e307c4"
-asset_id = 98108830157071
+[inputs.assets.ea90a3cc147365537c269755bb8d90f0c28d1f2a4f4145484969ff425ca96783]
+asset_id = 95419997577433
+
+[inputs.assets.f0b981735f8d48d4c05551cd973dcb7ce7ff0302a6c1be91d283b46de4854abc]
+asset_id = 128075361252385
+
+[inputs.assets.f3cc35d72805fe1cc9dae5745409b4975d242617aa17f6019c7bdea5e6d59aa3]
+asset_id = 122278137825997
+
+[inputs.assets.fa529269f174a3009070f642a126ff4044c1a2ec6ceb80f0f4a5781cc833751b]
+asset_id = 120984213805978

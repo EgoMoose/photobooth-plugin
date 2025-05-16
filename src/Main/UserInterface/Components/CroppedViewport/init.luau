@@ -114,11 +114,6 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 	local lenseAbsSize = (scaledLenseRectSize / scaleOS):Ceil()
 	local lenseAbsPosition = (scaledLenseRect.Min / scaleOS):Floor()
 	local lenseRect = Rect.new(lenseAbsPosition, lenseAbsPosition + lenseAbsSize)
-	if not (scaleOS.X == 1 and scaleOS.Y == 1) then
-		-- in the event that the we have os scaling we add additional padding to the rendered rect
-		-- to ensure that the blue lines are not included in the captured rect - technically inaccurate, but not noticeable
-		lenseRect = Rect.new(lenseRect.Min - Vector2.new(1, 1), lenseRect.Max + Vector2.new(1, 1))
-	end
 	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
 	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
 
