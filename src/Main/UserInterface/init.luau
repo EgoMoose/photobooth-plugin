@@ -12,13 +12,14 @@ local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Constants = require(pluginRoot.Constants)
+
 local Camera = require(pluginRoot.Utilities.Camera)
 local Image = require(pluginRoot.Utilities.Image)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Hooks = require(script.Hooks)
 local Icons = require(script.Icons)
-local Constants = require(script.Constants)
 
 local Gallery = require(script.Components.Gallery)
 local FullViewport = require(script.Components.FullViewport)
@@ -207,10 +208,10 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 		Enum.InitialDockState.Float, -- Widget will be initialized in floating panel
 		false, -- Widget will be initially enabled
 		false, -- Don't override the previous enabled state
-		Constants.DockWidgetSize.X, -- Default width of the floating window
-		Constants.DockWidgetSize.Y, -- Default height of the floating window
-		Constants.DockWidgetSize.X, -- Minimum width of the floating window
-		Constants.DockWidgetSize.Y -- Minimum height of the floating window
+		Constants.DockWidgetSize[1], -- Default width of the floating window
+		Constants.DockWidgetSize[2], -- Default height of the floating window
+		Constants.DockWidgetSize[1], -- Minimum width of the floating window
+		Constants.DockWidgetSize[2] -- Minimum height of the floating window
 	)
 
 	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothViewer", info)
@@ -271,6 +272,71 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 	plugin.Unloading:Connect(function()
 		dockRoot:unmount()
+	end)
+end
+
+function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
+	if not Constants.ServeEnabled then
+		return
+	end
+
+	-- stylua: ignore
+	local serveButton = toolbar:CreateButton(
+		"egomoose_photobooth_serve_button",
+		"Send selected editable images to the photobooth localhost",
+		"", "Serve"
+	)
+
+	local function onThemeChanged()
+		serveButton.Icon = getIcon("serve-png-button")
+	end
+
+	onThemeChanged()
+	settings().Studio.ThemeChanged:Connect(onThemeChanged)
+
+	local classToContentProperty: { [string]: string } = {
+		["MeshPart"] = "TextureContent",
+	}
+
+	local function tryGetEditImage(instance: Instance): EditableImage?
+		for className, contentProperty in classToContentProperty do
+			if instance:IsA(className) then
+				local content = (instance :: any)[contentProperty] :: Content
+				local object = content and content.Object
+
+				if object and object:IsA("EditableImage") then
+					return object
+				end
+			end
+		end
+		return nil
+	end
+
+	local clickConnection = serveButton.Click:Connect(function()
+		serveButton.Enabled = false
+
+		local gathered = {}
+		for _, selected in SelectionService:Get() do
+			local editImage = tryGetEditImage(selected)
+			if editImage then
+				table.insert(gathered, {
+					name = selected.Name:gsub("[^a-z0-9%- ]+", "_"),
+					img = Image.fromEditableImage(editImage),
+				})
+			end
+		end
+
+		local successCount = Photo.serve(Constants.ServePort, gathered)
+		if successCount >= 0 then
+			print(`Successfully sent {successCount} images.`)
+		end
+
+		serveButton:SetActive(false)
+		serveButton.Enabled = true
+	end)
+
+	plugin.Unloading:Connect(function()
+		clickConnection:Disconnect()
 	end)
 end
 
