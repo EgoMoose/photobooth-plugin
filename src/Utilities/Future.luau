@@ -31,6 +31,12 @@ function FutureStatic.raw<T>()
 	return self
 end
 
+function FutureStatic.completed<T>(value: T)
+	local future = FutureStatic.raw()
+	future:complete(value)
+	return future
+end
+
 function FutureStatic.race<T>(futures: { Future<any> })
 	for _, future in futures do
 		if future.type == "Completed" then

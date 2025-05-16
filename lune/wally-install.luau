@@ -15,7 +15,6 @@ local function run(program: string, params: { string }, options: Options?)
 	stdio.write(stdio.style("reset"))
 
 	local child = process.create(program, params, {
-		stdio = "inherit",
 		shell = true,
 		cwd = if options then options.cwd else nil,
 		env = if options then options.env else nil,

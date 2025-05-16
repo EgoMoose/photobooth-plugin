@@ -4,9 +4,10 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 
+local Constants = require(pluginRoot.Constants)
+
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local UploadPrompt = require(uiRoot.Components.UploadPrompt)
-local Constants = require(uiRoot.Constants)
 local Hooks = require(uiRoot.Hooks)
 
 local ConfigurationWindow = require(script.ConfigurationWindow)
@@ -38,8 +39,8 @@ local function WindowContainer(props: WindowContainerProps)
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		UISizeConstraint = React.createElement("UISizeConstraint", {
-			MinSize = Vector2.new(Constants.DockWidgetSize.X - 20, Constants.DockWidgetSize.Y - 20),
-			MaxSize = Vector2.new((Constants.DockWidgetSize.X - 20) * 2, (Constants.DockWidgetSize.Y - 20) * 2),
+			MinSize = Vector2.new(Constants.DockWidgetSize[1] - 20, Constants.DockWidgetSize[2] - 20),
+			MaxSize = Vector2.new((Constants.DockWidgetSize[1] - 20) * 2, (Constants.DockWidgetSize[2] - 20) * 2),
 		}),
 	}, props.children)
 end

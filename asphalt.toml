@@ -1,13 +1,13 @@
-asset_dir = "icons/asphalt"
-exclude_assets = []
-write_dir = "src/Main/UserInterface"
-
 [creator]
 type = "user"
 id = 2155311
 
 [codegen]
-output_name = "Icons"
 typescript = false
 style = "nested"
-strip_extension = true
+strip_extensions = true
+
+[inputs.assets]
+path = "icons/asphalt/**/*"
+output_path = "src/Main/UserInterface/Icons"
+bleed = true
