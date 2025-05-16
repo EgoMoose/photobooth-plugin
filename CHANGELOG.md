@@ -2,6 +2,14 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Add fullscreen toggle bar on viewport capture action bar UI
+- Add lune serve workflow for sending images over network for debug purposes
+
+### Changes
+- Retain cropped viewport size in viewport capture UI when toggling between fullscreen mode and when open / closing the app
+- No longer saves the fullscreen setting between sessions
+- When OS Scale is not (1, 1) hide the viewport capture UI
 
 ## [0.6.1]
 ### Changes
