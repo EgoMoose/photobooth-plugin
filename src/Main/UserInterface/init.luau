@@ -304,10 +304,6 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 end
 
 function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
-	if not Constants.ServeEnabled then
-		return
-	end
-
 	-- stylua: ignore
 	local serveButton = toolbar:CreateButton(
 		"egomoose_photobooth_serve_button",
