@@ -40,8 +40,8 @@ end
 -- Public
 
 function PngServe.ping(port: number, timeout: number?)
-	local pingFuture = Future.raw()
-	local timeoutFuture = Future.raw()
+	local pingFuture = Future.new()
+	local timeoutFuture = Future.new()
 
 	if timeout and timeout > 0 then
 		task.delay(timeout, function()
@@ -74,8 +74,8 @@ function PngServe.ping(port: number, timeout: number?)
 end
 
 function PngServe.send(port: number, name: string, img: Image.Image, timeout: number?)
-	local sendFuture = Future.raw()
-	local timeoutFuture = Future.raw()
+	local sendFuture = Future.new()
+	local timeoutFuture = Future.new()
 
 	local resultFuture = Future.race({
 		sendFuture,
@@ -120,7 +120,7 @@ function PngServe.create(port: number)
 	end
 
 	return function(name: string, img: Image.Image)
-		local sendFuture = Future.raw()
+		local sendFuture = Future.new()
 		task.spawn(function()
 			local result = false
 			if pingFuture:expect() then

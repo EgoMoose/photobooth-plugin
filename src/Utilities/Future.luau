@@ -19,7 +19,7 @@ export type Future<T> = typeof(setmetatable(
 
 -- Constructors
 
-function FutureStatic.raw<T>()
+function FutureStatic.new<T>()
 	local self = setmetatable({}, FutureClass) :: Future<T>
 
 	self._typecast = (nil :: any) :: T
@@ -32,7 +32,7 @@ function FutureStatic.raw<T>()
 end
 
 function FutureStatic.completed<T>(value: T)
-	local future = FutureStatic.raw()
+	local future = FutureStatic.new()
 	future:complete(value)
 	return future
 end
@@ -44,7 +44,7 @@ function FutureStatic.race<T>(futures: { Future<any> })
 		end
 	end
 
-	local future = FutureStatic.raw() :: Future<T>
+	local future = FutureStatic.new() :: Future<T>
 
 	task.spawn(function()
 		local thread = coroutine.running()
