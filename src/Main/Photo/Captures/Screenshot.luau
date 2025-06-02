@@ -20,7 +20,7 @@ local _bilinearScaleContext = Context.new(nil :: Vector2?)
 -- Private
 
 local function captureEditableImage()
-	local contentUriFuture = Future.raw() :: Future.Future<string>
+	local contentUriFuture = Future.new() :: Future.Future<string>
 	CaptureService:CaptureScreenshot(function(contentUri: string)
 		-- this is a significant bottleneck for speed
 		-- it can take roughly 0.3 seconds to complete
