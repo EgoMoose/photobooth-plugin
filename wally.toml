@@ -6,11 +6,12 @@ realm = "shared"
 private = true
 
 [dependencies]
-Sift = "csqrl/sift@0.0.9"
+Sift = "csqrl/sift@0.0.11"
 Deque = "egomoose/deque@0.2.1"
-Trove = "sleitnick/trove@1.5.0"
+Trove = "sleitnick/trove@1.5.1"
+Signal = "sleitnick/signal@2.0.3"
 GreenTea = "corecii/greentea@0.4.11"
-OrderedDictionary = "egomoose/ordered-dictionary@0.2.0"
+OrderedDictionary = "egomoose/ordered-dictionary@0.2.1"
 
 React = "jsdotlua/react@17.2.1"
 ReactRoblox = "jsdotlua/react-roblox@17.2.1"
