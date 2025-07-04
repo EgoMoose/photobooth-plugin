@@ -3,6 +3,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.6.4]
+### Fixed
+- Fixes issue where skybox was not properly removed in viewport captures when `Lighting.ExposureCompensation` was not equal to zero. 
 
 ## [0.6.3]
 ### Fixed
