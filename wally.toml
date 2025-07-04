@@ -1,6 +1,6 @@
 [package]
 name = "egomoose/photobooth-plugin"
-version = "0.6.3"
+version = "0.6.4"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 private = true
