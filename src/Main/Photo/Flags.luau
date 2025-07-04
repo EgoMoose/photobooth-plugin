@@ -1,19 +1,14 @@
 --!strict
 
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Future = require(pluginRoot.Utilities.Future)
+
 local Flags = {}
 
 -- Private
 
 local flagsStorage = {}
 local flagsChanged = Instance.new("BindableEvent")
-
-local function packAsCallback<T...>(...: T...): () -> T...
-	local n = select("#", ...)
-	local packed = { select(1, ...) }
-	return function()
-		return unpack(packed, 1, n)
-	end
-end
 
 -- Public
 
@@ -28,7 +23,7 @@ end
 
 function Flags.wrap<T...>(key: string, callback: () -> T...)
 	Flags.set(key, true)
-	local unpackResult = packAsCallback(callback())
+	local unpackResult = Future.packAsCallback(callback())
 	Flags.set(key, false)
 	return unpackResult()
 end

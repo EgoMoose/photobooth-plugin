@@ -1,5 +1,8 @@
 --!strict
 
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Future = require(pluginRoot.Utilities.Future)
+
 local ContextClass = {}
 ContextClass.__index = ContextClass
 ContextClass.ClassName = "Context"
@@ -23,14 +26,6 @@ end
 
 -- Private
 
-local function packAsCallback<T...>(...: T...): () -> T...
-	local n = select("#", ...)
-	local packed = { select(1, ...) }
-	return function()
-		return unpack(packed, 1, n)
-	end
-end
-
 local function iterateFunctionStack(level: number)
 	local stack = level
 	return function()
@@ -47,7 +42,7 @@ end
 
 function ContextClass.With<T, U...>(self: Context<T>, value: T, callback: () -> U...)
 	self.map[callback] = value
-	local unpackResult = packAsCallback(callback())
+	local unpackResult = Future.packAsCallback(callback())
 	self.map[callback] = nil
 	return unpackResult()
 end

@@ -2,6 +2,9 @@
 
 local RunService = game:GetService("RunService") :: RunService
 
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Future = require(pluginRoot.Utilities.Future)
+
 -- Class
 
 local ParallelStatic = {}
@@ -92,44 +95,6 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	return self
 end
 
--- Private
-
-local function quickFuture<T>()
-	local result: T
-	local isComplete = false
-	local awaiting: { [thread]: boolean } = {}
-
-	local function complete(value: T)
-		if not isComplete then
-			isComplete = true
-			result = value
-			for thread, _ in awaiting do
-				task.spawn(thread)
-			end
-			awaiting = {}
-		end
-	end
-
-	local function expect()
-		if not isComplete then
-			local thread = coroutine.running()
-			awaiting[thread] = true
-			coroutine.yield()
-		end
-		return result
-	end
-
-	return complete, expect
-end
-
-local function packAsCallback<T...>(...: T...): () -> T...
-	local n = select("#", ...)
-	local packed = { select(1, ...) }
-	return function()
-		return unpack(packed, 1, n)
-	end
-end
-
 -- Public
 
 function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
@@ -146,7 +111,7 @@ function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T..
 	local actorIndex = ((myTicket - 1) % #self.actors) + 1
 	local actor = self.actors[actorIndex]
 
-	table.insert(self.schedules[actor], packAsCallback(...))
+	table.insert(self.schedules[actor], Future.packAsCallback(...))
 end
 
 function ParallelClass.Clear<T..., U...>(self: Parallel<T..., U...>)
@@ -163,18 +128,18 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 	assert(not self.isWorking, "Already working!")
 	self.isWorking = true
 
-	local expectations = {}
+	local futures = {}
 	for i, actor in self.actors do
 		local schedule = self.schedules[actor]
 		for j, unpackArgs in schedule do
 			local k = ((j - 1) * #self.actors) + i
-			local complete, expect = quickFuture()
-			expectations[k] = expect
+			local future = Future.new()
+			futures[k] = future
 
 			local connection
 			connection = self.binding.Event:Connect(function(index: number, ...: any)
 				if k == index then
-					complete(packAsCallback(...) :: () -> U...)
+					future:complete(Future.packAsCallback(...) :: () -> U...)
 					connection:Disconnect()
 				end
 			end)
@@ -186,8 +151,9 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 	self:Clear()
 
 	local results = {}
-	for i, expect in expectations do
-		results[i] = expect()
+	for i, future in futures do
+		local castedFuture = future :: Future.Future<() -> U...>
+		results[i] = castedFuture:expect()
 	end
 
 	self.isWorking = false

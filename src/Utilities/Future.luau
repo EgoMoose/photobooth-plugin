@@ -8,11 +8,9 @@ FutureClass.ClassName = "Future"
 
 export type Future<T> = typeof(setmetatable(
 	{} :: {
-		_typecast: T,
-
-		type: "Pending" | "Completed",
+		type: "pending" | "completed",
 		awaiting: { [thread]: boolean },
-		value: T?,
+		value: T,
 	},
 	FutureClass
 ))
@@ -22,11 +20,9 @@ export type Future<T> = typeof(setmetatable(
 function FutureStatic.new<T>()
 	local self = setmetatable({}, FutureClass) :: Future<T>
 
-	self._typecast = (nil :: any) :: T
-
-	self.type = "Pending"
+	self.type = "pending"
 	self.awaiting = {}
-	self.value = nil
+	self.value = (nil :: any) :: T
 
 	return self
 end
@@ -37,27 +33,31 @@ function FutureStatic.completed<T>(value: T)
 	return future
 end
 
-function FutureStatic.race<T>(futures: { Future<any> })
-	for _, future in futures do
-		if future.type == "Completed" then
-			return future
+function FutureStatic.race<T>(racingFutures: { Future<T> })
+	for _, racingFuture in racingFutures do
+		if racingFuture.type == "completed" then
+			return FutureStatic.completed(racingFuture.value)
 		end
 	end
 
 	local future = FutureStatic.new() :: Future<T>
 
 	task.spawn(function()
+		for _, racingFuture in racingFutures do
+			if racingFuture.type == "completed" then
+				future:complete(racingFuture.value)
+				return
+			end
+		end
+
 		local thread = coroutine.running()
-		for _, racingFuture in futures do
-			assert(racingFuture.type == "Pending", "Cannot race completed future.")
+		for _, racingFuture in racingFutures do
 			racingFuture.awaiting[thread] = true
 		end
 
 		local value = coroutine.yield()
-		for _, racingFuture in futures do
-			if racingFuture.type == "Pending" then
-				racingFuture.awaiting[thread] = nil
-			end
+		for _, racingFuture in racingFutures do
+			racingFuture.awaiting[thread] = nil
 		end
 
 		future:complete(value)
@@ -66,16 +66,25 @@ function FutureStatic.race<T>(futures: { Future<any> })
 	return future
 end
 
+-- Static
+
+function FutureStatic.packAsCallback<T...>(...: T...)
+	local packed = table.pack(...)
+	return function(): T...
+		return table.unpack(packed :: { any }, 1, packed.n)
+	end
+end
+
 -- Public
 
 function FutureClass.isCompleted<T>(self: Future<T>)
-	return self.type == "Completed"
+	return self.type == "completed"
 end
 
 function FutureClass.complete<T>(self: Future<T>, value: T)
-	assert(self.type ~= "Completed", "Cannot complete a future that is already completed")
+	assert(self.type == "pending", "Cannot complete a future that is already completed")
 
-	self.type = "Completed"
+	self.type = "completed"
 	self.value = value
 
 	local awaiting = self.awaiting
@@ -85,14 +94,13 @@ function FutureClass.complete<T>(self: Future<T>, value: T)
 	end
 end
 
-function FutureClass.expect<T>(self: Future<T>): T
-	if self.type == "Completed" then
-		return self.value :: T
+function FutureClass.expect<T>(self: Future<T>)
+	if self.type == "pending" then
+		local thread = coroutine.running()
+		self.awaiting[thread] = true
+		coroutine.yield()
 	end
-
-	local thread = coroutine.running()
-	self.awaiting[thread] = true
-	return coroutine.yield()
+	return self.value
 end
 
 --
