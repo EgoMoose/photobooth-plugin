@@ -1,5 +1,7 @@
 --!strict
 
+local Lighting = game:GetService("Lighting") :: Lighting
+
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
@@ -15,7 +17,7 @@ local Composers = require(capturesRoot.Composers)
 type Background = Background.Background
 
 local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
-	if game:GetService("Lighting"):FindFirstChildWhichIsA("Atmosphere") then
+	if Lighting:FindFirstChildWhichIsA("Atmosphere") then
 		warn("Skybox cannot be removed when Atmosphere is present.")
 		error("SKIP", 0)
 	end
@@ -32,11 +34,20 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	background:SetEnabled(true)
 	background:SetColor(Color3.new(0, 0, 0))
 
+	local isRetroTonemapper = SceneControl.Lighting.getTonemapperPreset() == Enum.TonemapperPreset.Retro
+
+	local exposureCompensation = Lighting.ExposureCompensation
+	local redoExposureCompensation = trove:Add(SceneControl.Utils.oneTimeCallback(function()
+		Lighting.ExposureCompensation = exposureCompensation
+	end))
+
 	local onBlack: Image.Image?
-	if SceneControl.Lighting.getTonemapperPreset() ~= Enum.TonemapperPreset.Retro then
+	if not (isRetroTonemapper and exposureCompensation == 0) then
 		SceneControl.yieldUntilNextFrame()
 		onBlack = Screenshot.rect(rect)
 	end
+
+	Lighting.ExposureCompensation = 0
 
 	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
 	trove:Add(undoRetroGrading)
@@ -49,6 +60,7 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	local onWhiteRetro = Screenshot.rect(rect)
 
 	background:SetEnabled(false)
+	redoExposureCompensation()
 	redoCloudsAndFog()
 	undoRetroGrading()
 	redoColorCorrection()
