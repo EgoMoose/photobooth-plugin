@@ -3,10 +3,11 @@
 local AssetService = game:GetService("AssetService") :: AssetService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Signal = require(pluginRoot.Packages.Signal)
 local React = require(pluginRoot.Packages.React)
 
 local success = false
-local finished = Instance.new("BindableEvent")
+local finished = Signal.new()
 task.spawn(function()
 	local model = Instance.new("Model")
 	-- attempt to upload something as Roblox which will error if the api isn't available this includes uploading from a cloud plugin
@@ -21,7 +22,7 @@ local function useHasCreateAssetPermission()
 
 	React.useEffect(function()
 		setHasPermission(success)
-		local connection = finished.Event:Connect(function()
+		local connection = finished:Connect(function()
 			setHasPermission(success)
 		end)
 
