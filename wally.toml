@@ -11,7 +11,6 @@ Deque = "egomoose/deque@0.2.1"
 Trove = "sleitnick/trove@1.5.1"
 Signal = "sleitnick/signal@2.0.3"
 GreenTea = "corecii/greentea@0.4.11"
-OrderedDictionary = "egomoose/ordered-dictionary@0.2.1"
 
 React = "jsdotlua/react@17.2.1"
 ReactRoblox = "jsdotlua/react-roblox@17.2.1"

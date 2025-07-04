@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Signal = require(pluginRoot.Packages.Signal)
 local Trove = require(pluginRoot.Packages.Trove)
 
 local Players = game:GetService("Players")
@@ -29,7 +30,7 @@ export type UIHider = typeof(setmetatable(
 ))
 
 local globalTicket = 0
-local globalExclusionsChanged = Instance.new("BindableEvent")
+local globalExclusionsChanged = Signal.new()
 local globalExclusions: { [LayerCollector]: { [number]: boolean } } = {}
 
 -- Constructor
@@ -124,7 +125,7 @@ function UIHiderClass._watch(self: UIHider, layerCollector: LayerCollector)
 		refreshEnabled()
 	end)
 
-	local exclusionsChanged = globalExclusionsChanged.Event:Connect(function()
+	local exclusionsChanged = globalExclusionsChanged:Connect(function()
 		refreshEnabled()
 	end)
 

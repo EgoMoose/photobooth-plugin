@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Signal = require(pluginRoot.Packages.Signal)
 local Future = require(pluginRoot.Utilities.Future)
 
 local Flags = {}
@@ -8,7 +9,7 @@ local Flags = {}
 -- Private
 
 local flagsStorage = {}
-local flagsChanged = Instance.new("BindableEvent")
+local flagsChanged = Signal.new()
 
 -- Public
 
@@ -29,7 +30,7 @@ function Flags.wrap<T...>(key: string, callback: () -> T...)
 end
 
 function Flags.onChanged(callback: () -> ())
-	local connection = flagsChanged.Event:Connect(callback)
+	local connection = flagsChanged:Connect(callback)
 	return function()
 		connection:Disconnect()
 	end
