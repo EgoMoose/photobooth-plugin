@@ -4,7 +4,7 @@ local HttpService = game:GetService("HttpService") :: HttpService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Base64 = require(pluginRoot.Utilities.Base64)
-local Future = require(pluginRoot.Utilities.Future)
+local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
 local BUFFER_ENCODE_MAX_LENGTH = 3_000_000
@@ -114,7 +114,7 @@ function PngServe.send(port: number, name: string, img: Image.Image, timeout: nu
 end
 
 function PngServe.create(port: number)
-	local pingFuture = Future.completed(false)
+	local pingFuture: Future.Future<boolean> = Future.completed(false)
 	if port > 0 then
 		pingFuture = PngServe.ping(port, 1)
 	end
