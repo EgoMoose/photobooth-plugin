@@ -18,7 +18,6 @@ export type UIBounds = typeof(setmetatable(
 		surfaceGui: SurfaceGui,
 		surfacePart: BasePart,
 		aabbFrame: Frame,
-		canvas: CanvasGroup,
 	},
 	UIBoundsClass
 ))
@@ -30,7 +29,7 @@ function UIBoundsClass.new(parent: Instance, subject: GuiObject, scale: Vector2)
 
 	self.scale = scale
 	self.surfaceGui, self.surfacePart = self:_createSurface(parent)
-	self.aabbFrame, self.canvas = self:_createAABBCanvas(subject)
+	self.aabbFrame = self:_createAABBFrame(subject)
 	self.aabbFrame.Parent = self.surfaceGui
 
 	return self
@@ -206,7 +205,7 @@ local function getMinZIndex(qualified: { GuiObject }): number
 	return minZIndex
 end
 
-function UIBoundsClass._createAABBCanvas(_self: UIBounds, subject: GuiObject)
+function UIBoundsClass._createAABBFrame(_self: UIBounds, subject: GuiObject)
 	local qualified = getQualified(subject)
 	local aabbRect = getBoundingRect(qualified)
 
@@ -214,11 +213,6 @@ function UIBoundsClass._createAABBCanvas(_self: UIBounds, subject: GuiObject)
 	boundingFrame.ZIndex = getMinZIndex(qualified) - 1
 	boundingFrame.Size = UDim2.fromOffset(aabbRect.Width, aabbRect.Height)
 	boundingFrame.BorderSizePixel = 0
-
-	local canvas = Instance.new("CanvasGroup")
-	canvas.Size = UDim2.fromScale(1, 1)
-	canvas.BackgroundTransparency = 1
-	canvas.Parent = boundingFrame
 
 	local subjectAbsSize = subject.AbsoluteSize
 	local subjectAbsPosition = subject.AbsolutePosition
@@ -234,9 +228,9 @@ function UIBoundsClass._createAABBCanvas(_self: UIBounds, subject: GuiObject)
 	subjectCopy.Size = UDim2.fromOffset(subjectAbsSize.X, subjectAbsSize.Y)
 	subjectCopy.Rotation = subject.AbsoluteRotation
 	subjectCopy.Position = subjectAABBOffset
-	subjectCopy.Parent = canvas
+	subjectCopy.Parent = boundingFrame
 
-	return boundingFrame, canvas
+	return boundingFrame
 end
 
 -- Public
@@ -247,10 +241,6 @@ end
 
 function UIBoundsClass.SetColor(self: UIBounds, color: Color3)
 	self.aabbFrame.BackgroundColor3 = color
-end
-
-function UIBoundsClass.SetImageColor(self: UIBounds, color: Color3)
-	self.canvas.GroupColor3 = color
 end
 
 function UIBoundsClass.Destroy(self: UIBounds)
