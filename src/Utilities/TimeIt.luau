@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Future = require(pluginRoot.Utilities.Future)
+local Future = require(pluginRoot.Packages.Future)
 
 local function timeIt<T...>(callback: () -> T...)
 	local t = os.clock()

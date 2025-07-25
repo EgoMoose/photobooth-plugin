@@ -2,7 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Signal = require(pluginRoot.Packages.Signal)
-local Future = require(pluginRoot.Utilities.Future)
+local Future = require(pluginRoot.Packages.Future)
 
 local Flags = {}
 

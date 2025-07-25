@@ -5,7 +5,7 @@ local CaptureService = game:GetService("CaptureService") :: CaptureService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Context = require(pluginRoot.Utilities.Context)
-local Future = require(pluginRoot.Utilities.Future)
+local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
 
 local photoRoot = script:FindFirstAncestor("Photo")

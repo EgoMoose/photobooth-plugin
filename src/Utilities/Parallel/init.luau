@@ -3,7 +3,7 @@
 local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Future = require(pluginRoot.Utilities.Future)
+local Future = require(pluginRoot.Packages.Future)
 
 -- Class
 
