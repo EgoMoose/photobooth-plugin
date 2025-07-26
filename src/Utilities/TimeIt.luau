@@ -1,13 +1,10 @@
 --!strict
 
-local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Future = require(pluginRoot.Packages.Future)
-
-local function timeIt<T...>(callback: () -> T...)
+local function timeIt<T...>(callback: () -> T...): (number, T...)
 	local t = os.clock()
-	local unpackResult = Future.packAsCallback(callback())
+	local packed = table.pack(callback())
 	local dt = os.clock() - t
-	return dt, unpackResult()
+	return dt, table.unpack(packed :: { any }, 1, packed.n)
 end
 
 return timeIt
