@@ -40,11 +40,11 @@ end
 
 -- Public
 
-function ContextClass.With<T, U...>(self: Context<T>, value: T, callback: () -> U...)
+function ContextClass.With<T, U...>(self: Context<T>, value: T, callback: () -> U...): U...
 	self.map[callback] = value
-	local unpackResult = Future.packAsCallback(callback())
+	local packed = table.pack(callback)
 	self.map[callback] = nil
-	return unpackResult()
+	return table.unpack(packed :: { any }, 1, packed.n)
 end
 
 function ContextClass.Use<T>(self: Context<T>): T

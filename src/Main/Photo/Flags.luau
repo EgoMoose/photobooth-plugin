@@ -2,7 +2,6 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Signal = require(pluginRoot.Packages.Signal)
-local Future = require(pluginRoot.Packages.Future)
 
 local Flags = {}
 
@@ -22,11 +21,11 @@ function Flags.set(key: string, enabled: boolean)
 	flagsChanged:Fire()
 end
 
-function Flags.wrap<T...>(key: string, callback: () -> T...)
+function Flags.wrap<T...>(key: string, callback: () -> T...): T...
 	Flags.set(key, true)
-	local unpackResult = Future.packAsCallback(callback())
+	local packed = table.pack(callback())
 	Flags.set(key, false)
-	return unpackResult()
+	return table.unpack(packed :: { any }, 1, packed.n)
 end
 
 function Flags.onChanged(callback: () -> ())
