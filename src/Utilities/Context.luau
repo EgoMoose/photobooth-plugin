@@ -1,8 +1,5 @@
 --!strict
 
-local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Future = require(pluginRoot.Packages.Future)
-
 local ContextClass = {}
 ContextClass.__index = ContextClass
 ContextClass.ClassName = "Context"
