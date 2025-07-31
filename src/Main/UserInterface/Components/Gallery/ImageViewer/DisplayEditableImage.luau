@@ -11,6 +11,8 @@ local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
 local Hooks = require(uiRoot.Hooks)
 local Icons = require(uiRoot.Icons)
 
+local HighResImageSplit = require(script.Parent.HighResImageSplit)
+
 local OUTLINE_THICKNESS = 2
 local DIMENSIONS_FONT_SIZE = 7
 local DIMENSIONS_FONT = Font.fromEnum(Enum.Font.Legacy)
@@ -83,7 +85,6 @@ end
 
 local function DisplayEditableImage(props: Props)
 	local theme = StudioComponents.useTheme()
-	local imgLabelRef = React.useRef(nil :: ImageLabel?)
 	local aspectFrameSize, setAspectFrameSize = React.useState(Vector2.zero)
 	local openMenu = usePluginMenu(props.BackgroundType, props.SetBackgroundType)
 
@@ -93,15 +94,6 @@ local function DisplayEditableImage(props: Props)
 	local dimensionsText = ("%d x %d - %s"):format(size.X, size.Y, props.EditableImageName)
 	local dimensionsTextWidth = useTextWidth(dimensionsText, DIMENSIONS_FONT, DIMENSIONS_FONT_SIZE)
 	local isDimensionsAttachedToImage = dimensionsTextWidth < (aspectFrameSize.X + OUTLINE_THICKNESS * 2)
-
-	React.useEffect(function()
-		local imgLabel = imgLabelRef.current
-		if not imgLabel then
-			return
-		end
-
-		imgLabel.ImageContent = Content.fromObject(props.EditableImage)
-	end, { imgLabelRef.current, props.EditableImage } :: { any })
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -130,16 +122,29 @@ local function DisplayEditableImage(props: Props)
 				Container = React.createElement(ContainerSize, {
 					SetContainerSize = setAspectFrameSize,
 				}, {
-					ImageLabel = React.createElement("ImageButton", {
+					ImageFrame = React.createElement("Frame", {
 						ZIndex = 2,
 						AnchorPoint = Vector2.new(0.5, 0.5),
 						Position = UDim2.fromScale(0.5, 0.5),
 						Size = UDim2.fromScale(1, 1),
 						BackgroundTransparency = 1,
-						ref = imgLabelRef,
-						[React.Event.MouseButton2Click] = function()
-							openMenu()
-						end,
+					}, {
+						RightClickButton = React.createElement("TextButton", {
+							BorderSizePixel = 0,
+							BackgroundTransparency = 1,
+							Size = UDim2.fromScale(1, 1),
+							Text = "",
+							[React.Event.MouseButton2Click] = function()
+								openMenu()
+							end,
+						}),
+						HighResImageSplit = React.createElement(HighResImageSplit, {
+							AnchorPoint = Vector2.new(0, 0),
+							Size = UDim2.fromScale(1, 1),
+							Position = UDim2.fromScale(0, 0),
+							EditableImage = props.EditableImage,
+							ZIndex = -1,
+						}),
 					}),
 
 					OutlineStroke = React.createElement("UIStroke", {
