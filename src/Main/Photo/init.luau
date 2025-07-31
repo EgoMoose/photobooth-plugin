@@ -56,6 +56,8 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 		freezeEmitters = false,
 
 		callback = function()
+			-- let a frame render so the ui bounds clone can fully load
+			SceneControl.yieldUntilNextFrame()
 			results = processor(uiBounds, trove)
 		end,
 	})
