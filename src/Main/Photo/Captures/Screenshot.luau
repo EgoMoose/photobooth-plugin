@@ -7,6 +7,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Context = require(pluginRoot.Utilities.Context)
 local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
+local Constants = require(pluginRoot.Constants)
 
 local photoRoot = script:FindFirstAncestor("Photo")
 local Configuration = require(photoRoot.Configuration)
@@ -104,8 +105,8 @@ function Screenshot.rect(rect: Rect)
 		return screenshot()
 	else
 		assert(
-			not (rect.Width > Image.MAX_EDIT_IMAGE_SIZE.X or rect.Height > Image.MAX_EDIT_IMAGE_SIZE.Y),
-			`Capture target is larger than {Image.MAX_EDIT_IMAGE_SIZE.X} x {Image.MAX_EDIT_IMAGE_SIZE.Y}.`
+			not (rect.Width > Constants.MaxCaptureRectSize.X or rect.Height > Constants.MaxCaptureRectSize.Y),
+			`Capture target is larger than {Constants.MaxCaptureRectSize.X} x {Constants.MaxCaptureRectSize.Y}.`
 		)
 
 		return screenshot(rect)

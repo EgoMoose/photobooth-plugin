@@ -2,10 +2,11 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
-local RenderRect = require(pluginRoot.Utilities.RenderRect)
-local Image = require(pluginRoot.Utilities.Image)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
+
+local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local Constants = require(pluginRoot.Constants)
 
 local ContainerSize = require(script.Parent.Shared.ContainerSize)
 
@@ -15,6 +16,8 @@ local Blinder = require(script.Blinder)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
+
+local MAX_CAPTURE_RECT_SIZE = Vector2.new(Constants.MaxCaptureRectSize.X, Constants.MaxCaptureRectSize.Y)
 
 local GRABBERS = {
 	CornersEnabled = true,
@@ -37,8 +40,6 @@ local ACTION_BAR = {
 	Padding = 8,
 }
 
-local MAX_EDIT_IMAGE_SIZE = Image.MAX_EDIT_IMAGE_SIZE
-
 local grabberMargin = GRABBERS.Padding + GRABBERS.Thickness
 local actionBarPadding = if GRABBERS.MiddlesEnabled
 	then ACTION_BAR.Padding + grabberMargin
@@ -60,8 +61,8 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	local minX = math.max(0, math.min(width, grabberMin * scale.X))
 	local minY = math.max(0, math.min(height, grabberMin * scale.Y))
 
-	local maxX = math.min(MAX_EDIT_IMAGE_SIZE.X * scale.X, width)
-	local maxY = math.min(MAX_EDIT_IMAGE_SIZE.Y * scale.Y, height)
+	local maxX = math.min(MAX_CAPTURE_RECT_SIZE.X * scale.X, width)
+	local maxY = math.min(MAX_CAPTURE_RECT_SIZE.Y * scale.Y, height)
 
 	local clampedX = math.clamp(size.X * scale.X, minX, math.max(minX, maxX))
 	local clampedY = math.clamp(size.Y * scale.X, minY, math.max(minY, maxY))
@@ -78,9 +79,9 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 
 	local aspectKeysDown, setAspectKeysDown = React.useState({})
 
-	local size, setSize = React.useState(MAX_EDIT_IMAGE_SIZE / 2)
+	local size, setSize = React.useState(MAX_CAPTURE_RECT_SIZE / 2)
 	local sizeInitiated = React.useRef(false)
-	local prevSize = React.useRef(MAX_EDIT_IMAGE_SIZE / 2)
+	local prevSize = React.useRef(MAX_CAPTURE_RECT_SIZE / 2)
 	local startDrag = React.useRef(nil :: Vector3?)
 
 	local actionBarWidth = if props.OnMaximize then 148 else 120

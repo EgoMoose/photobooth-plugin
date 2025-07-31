@@ -49,7 +49,7 @@ local function story()
 		["Small"] = {
 			LayoutOrder = 1,
 			Content = React.createElement(Widget, {
-				Size = UDim2.fromOffset(Constants.DockWidgetSize[1], Constants.DockWidgetSize[2]),
+				Size = UDim2.fromOffset(Constants.DockWidgetSize.X, Constants.DockWidgetSize.Y),
 			}),
 		},
 		["Medium"] = {

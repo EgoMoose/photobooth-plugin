@@ -236,10 +236,10 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 		Enum.InitialDockState.Float, -- Widget will be initialized in floating panel
 		false, -- Widget will be initially enabled
 		false, -- Don't override the previous enabled state
-		Constants.DockWidgetSize[1], -- Default width of the floating window
-		Constants.DockWidgetSize[2], -- Default height of the floating window
-		Constants.DockWidgetSize[1], -- Minimum width of the floating window
-		Constants.DockWidgetSize[2] -- Minimum height of the floating window
+		Constants.DockWidgetSize.X, -- Default width of the floating window
+		Constants.DockWidgetSize.Y, -- Default height of the floating window
+		Constants.DockWidgetSize.X, -- Minimum width of the floating window
+		Constants.DockWidgetSize.Y -- Minimum height of the floating window
 	)
 
 	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothViewer", info)

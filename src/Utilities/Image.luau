@@ -17,9 +17,9 @@ export type Image = typeof(setmetatable(
 
 -- CONSTANTS
 
-local MAX_EDIT_IMAGE_SIZE = Vector2.new(1024, 1024)
-local MAX_EDIT_IMAGE_WIDTH = MAX_EDIT_IMAGE_SIZE.X
-local MAX_EDIT_IMAGE_HEIGHT = MAX_EDIT_IMAGE_SIZE.Y
+local MAX_READ_WRITE_IMAGE_SIZE = Vector2.new(1024, 1024)
+local MAX_READ_WRITE_IMAGE_WIDTH = MAX_READ_WRITE_IMAGE_SIZE.X
+local MAX_READ_WRITE_IMAGE_HEIGHT = MAX_READ_WRITE_IMAGE_SIZE.Y
 
 local NEIGHBOR_OFFSETS: { { number } } = {
 	{ -1, -1 },
@@ -31,8 +31,6 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 	{ 0, 1 },
 	{ 1, 1 },
 }
-
-ImageClass.MAX_EDIT_IMAGE_SIZE = MAX_EDIT_IMAGE_SIZE
 
 -- Constructors
 
@@ -54,21 +52,21 @@ function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	local origin = if crop then crop.Min:Min(fullSize) else Vector2.zero
 	local cropSize = if crop then (crop.Max - crop.Min):Min(fullSize) else fullSize
 
-	if cropSize.X > MAX_EDIT_IMAGE_WIDTH or cropSize.Y > MAX_EDIT_IMAGE_HEIGHT then
-		-- if the input editable image is larger than MAX_EDIT_IMAGE_SIZE then we get an error when trying to read the pixel buffer
+	if cropSize.X > MAX_READ_WRITE_IMAGE_WIDTH or cropSize.Y > MAX_READ_WRITE_IMAGE_HEIGHT then
+		-- if the input editable image is larger than MAX_READ_WRITE_IMAGE_SIZE then we get an error when trying to read the pixel buffer
 		-- as a result we need to read the buffer in chunks and then put it together again into its full size (very cool, thanks Roblox)
 
 		local resultBuffer = buffer.create(cropSize.X * cropSize.Y * 4)
 
-		local dx = math.ceil(cropSize.X / MAX_EDIT_IMAGE_WIDTH)
-		local dy = math.ceil(cropSize.Y / MAX_EDIT_IMAGE_HEIGHT)
+		local dx = math.ceil(cropSize.X / MAX_READ_WRITE_IMAGE_WIDTH)
+		local dy = math.ceil(cropSize.Y / MAX_READ_WRITE_IMAGE_HEIGHT)
 
 		for x = 1, dx do
 			for y = 1, dy do
-				local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+				local offset = Vector2.new((x - 1) * MAX_READ_WRITE_IMAGE_WIDTH, (y - 1) * MAX_READ_WRITE_IMAGE_HEIGHT)
 				local size = Vector2.new(
-					math.min(MAX_EDIT_IMAGE_WIDTH, cropSize.X - offset.X),
-					math.min(MAX_EDIT_IMAGE_HEIGHT, cropSize.Y - offset.Y)
+					math.min(MAX_READ_WRITE_IMAGE_WIDTH, cropSize.X - offset.X),
+					math.min(MAX_READ_WRITE_IMAGE_HEIGHT, cropSize.Y - offset.Y)
 				)
 
 				local chunkBuffer = editableImage:ReadPixelsBuffer(origin + offset, size)
@@ -208,15 +206,15 @@ end
 function ImageClass.WriteToEditableImage(self: Image, editableImage: EditableImage, position: Vector2, size: Vector2)
 	size = (position + size):Max(editableImage.Size) - position
 
-	local dx = math.ceil(size.X / MAX_EDIT_IMAGE_WIDTH)
-	local dy = math.ceil(size.Y / MAX_EDIT_IMAGE_HEIGHT)
+	local dx = math.ceil(size.X / MAX_READ_WRITE_IMAGE_WIDTH)
+	local dy = math.ceil(size.Y / MAX_READ_WRITE_IMAGE_HEIGHT)
 
 	for x = 1, dx do
 		for y = 1, dy do
-			local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+			local offset = Vector2.new((x - 1) * MAX_READ_WRITE_IMAGE_WIDTH, (y - 1) * MAX_READ_WRITE_IMAGE_HEIGHT)
 			local cropSize = Vector2.new(
-				math.min(MAX_EDIT_IMAGE_WIDTH, size.X - offset.X),
-				math.min(MAX_EDIT_IMAGE_HEIGHT, size.Y - offset.Y)
+				math.min(MAX_READ_WRITE_IMAGE_WIDTH, size.X - offset.X),
+				math.min(MAX_READ_WRITE_IMAGE_HEIGHT, size.Y - offset.Y)
 			)
 			local cropImage = self:Crop(Rect.new(offset, offset + cropSize))
 			editableImage:WritePixelsBuffer(position + offset, cropSize, cropImage.buffer)
@@ -279,11 +277,11 @@ function ImageClass.Save(self: Image)
 
 	local editableImage = AssetService:CreateEditableImage({
 		Size = self.size,
-	})
+	}) :: EditableImage
 
-	editableImage:WritePixelsBuffer(Vector2.zero, self.size, self.buffer)
+	self:WriteToEditableImage(editableImage, Vector2.zero, self.size)
 
-	return editableImage :: EditableImage
+	return editableImage
 end
 
 function ImageClass.Destroy(_self: Image) end
