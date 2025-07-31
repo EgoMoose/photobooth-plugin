@@ -28,41 +28,39 @@ local function useHighResSplit(sourceEditableImage: EditableImage)
 	} })
 
 	React.useEffect(function()
-		if not Constants.SplitHighResViewerImages then
-			return
-		end
-
 		local newSplit = {}
+		local thread = task.spawn(function()
+			local sourceWidth = sourceEditableImage.Size.X
+			local sourceHeight = sourceEditableImage.Size.Y
 
-		local sourceWidth = sourceEditableImage.Size.X
-		local sourceHeight = sourceEditableImage.Size.Y
+			local dx = math.ceil(sourceWidth / MAX_EDIT_IMAGE_WIDTH)
+			local dy = math.ceil(sourceHeight / MAX_EDIT_IMAGE_HEIGHT)
 
-		local dx = math.ceil(sourceWidth / MAX_EDIT_IMAGE_WIDTH)
-		local dy = math.ceil(sourceHeight / MAX_EDIT_IMAGE_HEIGHT)
+			if dx > 1 or dy > 1 then
+				for x = 1, dx do
+					for y = 1, dy do
+						local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+						local size = Vector2.new(
+							math.min(MAX_EDIT_IMAGE_WIDTH, sourceWidth - offset.X),
+							math.min(MAX_EDIT_IMAGE_HEIGHT, sourceHeight - offset.Y)
+						)
 
-		if dx > 1 or dy > 1 then
-			for x = 1, dx do
-				for y = 1, dy do
-					local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
-					local size = Vector2.new(
-						math.min(MAX_EDIT_IMAGE_WIDTH, sourceWidth - offset.X),
-						math.min(MAX_EDIT_IMAGE_HEIGHT, sourceHeight - offset.Y)
-					)
+						local chunkBuffer = sourceEditableImage:ReadPixelsBuffer(offset, size)
+						local chunkEditImage = AssetService:CreateEditableImage({ Size = size })
+						chunkEditImage:WritePixelsBuffer(Vector2.zero, size, chunkBuffer)
 
-					local chunkBuffer = sourceEditableImage:ReadPixelsBuffer(offset, size)
-					local chunkEditImage = AssetService:CreateEditableImage({ Size = size })
-					chunkEditImage:WritePixelsBuffer(Vector2.zero, size, chunkBuffer)
-
-					table.insert(newSplit, {
-						Position = offset,
-						EditableImage = chunkEditImage,
-					})
+						table.insert(newSplit, {
+							Position = offset,
+							EditableImage = chunkEditImage,
+						})
+					end
 				end
+				setSplit(newSplit)
 			end
-			setSplit(newSplit)
-		end
+		end)
 
 		return function()
+			task.cancel(thread)
 			for _, splitEntry in newSplit do
 				splitEntry.EditableImage:Destroy()
 			end
@@ -73,9 +71,17 @@ local function useHighResSplit(sourceEditableImage: EditableImage)
 end
 
 local function HighResImageSplit(props: Props)
-	local split = useHighResSplit(props.EditableImage)
-	local sourceSize = props.EditableImage.Size
+	local split
+	if Constants.SplitHighResViewerImages then
+		split = useHighResSplit(props.EditableImage)
+	else
+		split = { {
+			Position = Vector2.zero,
+			EditableImage = props.EditableImage,
+		} }
+	end
 
+	local sourceSize = props.EditableImage.Size
 	local labels: { [string]: React.Node } = {}
 	for i, splitEntry in split do
 		local uvSize = splitEntry.EditableImage.Size / sourceSize
