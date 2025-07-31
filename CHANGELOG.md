@@ -2,6 +2,9 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- The UI capture process no longer relies on canvas groups which should increase capture quality
+- UI captures now yield a render frame before capturing to (hopefully) allow certain elements (e.g. viewport frames) to load
+- Captures that are larger than the edit image max are now chunked in the gallery viewer so they once again display in their fully glory!
 
 ## [0.6.4]
 ### Fixed
