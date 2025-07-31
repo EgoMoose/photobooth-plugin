@@ -75,10 +75,12 @@ local function HighResImageSplit(props: Props)
 	if Constants.SplitHighResViewerImages then
 		split = useHighResSplit(props.EditableImage)
 	else
-		split = { {
-			Position = Vector2.zero,
-			EditableImage = props.EditableImage,
-		} }
+		split = React.useMemo(function()
+			return { {
+				Position = Vector2.zero,
+				EditableImage = props.EditableImage,
+			} }
+		end, { props.EditableImage })
 	end
 
 	local sourceSize = props.EditableImage.Size
