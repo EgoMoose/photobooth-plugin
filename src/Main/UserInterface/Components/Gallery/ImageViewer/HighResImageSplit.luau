@@ -6,10 +6,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 local Constants = require(pluginRoot.Constants)
-local Image = require(pluginRoot.Utilities.Image)
-
-local MAX_EDIT_IMAGE_WIDTH = Image.MAX_EDIT_IMAGE_SIZE.X
-local MAX_EDIT_IMAGE_HEIGHT = Image.MAX_EDIT_IMAGE_SIZE.Y
 
 export type Props = {
 	Size: UDim2,
@@ -31,18 +27,22 @@ local function useHighResSplit(sourceEditableImage: EditableImage)
 		local sourceWidth = sourceEditableImage.Size.X
 		local sourceHeight = sourceEditableImage.Size.Y
 
-		local dx = math.ceil(sourceWidth / MAX_EDIT_IMAGE_WIDTH)
-		local dy = math.ceil(sourceHeight / MAX_EDIT_IMAGE_HEIGHT)
+		local dx = math.ceil(sourceWidth / Constants.TileHighResImagesSize.X)
+		local dy = math.ceil(sourceHeight / Constants.TileHighResImagesSize.Y)
 
 		if dx > 1 or dy > 1 then
 			local newSplit = {}
 			local thread = task.spawn(function()
 				for x = 1, dx do
 					for y = 1, dy do
-						local offset = Vector2.new((x - 1) * MAX_EDIT_IMAGE_WIDTH, (y - 1) * MAX_EDIT_IMAGE_HEIGHT)
+						local offset = Vector2.new(
+							(x - 1) * Constants.TileHighResImagesSize.X,
+							(y - 1) * Constants.TileHighResImagesSize.Y
+						)
+
 						local size = Vector2.new(
-							math.min(MAX_EDIT_IMAGE_WIDTH, sourceWidth - offset.X),
-							math.min(MAX_EDIT_IMAGE_HEIGHT, sourceHeight - offset.Y)
+							math.min(Constants.TileHighResImagesSize.X, sourceWidth - offset.X),
+							math.min(Constants.TileHighResImagesSize.Y, sourceHeight - offset.Y)
 						)
 
 						local chunkBuffer = sourceEditableImage:ReadPixelsBuffer(offset, size)
@@ -80,7 +80,7 @@ end
 
 local function HighResImageSplit(props: Props)
 	local split
-	if Constants.SplitHighResViewerImages then
+	if Constants.TileHighResImagesEnabled then
 		split = useHighResSplit(props.EditableImage)
 	else
 		split = React.useMemo(function()
