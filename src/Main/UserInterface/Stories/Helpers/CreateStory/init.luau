@@ -28,9 +28,8 @@ THE SOFTWARE.
 --]]
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local React = require(pluginRoot.Packages.React)
-local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local React = require(pluginRoot.Packages.React)
 
 local GetStoryPlugin = require(script.GetStoryPlugin)
 
@@ -71,13 +70,14 @@ local function StoryTheme(props: {
 end
 
 local function createStory(component: React.FC<any>)
-	return function(target: Frame)
-		local items: { React.ReactNode } = {}
+	return function(props: any)
 		local order = 0
 		local function getOrder()
 			order += 1
 			return order
 		end
+
+		local items: { React.ReactNode } = {}
 		for i, theme in themes do
 			local widthOffset = if #themes > 2 and i == #themes then -1 else 0
 			if i == 1 and #themes > 1 then
@@ -89,7 +89,7 @@ local function createStory(component: React.FC<any>)
 					Theme = theme,
 					Size = UDim2.new(1 / #themes, widthOffset, 1, 0),
 					LayoutOrder = getOrder(),
-				}, React.createElement(component))
+				}, React.createElement(component, props))
 			)
 			-- invisible divider to prevent scrollframe edges overlapping as
 			-- they have default borders (outside, not inset)
@@ -105,7 +105,7 @@ local function createStory(component: React.FC<any>)
 			end
 		end
 
-		local element = React.createElement(StudioComponents.PluginProvider, {
+		return React.createElement(StudioComponents.PluginProvider, {
 			Plugin = GetStoryPlugin(),
 		}, {
 			Layout = React.createElement("UIListLayout", {
@@ -116,13 +116,6 @@ local function createStory(component: React.FC<any>)
 				PaddingBottom = UDim.new(0, 45), -- tray buttons
 			}),
 		}, items)
-
-		local root = ReactRoblox.createRoot(Instance.new("Folder"))
-		local portal = ReactRoblox.createPortal(element, target)
-		root:render(portal)
-		return function()
-			root:unmount()
-		end
 	end
 end
 

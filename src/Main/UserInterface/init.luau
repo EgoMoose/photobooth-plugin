@@ -2,9 +2,11 @@
 
 local CoreGui = game:GetService("CoreGui") :: CoreGui
 local StarterGui = game:GetService("StarterGui") :: StarterGui
+local HttpService = game:GetService("HttpService") :: HttpService
 local SelectionService = game:GetService("Selection") :: Selection
 local AssetService = game:GetService("AssetService") :: AssetService
 local StudioService = game:GetService("StudioService") :: StudioService
+local ScriptEditorService = game:GetService("ScriptEditorService") :: ScriptEditorService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
@@ -13,6 +15,7 @@ local React = require(pluginRoot.Packages.React)
 local Trove = require(pluginRoot.Packages.Trove)
 
 local Constants = require(pluginRoot.Constants)
+local Wally = require(pluginRoot.Wally)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
@@ -247,9 +250,11 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function GalleryApp(): React.ReactNode
-		local backgroundType, setBackgroundType = React.useState("Checkerboard")
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
+
+		local backgroundType, setBackgroundType = React.useState("Checkerboard")
+		local isExpanded, setIsExpanded = React.useState(true)
 
 		React.useEffect(function()
 			local buttonConnection = openButton.Click:Connect(function()
@@ -271,21 +276,49 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 		-- stylua: ignore
 		return isEnabled and React.createElement(Gallery, {
-			UploadCallback = function(details)
-				local result: Enum.CreateAssetResult
-				local value: number | string
-
-				result, value = AssetService:CreateAssetAsync(details.EditableImage, Enum.AssetType.Image, {
-					Name = details.Title,
-					Description = details.Description,
-					IsPackage = false,
-				})
-
-				return result == Enum.CreateAssetResult.Success, value
-			end,
+			IsExpanded = isExpanded,
+			SetIsExpanded = setIsExpanded,
 
 			BackgroundType = backgroundType,
 			SetBackgroundType = setBackgroundType,
+
+			TryUpload = function(_i, name, editImage)
+				local result: Enum.CreateAssetResult
+				local value: number | string
+
+				result, value = AssetService:CreateAssetAsync(editImage, Enum.AssetType.Image, {
+					Name = name,
+					Description = table.concat({
+						"Uploaded with the Photobooth plugin.",
+						"",
+						HttpService:JSONEncode({
+							Dimensions = { editImage.Size.X, editImage.Size.Y },
+							Version = Wally.package.version,
+						})
+					}, "\n")
+				})
+
+				if result == Enum.CreateAssetResult.Success then
+					return value :: number
+				end
+
+				warn(value :: string)
+				return nil
+			end,
+			OnUploadComplete = function(completed)
+				local module = Instance.new("ModuleScript")
+				module.Name = `Photobooth Upload - {DateTime.now():ToIsoDate()}`
+				ScriptEditorService:UpdateSourceAsync(module, function()
+					local output = "return {\n"
+					for _, entry in completed do
+						output = output .. `\t["{entry.Name}"] = "rbxassetid://{entry.AssetId}",\n`
+					end
+					return output .. "}"
+				end)
+				module.Parent = StarterGui
+
+				ScriptEditorService:OpenScriptDocumentAsync(module)
+			end,
 
 			Disabled = isCapturing,
 		})

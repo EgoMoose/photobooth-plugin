@@ -9,14 +9,10 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local FullViewport = require(uiRoot.Components.FullViewport)
 
 local stories = script:FindFirstAncestor("Stories")
-local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
 local CreateStory = require(stories.Helpers.CreateStory)
-
-workspace:SetAttribute("FocusActionTrigger", false)
 
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
-	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement("Frame", {
@@ -46,9 +42,11 @@ local function story()
 			end,
 
 			FocusLenseSizeRef = focusLenseSizeRef,
-			Disabled = isDisabled or disabled,
+			Disabled = isDisabled,
 		}),
 	})
 end
 
-return CreateStory(story)
+return {
+	story = CreateStory(story),
+}

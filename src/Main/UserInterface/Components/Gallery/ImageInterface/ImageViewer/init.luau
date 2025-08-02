@@ -3,19 +3,28 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
-local DisplayNoImage = require(script.DisplayNoImage)
-local DisplayEditableImage = require(script.DisplayEditableImage)
+local uiRoot = script:FindFirstAncestor("UserInterface")
+local Hooks = require(uiRoot.Hooks)
+
+local NoImage = require(script.NoImage)
+local DisplayImage = require(script.DisplayImage)
 
 export type Props = {
 	AnchorPoint: Vector2,
 	Position: UDim2,
 	Size: UDim2,
 
-	EditableImage: EditableImage?,
-	EditableImageName: string,
+	EditableImageInfo: Hooks.EditableImageInfo?,
 
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
+
+	Padding: {
+		PaddingTop: UDim?,
+		PaddingLeft: UDim?,
+		PaddingRight: UDim?,
+		PaddingBottom: UDim?,
+	}?,
 }
 
 local function ImageViewer(props: Props)
@@ -25,29 +34,24 @@ local function ImageViewer(props: Props)
 		Size = props.Size,
 		BackgroundTransparency = 1,
 	}, {
-		Padding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
-			PaddingRight = UDim.new(0, 4),
-			PaddingTop = UDim.new(0, 4),
-			PaddingBottom = UDim.new(0, 4),
-		}),
-
-		DisplayNoImage = not props.EditableImage and React.createElement(DisplayNoImage, {
+		NoImage = not props.EditableImageInfo and React.createElement(NoImage, {
 			AnchorPoint = Vector2.new(0, 0),
 			Position = UDim2.fromScale(0, 0),
 			Size = UDim2.fromScale(1, 1),
 		}),
 
-		DisplayEditableImage = props.EditableImage and React.createElement(DisplayEditableImage, {
-			AnchorPoint = Vector2.new(0.5, 0.5),
+		DisplayImage = props.EditableImageInfo and React.createElement(DisplayImage, {
+			Size = UDim2.fromScale(1, 1),
 			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.new(1, -20, 1, -20),
+			AnchorPoint = Vector2.new(0.5, 0.5),
 
-			EditableImage = props.EditableImage,
-			EditableImageName = props.EditableImageName,
+			Name = props.EditableImageInfo.Name,
+			EditableImage = props.EditableImageInfo.EditableImage,
 
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
+
+			Padding = props.Padding or {},
 		}),
 	})
 end

@@ -8,7 +8,10 @@ local React = require(pluginRoot.Packages.React)
 
 local useMotion = require(script.Parent.useMotion)
 
-local function useSpring<T>(goal: React.Binding<T & Ripple.MotionGoal>, options: Ripple.SpringOptions?)
+local function useSpring<T>(
+	goal: React.Binding<T & Ripple.MotionGoal>,
+	options: (Ripple.SpringOptions & { onUpdate: (T) -> ()? })?
+)
 	local binding, motion = useMotion(goal:getValue())
 	local previousValue = React.useRef(goal:getValue())
 
@@ -18,12 +21,16 @@ local function useSpring<T>(goal: React.Binding<T & Ripple.MotionGoal>, options:
 	end
 
 	React.useEffect(function()
-		local connection = RunService.Heartbeat:Connect(function(dt)
+		local connection = RunService.Heartbeat:Connect(function(_dt)
 			local currentValue = goal:getValue()
 
 			if currentValue ~= previousValue.current then
 				previousValue.current = currentValue
 				motion:spring(currentValue, options)
+			end
+
+			if options and options.onUpdate then
+				options.onUpdate((binding:getValue() :: any) :: T)
 			end
 		end)
 

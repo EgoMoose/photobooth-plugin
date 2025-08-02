@@ -1,0 +1,161 @@
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local React = require(pluginRoot.Packages.React)
+
+local uiRoot = script:FindFirstAncestor("UserInterface")
+local Hooks = require(uiRoot.Hooks)
+
+export type Props = {
+	AnchorPoint: Vector2,
+	Position: UDim2,
+	Size: UDim2,
+
+	SelectedIndex: number,
+	SetSelectedIndex: (number) -> (),
+
+	UploadExclusions: { [EditableImage]: boolean },
+	SetUploadExclusions: ({ [EditableImage]: boolean }) -> (),
+
+	TitleHeight: number,
+	ElementHeight: number,
+
+	EditableImageInfos: { Hooks.EditableImageInfo },
+
+	Disabled: boolean,
+}
+
+local function ToggleScrollList(props: Props)
+	local theme = StudioComponents.useTheme()
+
+	local lines: { [string]: React.Node } = {}
+	for i, info in props.EditableImageInfos do
+		lines[`Line{i}`] = React.createElement("TextButton", {
+			Size = UDim2.new(1, 0, 0, props.ElementHeight),
+			AutoButtonColor = false,
+			Text = "",
+
+			BackgroundColor3 = if i == props.SelectedIndex
+				then theme:GetColor(Enum.StudioStyleGuideColor.DialogMainButton)
+				else theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+
+			LayoutOrder = i,
+
+			[React.Event.Activated] = function()
+				props.SetSelectedIndex(i)
+			end,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 4),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 0),
+				PaddingBottom = UDim.new(0, 0),
+			}),
+			Checkbox = React.createElement(StudioComponents.Checkbox, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.fromScale(0, 0.5),
+				Size = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight, 1, 0),
+
+				Value = not props.UploadExclusions[info.EditableImage],
+				OnChanged = function()
+					props.UploadExclusions[info.EditableImage] = not props.UploadExclusions[info.EditableImage]
+					props.SetUploadExclusions(table.clone(props.UploadExclusions))
+				end,
+
+				Disabled = props.Disabled,
+			}),
+			Label = React.createElement(StudioComponents.Label, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight + 2, 0.5, 0),
+				Size = UDim2.new(1, -StudioComponents.Constants.DefaultToggleHeight, 1, 0),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextColorStyle = if i == props.SelectedIndex
+					then Enum.StudioStyleGuideColor.DialogMainButtonText
+					else Enum.StudioStyleGuideColor.MainText,
+				Text = info.Name,
+			}),
+		})
+	end
+
+	local exclusionCount = React.useMemo(function()
+		local count = 0
+		for _, info in props.EditableImageInfos do
+			if props.UploadExclusions[info.EditableImage] then
+				count = count + 1
+			end
+		end
+		return count
+	end, { props.UploadExclusions })
+
+	local inclusionCount = #props.EditableImageInfos - exclusionCount
+
+	return React.createElement("Frame", {
+		AnchorPoint = props.AnchorPoint,
+		Position = props.Position,
+		Size = props.Size,
+	}, {
+		Title = React.createElement("Frame", {
+			AnchorPoint = Vector2.new(0, 0),
+			Position = UDim2.fromScale(0, 0),
+			Size = UDim2.new(1, 0, 0, props.TitleHeight),
+
+			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Light),
+			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+
+			ClipsDescendants = true,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 4),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 0),
+				PaddingBottom = UDim.new(0, 0),
+			}),
+			Checkbox = React.createElement(StudioComponents.Checkbox, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.fromScale(0, 0.5),
+				Size = UDim2.fromScale(1, 1),
+
+				Value = inclusionCount > 0,
+				OnChanged = function()
+					if inclusionCount > 0 then
+						local exclusions = {}
+						for _, info in props.EditableImageInfos do
+							exclusions[info.EditableImage] = true
+						end
+						props.SetUploadExclusions(exclusions)
+					else
+						props.SetUploadExclusions({})
+					end
+				end,
+
+				Disabled = props.Disabled or (#props.EditableImageInfos == 0),
+			}),
+			Label = React.createElement(StudioComponents.Label, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight + 2, 0.5, 0),
+				Size = UDim2.new(1, -StudioComponents.Constants.DefaultToggleHeight, 1, 0),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextColorStyle = Enum.StudioStyleGuideColor.MainText,
+				Text = `{inclusionCount} Selected`,
+			}),
+		}),
+
+		Scroll = React.createElement(StudioComponents.ScrollFrame, {
+			Position = UDim2.fromOffset(0, props.TitleHeight),
+			Size = UDim2.new(1, 0, 1, -props.TitleHeight),
+			ScrollingDirection = Enum.ScrollingDirection.Y,
+			Layout = {
+				ClassName = "UIListLayout",
+				Padding = UDim.new(0, 0),
+				FillDirection = Enum.FillDirection.Vertical,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			},
+		}, lines),
+	})
+end
+
+return ToggleScrollList

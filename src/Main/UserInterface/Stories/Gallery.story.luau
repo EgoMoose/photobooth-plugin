@@ -4,19 +4,16 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 
-local Constants = require(pluginRoot.Constants)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Gallery = require(uiRoot.Components.Gallery)
 
 local stories = script:FindFirstAncestor("Stories")
-local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
 local CreateStory = require(stories.Helpers.CreateStory)
 
 local function Widget(props: { Size: UDim2 })
 	local theme = StudioComponents.useTheme()
-	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
 	local backgroundType, setBackgroundType = React.useState("Checkerboard")
+	local isExpanded, setIsExpanded = React.useState(true)
 
 	return React.createElement("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -26,15 +23,22 @@ local function Widget(props: { Size: UDim2 })
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		Widget = React.createElement(Gallery, {
-			UploadCallback = function(details)
-				print(details)
-				return true, 1234
-			end,
+			IsExpanded = isExpanded,
+			SetIsExpanded = setIsExpanded,
 
 			BackgroundType = backgroundType,
 			SetBackgroundType = setBackgroundType,
 
-			Disabled = disabled,
+			TryUpload = function(i, name)
+				print(i, name)
+				task.wait(1)
+				return if i % 2 == 1 then 123 else nil
+			end,
+			OnUploadComplete = function(completed)
+				print(completed)
+			end,
+
+			Disabled = false,
 		}),
 	})
 end
@@ -49,7 +53,7 @@ local function story()
 		["Small"] = {
 			LayoutOrder = 1,
 			Content = React.createElement(Widget, {
-				Size = UDim2.fromOffset(Constants.DockWidgetSize.X, Constants.DockWidgetSize.Y),
+				Size = UDim2.fromOffset(500, 350),
 			}),
 		},
 		["Medium"] = {
@@ -67,4 +71,6 @@ local function story()
 	})
 end
 
-return CreateStory(story)
+return {
+	story = CreateStory(story),
+}

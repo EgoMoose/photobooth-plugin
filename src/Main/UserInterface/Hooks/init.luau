@@ -1,12 +1,19 @@
 --!strict
 
+local useEditableImageInfos = require(script.useEditableImageInfos)
+
+export type EditableImageInfo = useEditableImageInfos.EditableImageInfo
+
 return {
 	useConstant = require(script.useConstant),
+	useRefProperty = require(script.useRefProperty),
 
 	useMouseDrag = require(script.useMouseDrag),
 	useSelection = require(script.useSelection),
 	useEditableImage = require(script.useEditableImage),
 	useSelectedEditableImage = require(script.useSelectedEditableImage),
+
+	useEditableImageInfos = useEditableImageInfos,
 
 	usePhotoFlag = require(script.usePhotoFlag),
 	usePhotoConfiguration = require(script.usePhotoConfiguration),

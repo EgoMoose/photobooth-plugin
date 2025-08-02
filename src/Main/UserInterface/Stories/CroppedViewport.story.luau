@@ -9,14 +9,10 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local CroppedViewport = require(uiRoot.Components.CroppedViewport)
 
 local stories = script:FindFirstAncestor("Stories")
-local SharedStoryHooks = require(stories.Helpers.SharedStoryHooks)
 local CreateStory = require(stories.Helpers.CreateStory)
-
-workspace:SetAttribute("FocusActionTrigger", false)
 
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
-	local disabled = SharedStoryHooks.useAttribute(workspace, "Disabled", false)
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement(CroppedViewport, {
@@ -41,8 +37,10 @@ local function story()
 
 		InitialSize = UDim2.fromScale(0.5, 0.5),
 		FocusLenseSizeRef = focusLenseSizeRef,
-		Disabled = isDisabled or disabled,
+		Disabled = isDisabled,
 	})
 end
 
-return CreateStory(story)
+return {
+	story = CreateStory(story),
+}
