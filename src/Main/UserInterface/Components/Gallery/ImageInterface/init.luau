@@ -51,6 +51,9 @@ end
 local function ImageInterface(props: Props)
 	local theme = StudioComponents.useTheme()
 
+	local leftRef = React.useRef(nil :: GuiObject?)
+	local leftAbsSize = Hooks.useRefProperty(leftRef, "AbsoluteSize", Vector2.zero)
+
 	local minMaxIcon = if props.IsExpanded then MINIMIZE_ICON else MAXIMIZE_ICON
 	local splitUDim = if props.IsExpanded then SPLIT_UDIM else UDim.new(0, 0)
 
@@ -90,6 +93,7 @@ local function ImageInterface(props: Props)
 			AnchorPoint = Vector2.new(0, 0),
 			Position = UDim2.fromOffset(0, 0),
 			Size = UDim2.new(splitUDim.Scale, splitUDim.Offset, 1, 0),
+			ref = leftRef,
 		}, {
 			SizeConstraint = React.createElement("UISizeConstraint", {
 				MaxSize = Vector2.new(200, math.huge),
@@ -147,7 +151,7 @@ local function ImageInterface(props: Props)
 		Right = React.createElement("Frame", {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
-			Size = UDim2.new(1 - splitUDim.Scale, -splitUDim.Offset, 1, 0),
+			Size = UDim2.new(1, -leftAbsSize.X, 1, 0),
 			BackgroundTransparency = 0,
 			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),

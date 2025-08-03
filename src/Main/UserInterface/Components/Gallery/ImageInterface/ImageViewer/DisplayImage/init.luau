@@ -187,9 +187,7 @@ local function DisplayImage(props: Props)
 		}),
 
 		UnattachedDimensions = not bottomLabelTextFits and React.createElement("TextLabel", {
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.new(1, -12, 1, -8),
+			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 			Text = dimensionsText,
 			TextSize = DIMENSIONS_FONT_SIZE,
@@ -201,6 +199,11 @@ local function DisplayImage(props: Props)
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			FontFace = DIMENSIONS_FONT,
 			ZIndex = -1,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 18),
+				PaddingBottom = UDim.new(0, 3),
+			}),
 		}),
 	})
 end
