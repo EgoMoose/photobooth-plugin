@@ -252,9 +252,9 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 	local function GalleryApp(): React.ReactNode
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
 		local isCapturing = Hooks.usePhotoFlag("isCapturing")
+		local configuration = Hooks.usePhotoConfiguration()
 
 		local backgroundType, setBackgroundType = React.useState("Checkerboard")
-		local isExpanded, setIsExpanded = React.useState(true)
 
 		React.useEffect(function()
 			local buttonConnection = openButton.Click:Connect(function()
@@ -276,8 +276,12 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 		-- stylua: ignore
 		return isEnabled and React.createElement(Gallery, {
-			IsExpanded = isExpanded,
-			SetIsExpanded = setIsExpanded,
+			IsExpanded = configuration.GalleryListExpanded,
+			SetIsExpanded = function()
+				local config = table.clone(Photo.Configuration.get())
+				config.GalleryListExpanded = not config.GalleryListExpanded
+				Photo.Configuration.set(config)
+			end,
 
 			BackgroundType = backgroundType,
 			SetBackgroundType = setBackgroundType,

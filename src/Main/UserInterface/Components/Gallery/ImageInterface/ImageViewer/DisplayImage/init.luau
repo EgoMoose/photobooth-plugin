@@ -80,6 +80,7 @@ local function DisplayImage(props: Props)
 
 		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+		BorderSizePixel = 0,
 	}, {
 		Padded = React.createElement("Frame", {
 			BackgroundTransparency = 1,

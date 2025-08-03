@@ -91,21 +91,33 @@ local function ImageInterface(props: Props)
 			Position = UDim2.fromOffset(0, 0),
 			Size = UDim2.new(splitUDim.Scale, splitUDim.Offset, 1, 0),
 		}, {
-			MinMaxButton = React.createElement(LucideButton, {
-				AnchorPoint = Vector2.new(0, 0),
-				Position = UDim2.new(1, 4, 0, 4),
+			SizeConstraint = React.createElement("UISizeConstraint", {
+				MaxSize = Vector2.new(200, math.huge),
+			}),
+			MinMaxButton = React.createElement("Frame", {
+				AnchorPoint = Vector2.new(0, 1),
+				Position = UDim2.new(1, 0, 1, 0),
 				Size = UDim2.fromOffset(minMaxIcon.ImageRectSize.X, minMaxIcon.ImageRectSize.Y),
+				BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+				BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+				BackgroundTransparency = 1,
+			}, {
+				Icon = React.createElement(LucideButton, {
+					AnchorPoint = Vector2.new(0, 0),
+					Position = UDim2.fromScale(0, 0),
+					Size = UDim2.fromScale(1, 1),
 
-				Icon = minMaxIcon,
-				GetColor = function(modifier)
-					return getImageButtonColor(theme, modifier)
-				end,
+					Icon = minMaxIcon,
+					GetColor = function(modifier)
+						return getImageButtonColor(theme, modifier)
+					end,
 
-				OnActivated = function()
-					props.SetIsExpanded(not props.IsExpanded)
-				end,
+					OnActivated = function()
+						props.SetIsExpanded(not props.IsExpanded)
+					end,
 
-				Disabled = props.Disabled,
+					Disabled = props.Disabled,
+				}),
 			}),
 
 			ImageList = React.createElement(ToggleScrollList, {
@@ -123,7 +135,7 @@ local function ImageInterface(props: Props)
 				UploadExclusions = props.UploadExclusions,
 				SetUploadExclusions = props.SetUploadExclusions,
 
-				TitleHeight = 24,
+				TitleHeight = 28,
 				ElementHeight = 24,
 
 				EditableImageInfos = props.EditableImageInfos,
@@ -139,6 +151,7 @@ local function ImageInterface(props: Props)
 			BackgroundTransparency = 0,
 			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+			BorderSizePixel = 0,
 			ZIndex = -1,
 		}, {
 			ImageViewer = React.createElement(ImageViewer, {

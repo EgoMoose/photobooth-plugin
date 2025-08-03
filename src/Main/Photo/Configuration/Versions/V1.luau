@@ -13,6 +13,7 @@ export type Configuration = {
 	ScaleOS: Vector2,
 	AlphaBleedingEnabled: boolean,
 	BindingsEnabled: boolean,
+	GalleryListExpanded: boolean,
 
 	-- Viewport
 	IsFullscreen: boolean,
@@ -26,6 +27,7 @@ export type Serialized = {
 	-- General
 	AlphaBleedingEnabled: boolean,
 	BindingsEnabled: boolean,
+	GalleryListExpanded: boolean,
 
 	-- Viewport
 	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
@@ -44,6 +46,7 @@ function ConfigurationFormatV1.default(): Configuration
 		ScaleOS = Vector2.new(1, 1),
 		AlphaBleedingEnabled = true,
 		BindingsEnabled = false,
+		GalleryListExpanded = false,
 
 		-- Viewport
 		IsFullscreen = false,
@@ -65,6 +68,7 @@ function ConfigurationFormatV1.serialize(configuration: Configuration): Serializ
 		-- General
 		AlphaBleedingEnabled = configuration.AlphaBleedingEnabled,
 		BindingsEnabled = configuration.BindingsEnabled,
+		GalleryListExpanded = configuration.GalleryListExpanded,
 
 		-- Viewport
 		ViewportCaptureType = configuration.ViewportCaptureType,
@@ -79,6 +83,7 @@ function ConfigurationFormatV1.deserialize(serialized: Serialized): Configuratio
 		-- General
 		AlphaBleedingEnabled = serialized.AlphaBleedingEnabled,
 		BindingsEnabled = serialized.BindingsEnabled,
+		GalleryListExpanded = serialized.GalleryListExpanded,
 
 		-- Viewport
 		ViewportCaptureType = serialized.ViewportCaptureType,

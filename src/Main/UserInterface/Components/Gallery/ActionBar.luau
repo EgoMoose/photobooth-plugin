@@ -59,11 +59,11 @@ local function ActionBar(props: Props)
 			PaddingBottom = UDim.new(0, 4),
 		}),
 
-		ImageIndexer = React.createElement("Frame", {
+		ImageIndexer = props.SelectedCount > 0 and React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.fromScale(0, 0.5),
-			Size = UDim2.fromOffset(16 * 4, 16),
+			Size = UDim2.fromOffset(16 * 6, 16),
 		}, {
 			LeftButton = React.createElement(LucideButton, {
 				AnchorPoint = Vector2.new(0, 0.5),
