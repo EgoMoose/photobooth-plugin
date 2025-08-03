@@ -44,12 +44,8 @@ local function UploadWindow(props: Props)
 	local uploadSuccessCount, setUploadSuccessCount = React.useState(0)
 
 	local uploadPercentGoal, setUploadPercentGoal = React.useBinding(0)
-	local uploadPercent, setUploadPercent = React.useState(uploadPercentGoal:getValue())
-	local uploadPercentBinding = Hooks.useSpring(uploadPercentGoal, {
-		onUpdate = function(value: number)
-			setUploadPercent(value)
-		end,
-	})
+	local uploadPercentBinding = Hooks.useSpring(uploadPercentGoal)
+	local uploadPercent = Hooks.useBindingValue(uploadPercentBinding)
 
 	React.useEffect(function()
 		return function()

@@ -4,7 +4,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
 local Hooks = require(uiRoot.Hooks)
 
 local isDraggingContext = React.createContext(false)
@@ -95,10 +94,13 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 end
 
 return function(props: Props)
-	local containerSize, setContainerSize = React.useState(Vector2.zero)
+	local containerRef = React.useRef(nil :: GuiObject?)
+	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
 
-	return React.createElement(ContainerSize, {
-		SetContainerSize = setContainerSize,
+	return React.createElement("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ref = containerRef,
 	}, {
 		FreeDrag = React.createElement(FreeDrag, {
 			SetIsDragging = props.SetIsDragging,

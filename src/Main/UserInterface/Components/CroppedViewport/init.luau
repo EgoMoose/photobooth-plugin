@@ -8,8 +8,6 @@ local Sift = require(pluginRoot.Packages.Sift)
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Constants = require(pluginRoot.Constants)
 
-local ContainerSize = require(script.Parent.Shared.ContainerSize)
-
 local ActionBar = require(script.ActionBar)
 local Grabbers = require(script.Grabbers)
 local Blinder = require(script.Blinder)
@@ -246,9 +244,13 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 end
 
 return function(props: Props)
-	local containerSize, setContainerSize = React.useState(Vector2.zero)
-	return React.createElement(ContainerSize, {
-		SetContainerSize = setContainerSize,
+	local containerRef = React.useRef(nil :: GuiObject?)
+	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
+
+	return React.createElement("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ref = containerRef,
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportSize = containerSize,

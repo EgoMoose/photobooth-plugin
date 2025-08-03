@@ -1,29 +1,47 @@
 --!strict
 
-local useEditableImageInfos = require(script.useEditableImageInfos)
+-- Generic
+local useConstant = require(script.Generic.useConstant)
+local useMouseDrag = require(script.Generic.useMouseDrag)
+local useSelection = require(script.Generic.useSelection)
+local useRefProperty = require(script.Generic.useRefProperty)
+local useBindingValue = require(script.Generic.useBindingValue)
+
+-- Animation
+local useMotion = require(script.Animation.useMotion)
+local useSpring = require(script.Animation.useSpring)
+
+-- Plugin
+local usePlugin = require(script.Plugin.usePlugin)
+local usePluginMenu = require(script.Plugin.usePluginMenu)
+local useIsLocalPlugin = require(script.Plugin.useIsLocalPlugin)
+local useHasCreateAssetPermission = require(script.Plugin.useHasCreateAssetPermission)
+
+-- Photobooth specific
+local usePhotoFlag = require(script.Photobooth.usePhotoFlag)
+local usePhotoConfiguration = require(script.Photobooth.usePhotoConfiguration)
+local useEditableImageInfos = require(script.Photobooth.useEditableImageInfos)
 
 export type EditableImageInfo = useEditableImageInfos.EditableImageInfo
 
+-- Exported
+
 return {
-	useConstant = require(script.useConstant),
-	useRefProperty = require(script.useRefProperty),
+	useConstant = useConstant,
+	useMouseDrag = useMouseDrag,
+	useSelection = useSelection,
+	useRefProperty = useRefProperty,
+	useBindingValue = useBindingValue,
 
-	useMouseDrag = require(script.useMouseDrag),
-	useSelection = require(script.useSelection),
-	useEditableImage = require(script.useEditableImage),
-	useSelectedEditableImage = require(script.useSelectedEditableImage),
+	useMotion = useMotion,
+	useSpring = useSpring,
 
+	usePlugin = usePlugin,
+	usePluginMenu = usePluginMenu,
+	useIsLocalPlugin = useIsLocalPlugin,
+	useHasCreateAssetPermission = useHasCreateAssetPermission,
+
+	usePhotoFlag = usePhotoFlag,
+	usePhotoConfiguration = usePhotoConfiguration,
 	useEditableImageInfos = useEditableImageInfos,
-
-	usePhotoFlag = require(script.usePhotoFlag),
-	usePhotoConfiguration = require(script.usePhotoConfiguration),
-
-	usePlugin = require(script.usePlugin),
-	useIsLocalPlugin = require(script.useIsLocalPlugin),
-	useHasCreateAssetPermission = require(script.useHasCreateAssetPermission),
-
-	usePluginMenu = require(script.usePluginMenu),
-
-	useMotion = require(script.useMotion),
-	useSpring = require(script.useSpring),
 }
