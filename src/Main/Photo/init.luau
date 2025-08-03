@@ -1,6 +1,8 @@
 --!strict
 
 local CoreGui = game:GetService("CoreGui") :: CoreGui
+local AssetService = game:GetService("AssetService") :: AssetService
+local StudioService = game:GetService("StudioService") :: StudioService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
@@ -171,6 +173,32 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 
 		table.insert(results, meshPart)
 	end
+	return results
+end
+
+function Photo.importFiles(parent: Instance?)
+	local results = {}
+
+	local files = (StudioService:PromptImportFiles({ "png", "jpeg" }) :: any) :: { File }
+	for _, file in files do
+		local content = Content.fromUri(file:GetTemporaryId())
+		local editImage = AssetService:CreateEditableImageAsync(content)
+
+		local meshPart = Instance.new("MeshPart")
+		meshPart.Locked = true
+		meshPart.Archivable = false
+		meshPart.Anchored = true
+		meshPart.CanCollide = false
+		meshPart.CanTouch = false
+		meshPart.Transparency = 0 -- cannot be transparent
+		meshPart.Name = file.Name:match("(.+)%.[^.]*$") or file.Name
+		meshPart.Size = Vector3.new(1, 1, 1)
+		meshPart.TextureContent = Content.fromObject(editImage)
+		meshPart.Parent = parent
+
+		table.insert(results, meshPart)
+	end
+
 	return results
 end
 

@@ -8,6 +8,6 @@ style = "nested"
 strip_extensions = true
 
 [inputs.assets]
-path = "icons/asphalt/**/*"
+path = "assets/icons/asphalt/**/*"
 output_path = "src/Main/UserInterface/Icons"
 bleed = true

@@ -401,39 +401,4 @@ function UserInterface.mountServePng(plugin: Plugin, toolbar: PluginToolbar)
 	end)
 end
 
-function UserInterface.mountImportPng(plugin: Plugin, toolbar: PluginToolbar)
-	-- stylua: ignore
-	local importButton = toolbar:CreateButton(
-		"egomoose_photobooth_import_button",
-		"Import Png",
-		"", "Import"
-	)
-
-	local function onThemeChanged()
-		importButton.Icon = getIcon("import-plugin-button")
-	end
-
-	onThemeChanged()
-	settings().Studio.ThemeChanged:Connect(onThemeChanged)
-
-	local clickConnection = importButton.Click:Connect(function()
-		importButton:SetActive(false)
-
-		-- only png is supported by Roblox currently
-		local files = (StudioService:PromptImportFiles({ "png" }) :: any) :: { File }
-		for _, file in files do
-			local content = Content.fromUri(file:GetTemporaryId())
-			local editImage = AssetService:CreateEditableImageAsync(content)
-			local img = Image.fromEditableImage(editImage)
-
-			local selection = Photo.export({ img }, StarterGui)
-			SelectionService:Set(selection :: any)
-		end
-	end)
-
-	plugin.Unloading:Connect(function()
-		clickConnection:Disconnect()
-	end)
-end
-
 return UserInterface
