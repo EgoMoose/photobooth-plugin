@@ -310,7 +310,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 				end,
 				OnUploadComplete = function(completed)
 					local module = Instance.new("ModuleScript")
-					module.Name = `Photobooth Upload - {DateTime.now():ToIsoDate()}`
+					module.Name = `{DateTime.now():ToIsoDate()} - Photobooth Upload`
 					ScriptEditorService:UpdateSourceAsync(module, function()
 						local output = "return {\n"
 						for _, entry in completed do
@@ -321,6 +321,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 					module.Parent = StarterGui
 
 					ScriptEditorService:OpenScriptDocumentAsync(module)
+					SelectionService:Set({ module })
 				end,
 
 				OnImport = function()

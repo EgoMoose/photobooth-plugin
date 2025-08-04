@@ -13,7 +13,7 @@ local Hooks = require(uiRoot.Hooks)
 local UploadLineItem = require(script.UploadLineItem)
 
 type Output = { { Name: string, AssetId: number } }
-type UploadStatus = "Waiting" | "InProgress" | "Complete" | "Fail" | "Cancel"
+type UploadStatus = "Waiting" | "Queued" | "InProgress" | "Complete" | "Fail" | "Cancel"
 
 export type Props = {
 	AnchorPoint: Vector2,
@@ -32,9 +32,11 @@ export type Props = {
 }
 
 local STATUS_TEXT_MAP = {
+	["Queued"] = nil,
 	["InProgress"] = nil,
-	["Waiting"] = "Waiting",
 	["Complete"] = nil,
+
+	["Waiting"] = "Waiting",
 	["Fail"] = "Failed",
 	["Cancel"] = "Canceled",
 }
@@ -76,14 +78,14 @@ local function UploadWindow(props: Props)
 			EditableImage = info.EditableImage,
 
 			AssetId = assetIdRef.current[i],
-			Progress = if status == "Complete" then 1 else 0,
+			Progress = if status == "Complete" then 1 elseif status == "InProgress" then 0.05 else 0,
 			StatusText = STATUS_TEXT_MAP[status],
 			OnCancel = function()
 				cancelSignal:Fire(i)
 			end,
 
 			LayoutOrder = i,
-			Disabled = not (status == "InProgress" or status == "Complete"),
+			Disabled = not (status == "Queued" or status == "InProgress" or status == "Complete"),
 		})
 	end
 
@@ -94,6 +96,10 @@ local function UploadWindow(props: Props)
 		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
+		UISizeConstraint = React.createElement("UISizeConstraint", {
+			MinSize = Vector2.new(0, 0),
+			MaxSize = Vector2.new(350, 400),
+		}),
 		Padding = React.createElement("UIPadding", {
 			PaddingLeft = UDim.new(0, 4),
 			PaddingRight = UDim.new(0, 4),
@@ -205,14 +211,18 @@ local function UploadWindow(props: Props)
 
 								local statuses = uploadStatusesBinding:getValue()
 								for i, _info in props.UploadInfos do
-									statuses[i] = "InProgress"
+									statuses[i] = "Queued"
 								end
 								setUploadStatuses(table.clone(statuses))
 
 								for i, info in props.UploadInfos do
-									if uploadStatusesBinding:getValue()[i] ~= "InProgress" then
+									if uploadStatusesBinding:getValue()[i] ~= "Queued" then
 										continue
 									end
+
+									statuses = uploadStatusesBinding:getValue()
+									statuses[i] = "InProgress"
+									setUploadStatuses(table.clone(statuses))
 
 									local assetId: number?
 									uploadThreads[i] = cleanupTrove:Add(task.spawn(function()
@@ -270,9 +280,9 @@ local function UploadWindow(props: Props)
 				}),
 			}),
 
-			Dropdown = React.createElement("Frame", {
+			Creator = React.createElement("Frame", {
 				BackgroundTransparency = 1,
-				Size = UDim2.new(0, 44 + 4 + 120, 1, 0),
+				Size = UDim2.new(1, -152, 1, 0),
 				Position = UDim2.fromOffset(4, 0),
 			}, {
 				Layout = React.createElement("UIListLayout", {
@@ -292,14 +302,22 @@ local function UploadWindow(props: Props)
 					LayoutOrder = 1,
 				}),
 
-				Dropdown = React.createElement(StudioComponents.Dropdown, {
-					Size = UDim2.new(0, 120, 0, StudioComponents.Constants.DefaultDropdownHeight),
-					Items = { "Me", "Group1", "Group2", "Group3" },
-					SelectedItem = creator,
-					OnItemSelected = function(item)
-						setCreator(item :: string)
-					end,
+				Container = React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, -48, 0, StudioComponents.Constants.DefaultDropdownHeight),
 					LayoutOrder = 2,
+				}, {
+					UISizeConstraint = React.createElement("UISizeConstraint", {
+						MaxSize = Vector2.new(70, math.huge),
+					}),
+					Dropdown = React.createElement(StudioComponents.Dropdown, {
+						Size = UDim2.fromScale(1, 1),
+						Items = { "Me", "Group1", "Group2", "Group3" },
+						SelectedItem = creator,
+						OnItemSelected = function(item)
+							setCreator(item :: string)
+						end,
+					}),
 				}),
 			}),
 		}),
