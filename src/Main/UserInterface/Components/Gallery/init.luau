@@ -133,7 +133,7 @@ local function Gallery(props: Props)
 			OnUpload = function()
 				local filteredInfos = {}
 				for _, info in editImageInfos do
-					if not uploadExclusions[info.EditableImage] then
+					if not uploadExclusions[info.Instance] then
 						table.insert(filteredInfos, info)
 					end
 				end

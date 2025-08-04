@@ -7,11 +7,8 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
-local Hooks = require(uiRoot.Hooks)
 
-local UPLOAD_ICON = assert(Lucide.GetAsset("upload", 16))
 local IMPORT_ICON = assert(Lucide.GetAsset("image-up", 16))
-
 local RIGHT_ICON = assert(Lucide.GetAsset("chevron-right", 16))
 local LEFT_ICON = assert(Lucide.GetAsset("chevron-left", 16))
 
@@ -40,7 +37,6 @@ end
 
 local function ActionBar(props: Props)
 	local theme = StudioComponents.useTheme()
-	local uploadDisabled = not (not props.Disabled and props.SelectedCount > 0)
 
 	local function incrementIndex(step: number)
 		local newIndex = ((props.SelectedIndex + step - 1) % props.SelectedCount) + 1

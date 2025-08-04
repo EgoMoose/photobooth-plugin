@@ -12,6 +12,7 @@ local CLASS_TO_CONTENT_PROPERTY: { [string]: string } = {
 
 export type EditableImageInfo = {
 	Name: string,
+	Instance: Instance,
 	EditableImage: EditableImage,
 }
 
@@ -35,6 +36,7 @@ local function getEditableImageInfos(instances: { Instance })
 				if editImage then
 					table.insert(editableImagesInfo, {
 						Name = instance.Name,
+						Instance = instance,
 						EditableImage = editImage,
 					})
 

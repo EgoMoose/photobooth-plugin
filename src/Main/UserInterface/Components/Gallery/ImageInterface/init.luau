@@ -30,8 +30,8 @@ export type Props = {
 	SelectedIndex: number,
 	SetSelectedIndex: (number) -> (),
 
-	UploadExclusions: { [EditableImage]: boolean },
-	SetUploadExclusions: ({ [EditableImage]: boolean }) -> (),
+	UploadExclusions: { [Instance]: boolean },
+	SetUploadExclusions: ({ [Instance]: boolean }) -> (),
 
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
@@ -61,25 +61,30 @@ local function ImageInterface(props: Props)
 	local splitUDim = if props.IsExpanded then SPLIT_UDIM else UDim.new(0, 0)
 
 	local selectedInfo = props.EditableImageInfos[props.SelectedIndex]
-	local prevSelectedEditImageRef = React.useRef(if selectedInfo then selectedInfo.EditableImage else nil)
+	local prevSelectedInstanceRef = React.useRef(if selectedInfo then selectedInfo.Instance else nil)
+
+	React.useEffect(function()
+		local info = props.EditableImageInfos[props.SelectedIndex]
+		prevSelectedInstanceRef.current = if info then info.Instance else nil
+	end, { props.SelectedIndex })
 
 	React.useEffect(function()
 		local index = 1
 		local exclusions = {}
-		local prevSelectedEditImage = prevSelectedEditImageRef.current
+		local prevSelectedInstance = prevSelectedInstanceRef.current
 		for i = #props.EditableImageInfos, 1, -1 do
 			local info = props.EditableImageInfos[i]
-			if prevSelectedEditImage and info.EditableImage == prevSelectedEditImage then
+			if prevSelectedInstance and info.Instance == prevSelectedInstance then
 				index = i
 			end
 
-			if props.UploadExclusions[info.EditableImage] then
-				exclusions[info.EditableImage] = true
+			if props.UploadExclusions[info.Instance] then
+				exclusions[info.Instance] = true
 			end
 		end
 
 		local info = props.EditableImageInfos[index]
-		prevSelectedEditImageRef.current = if info then info.EditableImage else nil
+		prevSelectedInstanceRef.current = if info then info.Instance else nil
 
 		props.SetSelectedIndex(index)
 		props.SetUploadExclusions(exclusions)
@@ -140,7 +145,7 @@ local function ImageInterface(props: Props)
 				SelectedIndex = props.SelectedIndex,
 				SetSelectedIndex = function(i)
 					local info = props.EditableImageInfos[i]
-					prevSelectedEditImageRef.current = if info then info.EditableImage else nil
+					prevSelectedInstanceRef.current = if info then info.Instance else nil
 					props.SetSelectedIndex(i)
 				end,
 

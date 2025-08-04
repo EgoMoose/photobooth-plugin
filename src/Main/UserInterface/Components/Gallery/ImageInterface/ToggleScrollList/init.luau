@@ -18,8 +18,8 @@ export type Props = {
 	SelectedIndex: number,
 	SetSelectedIndex: (number) -> (),
 
-	UploadExclusions: { [EditableImage]: boolean },
-	SetUploadExclusions: ({ [EditableImage]: boolean }) -> (),
+	UploadExclusions: { [Instance]: boolean },
+	SetUploadExclusions: ({ [Instance]: boolean }) -> (),
 
 	TitleHeight: number,
 	ElementHeight: number,
@@ -36,6 +36,7 @@ local function ToggleScrollList(props: Props)
 	local theme = StudioComponents.useTheme()
 	local hasCreateAssetPermission = true --Hooks.useHasCreateAssetPermission()
 
+	local nSelected = #props.EditableImageInfos
 	local uploadHeight = if hasCreateAssetPermission then 36 else 0
 
 	local lines: { [string]: React.Node } = {}
@@ -67,9 +68,9 @@ local function ToggleScrollList(props: Props)
 				Position = UDim2.fromScale(0, 0.5),
 				Size = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight, 1, 0),
 
-				Value = not props.UploadExclusions[info.EditableImage],
+				Value = not props.UploadExclusions[info.Instance],
 				OnChanged = function()
-					props.UploadExclusions[info.EditableImage] = not props.UploadExclusions[info.EditableImage]
+					props.UploadExclusions[info.Instance] = not props.UploadExclusions[info.Instance]
 					props.SetUploadExclusions(table.clone(props.UploadExclusions))
 				end,
 
@@ -93,14 +94,15 @@ local function ToggleScrollList(props: Props)
 	local exclusionCount = React.useMemo(function()
 		local count = 0
 		for _, info in props.EditableImageInfos do
-			if props.UploadExclusions[info.EditableImage] then
+			if props.UploadExclusions[info.Instance] then
 				count = count + 1
 			end
 		end
 		return count
 	end, { props.UploadExclusions })
 
-	local inclusionCount = #props.EditableImageInfos - exclusionCount
+	local inclusionCount = nSelected - exclusionCount
+	local uploadDisabled = props.Disabled or inclusionCount == 0
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -139,7 +141,7 @@ local function ToggleScrollList(props: Props)
 						if inclusionCount > 0 then
 							local exclusions = {}
 							for _, info in props.EditableImageInfos do
-								exclusions[info.EditableImage] = true
+								exclusions[info.Instance] = true
 							end
 							props.SetUploadExclusions(exclusions)
 						else
@@ -198,14 +200,14 @@ local function ToggleScrollList(props: Props)
 				Size = UDim2.new(1, 0, 0, 28),
 				TextXAlignment = Enum.TextXAlignment.Center,
 				Text = "Upload",
-				Disabled = false,
+				Disabled = uploadDisabled,
 				OnActivated = props.OnUpload,
 
 				Icon = {
 					Image = UPLOAD_ICON.Url,
 					RectSize = UPLOAD_ICON.ImageRectSize,
 					RectOffset = UPLOAD_ICON.ImageRectOffset,
-					Transparency = if props.Disabled and theme.Name == "Dark" then 0.7 else nil,
+					Transparency = if uploadDisabled and theme.Name == "Dark" then 0.7 else nil,
 					Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
 				},
 			}),
