@@ -12,6 +12,9 @@ local Hooks = require(uiRoot.Hooks)
 
 local UploadLineItem = require(script.UploadLineItem)
 
+local MAX_RETRIES = 1
+local SEQUENTIAL_UPLOAD = true
+
 type Output = { { Name: string, AssetId: number } }
 type UploadStatus = "Waiting" | "Queued" | "InProgress" | "Complete" | "Fail" | "Cancel"
 
@@ -29,16 +32,6 @@ export type Props = {
 	OnCancel: () -> (),
 
 	Disabled: boolean,
-}
-
-local STATUS_TEXT_MAP = {
-	["Queued"] = nil,
-	["InProgress"] = nil,
-	["Complete"] = nil,
-
-	["Waiting"] = "Waiting",
-	["Fail"] = "Failed",
-	["Cancel"] = "Canceled",
 }
 
 local function UploadWindow(props: Props)
@@ -79,7 +72,12 @@ local function UploadWindow(props: Props)
 
 			AssetId = assetIdRef.current[i],
 			Progress = if status == "Complete" then 1 elseif status == "InProgress" then 0.05 else 0,
-			StatusText = STATUS_TEXT_MAP[status],
+			StatusText = if status == "Waiting"
+				then "Waiting"
+				elseif status == "Fail" then "Failed"
+				elseif status == "Cancel" then "Canceled"
+				else nil,
+
 			OnCancel = function()
 				cancelSignal:Fire(i)
 			end,
@@ -215,18 +213,26 @@ local function UploadWindow(props: Props)
 								end
 								setUploadStatuses(table.clone(statuses))
 
-								for i, info in props.UploadInfos do
-									if uploadStatusesBinding:getValue()[i] ~= "Queued" then
-										continue
-									end
-
+								local function uploadYielding(i: number, info: Hooks.EditableImageInfo)
 									statuses = uploadStatusesBinding:getValue()
 									statuses[i] = "InProgress"
 									setUploadStatuses(table.clone(statuses))
 
 									local assetId: number?
 									uploadThreads[i] = cleanupTrove:Add(task.spawn(function()
-										assetId = props.TryUpload(i, info.Name, info.EditableImage)
+										for _ = 1, MAX_RETRIES do
+											local success, err = pcall(function()
+												assetId = props.TryUpload(i, info.Name, info.EditableImage)
+											end)
+
+											if not success and err then
+												warn(err)
+											end
+
+											if assetId then
+												break
+											end
+										end
 										uploadCompleteSignal:Fire(i, false)
 									end))
 
@@ -260,6 +266,30 @@ local function UploadWindow(props: Props)
 									end
 								end
 
+								local count = 0
+								local thread = coroutine.running()
+								for i, info in props.UploadInfos do
+									if uploadStatusesBinding:getValue()[i] ~= "Queued" then
+										continue
+									end
+
+									if SEQUENTIAL_UPLOAD then
+										uploadYielding(i, info)
+										count = count + 1
+									else
+										cleanupTrove:Add(task.spawn(function()
+											uploadYielding(i, info)
+											count = count + 1
+											if count == #props.UploadInfos then
+												task.spawn(thread)
+											end
+										end))
+									end
+								end
+
+								if count < #props.UploadInfos then
+									coroutine.yield()
+								end
 								cleanupTrove:Destroy()
 
 								setIsUploadState("Complete")
