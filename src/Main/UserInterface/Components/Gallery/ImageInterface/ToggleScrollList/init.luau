@@ -158,7 +158,7 @@ local function ToggleScrollList(props: Props)
 					TextYAlignment = Enum.TextYAlignment.Center,
 					TextTruncate = Enum.TextTruncate.AtEnd,
 					TextColorStyle = Enum.StudioStyleGuideColor.MainText,
-					Text = `{inclusionCount} Selected`,
+					Text = `{inclusionCount} selected`,
 				}),
 			}),
 		}),
