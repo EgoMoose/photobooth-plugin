@@ -1,11 +1,14 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
 local VerticalScroll = require(script.VerticalScroll)
+
+local UPLOAD_ICON = assert(Lucide.GetAsset("upload", 16))
 
 export type Props = {
 	AnchorPoint: Vector2,
@@ -21,13 +24,19 @@ export type Props = {
 	TitleHeight: number,
 	ElementHeight: number,
 
+	OnUpload: () -> (),
+
 	EditableImageInfos: { Hooks.EditableImageInfo },
 
+	SinkInput: boolean,
 	Disabled: boolean,
 }
 
 local function ToggleScrollList(props: Props)
 	local theme = StudioComponents.useTheme()
+	local hasCreateAssetPermission = true --Hooks.useHasCreateAssetPermission()
+
+	local uploadHeight = if hasCreateAssetPermission then 36 else 0
 
 	local lines: { [string]: React.Node } = {}
 	for i, info in props.EditableImageInfos do
@@ -156,7 +165,12 @@ local function ToggleScrollList(props: Props)
 		Scroll = React.createElement(VerticalScroll, {
 			AnchorPoint = Vector2.zero,
 			Position = UDim2.fromOffset(0, props.TitleHeight),
-			Size = UDim2.new(1, 0, 1, -props.TitleHeight),
+			Size = UDim2.new(1, 0, 1, -props.TitleHeight - uploadHeight),
+
+			GradientColor = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+			GradientHeight = 8,
+
+			Disabled = props.Disabled or props.SinkInput,
 		}, {
 			Layout = React.createElement("UIListLayout", {
 				FillDirection = Enum.FillDirection.Vertical,
@@ -164,6 +178,38 @@ local function ToggleScrollList(props: Props)
 				Padding = UDim.new(0, 0),
 			}),
 		}, lines),
+
+		Upload = React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.fromScale(0, 1),
+			Size = UDim2.new(1, 0, 0, uploadHeight),
+			Visible = uploadHeight > 0,
+			ClipsDescendants = true,
+		}, {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 4),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 4),
+				PaddingBottom = UDim.new(0, 4),
+			}),
+			Button = React.createElement(StudioComponents.Button, {
+				LayoutOrder = -2,
+				Size = UDim2.new(1, 0, 0, 28),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Text = "Upload",
+				Disabled = false,
+				OnActivated = props.OnUpload,
+
+				Icon = {
+					Image = UPLOAD_ICON.Url,
+					RectSize = UPLOAD_ICON.ImageRectSize,
+					RectOffset = UPLOAD_ICON.ImageRectOffset,
+					Transparency = if props.Disabled and theme.Name == "Dark" then 0.7 else nil,
+					Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
+				},
+			}),
+		}),
 	})
 end
 

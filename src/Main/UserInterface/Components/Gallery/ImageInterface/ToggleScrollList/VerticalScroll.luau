@@ -11,6 +11,11 @@ export type Props = {
 	Position: UDim2,
 	Size: UDim2,
 
+	GradientHeight: number,
+	GradientColor: Color3,
+
+	Disabled: boolean,
+
 	children: React.ReactNode,
 }
 
@@ -29,17 +34,11 @@ local function VerticalScroll(props: Props)
 		Position = props.Position,
 		Size = props.Size,
 	}, {
-		UIStroke = React.createElement("UIStroke", {
-			Thickness = 1,
-			Transparency = 0,
-			Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-		}),
-
 		Clipped = React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
 			ClipsDescendants = true,
-			ZIndex = -1,
+			ZIndex = -2,
 		}, {
 			Content = React.createElement("Frame", {
 				Position = UDim2.fromOffset(0, -canvasPosition.Y),
@@ -50,12 +49,27 @@ local function VerticalScroll(props: Props)
 			}, props.children),
 		}),
 
+		Gradient = React.createElement("Frame", {
+			BorderSizePixel = 0,
+			BackgroundColor3 = props.GradientColor,
+			AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.fromScale(0, 1),
+			Size = UDim2.new(1, 0, 0, props.GradientHeight),
+			ZIndex = -1,
+		}, {
+			Gradient = React.createElement("UIGradient", {
+				Transparency = NumberSequence.new(0, 1),
+				Rotation = -90,
+			}),
+		}),
+
 		ScrollingFrame = React.createElement("ScrollingFrame", {
 			BorderSizePixel = 0,
 			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 1, 0),
 			CanvasSize = UDim2.fromOffset(0, contentSize.Y),
 
+			ScrollingEnabled = not props.Disabled,
 			ScrollBarThickness = 4,
 			ScrollingDirection = Enum.ScrollingDirection.Y,
 			ScrollBarImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.DimmedText),

@@ -36,6 +36,9 @@ export type Props = {
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
 
+	OnUpload: () -> (),
+
+	SinkInput: boolean,
 	Disabled: boolean,
 }
 
@@ -95,6 +98,11 @@ local function ImageInterface(props: Props)
 			Size = UDim2.new(splitUDim.Scale, splitUDim.Offset, 1, 0),
 			ref = leftRef,
 		}, {
+			UIStroke = React.createElement("UIStroke", {
+				Thickness = 1,
+				Transparency = 0,
+				Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+			}),
 			SizeConstraint = React.createElement("UISizeConstraint", {
 				MaxSize = Vector2.new(200, math.huge),
 			}),
@@ -144,6 +152,9 @@ local function ImageInterface(props: Props)
 
 				EditableImageInfos = props.EditableImageInfos,
 
+				OnUpload = props.OnUpload,
+
+				SinkInput = props.SinkInput,
 				Disabled = props.Disabled,
 			}),
 		}),

@@ -38,6 +38,10 @@ local function Widget(props: { Size: UDim2 })
 				print(completed)
 			end,
 
+			OnImport = function()
+				print("Import!")
+			end,
+
 			Disabled = false,
 		}),
 	})

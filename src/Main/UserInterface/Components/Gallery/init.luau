@@ -22,6 +22,8 @@ export type Props = {
 	TryUpload: (number, string, EditableImage) -> number?,
 	OnUploadComplete: ({ { Name: string, AssetId: number } }) -> (),
 
+	OnImport: () -> (),
+
 	Disabled: boolean,
 }
 
@@ -50,9 +52,9 @@ local function Gallery(props: Props)
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.7,
 			AutoButtonColor = false,
-			ZIndex = 3,
+			ZIndex = 4,
 		}, {
-			Loading = props.Disabled and React.createElement(StudioComponents.LoadingDots, {
+			Loading = React.createElement(StudioComponents.LoadingDots, {
 				Size = UDim2.fromScale(1, 1),
 			}),
 		}),
@@ -72,14 +74,14 @@ local function Gallery(props: Props)
 			},
 		}),
 
-		WindowOverlay = (uploadInfo or selectedTab == "Settings") and React.createElement("ImageButton", {
+		Overlay = (uploadInfo or selectedTab == "Settings") and React.createElement("ImageButton", {
 			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.7,
 			AutoButtonColor = false,
 			ZIndex = 3,
 		}, {
-			Upload = not not uploadInfo and React.createElement(UploadWindow, {
+			Upload = uploadInfo and React.createElement(UploadWindow, {
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromOffset(200, 86),
@@ -128,6 +130,18 @@ local function Gallery(props: Props)
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
 
+			OnUpload = function()
+				local filteredInfos = {}
+				for _, info in editImageInfos do
+					if not uploadExclusions[info.EditableImage] then
+						table.insert(filteredInfos, info)
+					end
+				end
+
+				setUploadInfo({ EditableImageInfos = filteredInfos })
+			end,
+
+			SinkInput = props.Disabled or selectedTab == "Settings" or not not uploadInfo,
 			Disabled = props.Disabled or selectedTab == "Settings",
 		}),
 
@@ -140,16 +154,7 @@ local function Gallery(props: Props)
 			SetSelectedIndex = setSelectedIndex,
 			SelectedCount = #editImageInfos,
 
-			OnUpload = function()
-				local filteredInfos = {}
-				for _, info in editImageInfos do
-					if not uploadExclusions[info.EditableImage] then
-						table.insert(filteredInfos, info)
-					end
-				end
-
-				setUploadInfo({ EditableImageInfos = filteredInfos })
-			end,
+			OnImport = props.OnImport,
 
 			Disabled = props.Disabled or selectedTab == "Settings",
 		}),

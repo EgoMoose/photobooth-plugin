@@ -7,8 +7,11 @@ local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
+local Hooks = require(uiRoot.Hooks)
 
 local UPLOAD_ICON = assert(Lucide.GetAsset("upload", 16))
+local IMPORT_ICON = assert(Lucide.GetAsset("image-up", 16))
+
 local RIGHT_ICON = assert(Lucide.GetAsset("chevron-right", 16))
 local LEFT_ICON = assert(Lucide.GetAsset("chevron-left", 16))
 
@@ -21,7 +24,7 @@ export type Props = {
 	SetSelectedIndex: (number) -> (),
 	SelectedCount: number,
 
-	OnUpload: () -> (),
+	OnImport: () -> (),
 
 	Disabled: boolean,
 }
@@ -37,7 +40,6 @@ end
 
 local function ActionBar(props: Props)
 	local theme = StudioComponents.useTheme()
-	local hasCreateAssetPermission = true --Hooks.useHasCreateAssetPermission()
 	local uploadDisabled = not (not props.Disabled and props.SelectedCount > 0)
 
 	local function incrementIndex(step: number)
@@ -114,25 +116,36 @@ local function ActionBar(props: Props)
 			}),
 		}),
 
-		Upload = hasCreateAssetPermission and React.createElement(StudioComponents.MainButton, {
-			LayoutOrder = -1,
-			Size = UDim2.new(0, 70, 1, 0),
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.fromScale(1, 0.5),
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Text = "Upload",
-			Disabled = uploadDisabled,
-			OnActivated = function()
-				props.OnUpload()
-			end,
+		Buttons = React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+		}, {
+			Layout = React.createElement("UIListLayout", {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				Padding = UDim.new(0, 4),
+			}),
 
-			Icon = {
-				Image = UPLOAD_ICON.Url,
-				RectSize = UPLOAD_ICON.ImageRectSize,
-				RectOffset = UPLOAD_ICON.ImageRectOffset,
-				Transparency = if uploadDisabled and theme.Name == "Dark" then 0.7 else nil,
-				Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
-			},
+			Import = React.createElement(StudioComponents.MainButton, {
+				LayoutOrder = -1,
+				Size = UDim2.new(0, 70, 1, 0),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Text = "Import",
+				Disabled = props.Disabled,
+				OnActivated = function()
+					props.OnImport()
+				end,
+
+				Icon = {
+					Image = IMPORT_ICON.Url,
+					RectSize = IMPORT_ICON.ImageRectSize,
+					RectOffset = IMPORT_ICON.ImageRectOffset,
+					Transparency = if props.Disabled and theme.Name == "Dark" then 0.7 else nil,
+					Size = Vector2.new(IMPORT_ICON.ImageRectSize.X, IMPORT_ICON.ImageRectSize.Y),
+				},
+			}),
 		}),
 	})
 end
