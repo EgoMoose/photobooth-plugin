@@ -124,7 +124,7 @@ local function ActionBar(props: Props)
 				Padding = UDim.new(0, 4),
 			}),
 
-			Import = React.createElement(StudioComponents.MainButton, {
+			Import = false and React.createElement(StudioComponents.MainButton, {
 				LayoutOrder = -1,
 				Size = UDim2.new(0, 70, 1, 0),
 				TextXAlignment = Enum.TextXAlignment.Center,
