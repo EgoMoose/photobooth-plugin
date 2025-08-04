@@ -34,7 +34,7 @@ local function DisplayNoImage(props: Props)
 			Size = UDim2.fromOffset(imageIcon.ImageRectSize.X, imageIcon.ImageRectSize.Y),
 			BackgroundTransparency = 1,
 			Image = imageIcon.Url,
-			ImageColor3 = if theme.Name == "Dark" then Color3.new(1, 1, 1) else Color3.new(0, 0, 0),
+			ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
 			ImageTransparency = 0.7,
 			ImageRectSize = imageIcon.ImageRectSize,
 			ImageRectOffset = imageIcon.ImageRectOffset,

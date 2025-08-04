@@ -102,7 +102,6 @@ local function ToggleScrollList(props: Props)
 	end, { props.UploadExclusions })
 
 	local inclusionCount = nSelected - exclusionCount
-	local uploadDisabled = props.Disabled or inclusionCount == 0
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -200,15 +199,15 @@ local function ToggleScrollList(props: Props)
 				Size = UDim2.new(1, 0, 0, 28),
 				TextXAlignment = Enum.TextXAlignment.Center,
 				Text = "Upload",
-				Disabled = uploadDisabled,
+				Disabled = props.Disabled or inclusionCount == 0,
 				OnActivated = props.OnUpload,
 
 				Icon = {
 					Image = UPLOAD_ICON.Url,
 					RectSize = UPLOAD_ICON.ImageRectSize,
 					RectOffset = UPLOAD_ICON.ImageRectOffset,
-					Transparency = if uploadDisabled and theme.Name == "Dark" then 0.7 else nil,
 					Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
+					UseThemeColor = true,
 				},
 			}),
 		}),
