@@ -29,10 +29,9 @@ local function Widget(props: { Size: UDim2 })
 			BackgroundType = backgroundType,
 			SetBackgroundType = setBackgroundType,
 
-			TryUpload = function(i, name)
-				print(i, name)
+			TryUpload = function(i)
 				task.wait(1)
-				return if i % 2 == 1 then 123 else nil
+				return i
 			end,
 			OnUploadComplete = function(completed)
 				print(completed)

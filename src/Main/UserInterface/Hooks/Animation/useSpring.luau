@@ -32,7 +32,7 @@ local function useSpring<T>(goal: React.Binding<T & Ripple.MotionGoal>, options:
 		end
 	end)
 
-	return binding, setPosition
+	return (binding :: any) :: React.Binding<T>, setPosition :: (T) -> ()
 end
 
 return useSpring

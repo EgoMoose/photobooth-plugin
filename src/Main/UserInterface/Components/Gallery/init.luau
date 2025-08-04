@@ -27,9 +27,9 @@ export type Props = {
 	Disabled: boolean,
 }
 
-local function useUploadInfoState()
-	local uploadInfo, setUploadInfo = React.useState(nil :: UploadWindow.UploadInfo?)
-	return uploadInfo :: UploadWindow.UploadInfo?, setUploadInfo :: (UploadWindow.UploadInfo?) -> ()
+local function useUploadInfos()
+	local uploadInfos, setUploadInfos = React.useState(nil :: { Hooks.EditableImageInfo }?)
+	return uploadInfos :: { Hooks.EditableImageInfo }?, setUploadInfos :: ({ Hooks.EditableImageInfo }?) -> ()
 end
 
 local function Gallery(props: Props)
@@ -39,7 +39,7 @@ local function Gallery(props: Props)
 	local editImageInfos = Hooks.useEditableImageInfos(selection)
 	local selectedIndex, setSelectedIndex = React.useState(1)
 	local uploadExclusions, setUploadExclusions = React.useState({})
-	local uploadInfo, setUploadInfo = useUploadInfoState()
+	local uploadInfos, setUploadInfos = useUploadInfos()
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -74,26 +74,26 @@ local function Gallery(props: Props)
 			},
 		}),
 
-		Overlay = (uploadInfo or selectedTab == "Settings") and React.createElement("ImageButton", {
+		Overlay = (uploadInfos or selectedTab == "Settings") and React.createElement("ImageButton", {
 			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BackgroundTransparency = 0.7,
 			AutoButtonColor = false,
 			ZIndex = 3,
 		}, {
-			Upload = uploadInfo and React.createElement(UploadWindow, {
+			Upload = uploadInfos and React.createElement(UploadWindow, {
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromOffset(200, 86),
+				Size = UDim2.new(1, -20, 1, -20),
 
-				UploadInfo = uploadInfo,
-				SetUploadInfo = setUploadInfo,
+				UploadInfos = uploadInfos,
+				SetUploadInfos = setUploadInfos,
 
 				TryUpload = props.TryUpload,
 				OnUploadComplete = props.OnUploadComplete,
 
 				OnCancel = function()
-					setUploadInfo(nil)
+					setUploadInfos(nil)
 				end,
 
 				Disabled = props.Disabled,
@@ -116,7 +116,7 @@ local function Gallery(props: Props)
 			Position = UDim2.fromOffset(0, 30),
 			Size = UDim2.new(1, 0, 1, -66),
 
-			EditableImageInfos = if uploadInfo then uploadInfo.EditableImageInfos else editImageInfos,
+			EditableImageInfos = editImageInfos,
 
 			IsExpanded = props.IsExpanded,
 			SetIsExpanded = props.SetIsExpanded,
@@ -138,10 +138,10 @@ local function Gallery(props: Props)
 					end
 				end
 
-				setUploadInfo({ EditableImageInfos = filteredInfos })
+				setUploadInfos(filteredInfos)
 			end,
 
-			SinkInput = props.Disabled or selectedTab == "Settings" or not not uploadInfo,
+			SinkInput = props.Disabled or selectedTab == "Settings" or not not uploadInfos,
 			Disabled = props.Disabled or selectedTab == "Settings",
 		}),
 

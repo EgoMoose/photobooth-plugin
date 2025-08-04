@@ -5,7 +5,7 @@ local useConstant = require(script.Generic.useConstant)
 local useMouseDrag = require(script.Generic.useMouseDrag)
 local useSelection = require(script.Generic.useSelection)
 local useRefProperty = require(script.Generic.useRefProperty)
-local useBindingValue = require(script.Generic.useBindingValue)
+local useBindingState = require(script.Generic.useBindingState)
 
 -- Animation
 local useMotion = require(script.Animation.useMotion)
@@ -31,7 +31,7 @@ return {
 	useMouseDrag = useMouseDrag,
 	useSelection = useSelection,
 	useRefProperty = useRefProperty,
-	useBindingValue = useBindingValue,
+	useBindingState = useBindingState,
 
 	useMotion = useMotion,
 	useSpring = useSpring,
