@@ -57,7 +57,7 @@ local function ActionBar(props: Props)
 			PaddingBottom = UDim.new(0, 4),
 		}),
 
-		ImageIndexer = props.SelectedCount > 0 and React.createElement("Frame", {
+		ImageIndexer = React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.fromScale(0, 0.5),
@@ -67,7 +67,7 @@ local function ActionBar(props: Props)
 				AnchorPoint = Vector2.new(0, 0.5),
 				Position = UDim2.new(0, 0, 0.5, 0),
 				Size = UDim2.fromOffset(LEFT_ICON.ImageRectSize.X, LEFT_ICON.ImageRectSize.Y),
-				Disabled = props.Disabled,
+				Disabled = props.Disabled or props.SelectedCount == 0,
 				Icon = LEFT_ICON,
 
 				GetColor = function(modifier)
@@ -85,7 +85,7 @@ local function ActionBar(props: Props)
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.new(1, -40, 1, 0),
 
-				Text = `{props.SelectedIndex} / {props.SelectedCount}`,
+				Text = `{math.min(props.SelectedIndex, props.SelectedCount)} / {props.SelectedCount}`,
 				TextColor3 = theme:GetColor(
 					Enum.StudioStyleGuideColor.ButtonText,
 					Enum.StudioStyleGuideModifier.Disabled
@@ -99,7 +99,7 @@ local function ActionBar(props: Props)
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.new(1, 0, 0.5, 0),
 				Size = UDim2.fromOffset(RIGHT_ICON.ImageRectSize.X, RIGHT_ICON.ImageRectSize.Y),
-				Disabled = props.Disabled,
+				Disabled = props.Disabled or props.SelectedCount == 0,
 				Icon = RIGHT_ICON,
 
 				GetColor = function(modifier)

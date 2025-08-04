@@ -111,30 +111,22 @@ local function ImageInterface(props: Props)
 			SizeConstraint = React.createElement("UISizeConstraint", {
 				MaxSize = Vector2.new(200, math.huge),
 			}),
-			MinMaxButton = React.createElement("Frame", {
+
+			MinMaxButton = React.createElement(LucideButton, {
 				AnchorPoint = Vector2.new(0, 1),
 				Position = UDim2.new(1, 0, 1, 0),
 				Size = UDim2.fromOffset(minMaxIcon.ImageRectSize.X, minMaxIcon.ImageRectSize.Y),
-				BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-				BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-				BackgroundTransparency = 1,
-			}, {
-				Icon = React.createElement(LucideButton, {
-					AnchorPoint = Vector2.new(0, 0),
-					Position = UDim2.fromScale(0, 0),
-					Size = UDim2.fromScale(1, 1),
 
-					Icon = minMaxIcon,
-					GetColor = function(modifier)
-						return getImageButtonColor(theme, modifier)
-					end,
+				Icon = minMaxIcon,
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
 
-					OnActivated = function()
-						props.SetIsExpanded(not props.IsExpanded)
-					end,
+				OnActivated = function()
+					props.SetIsExpanded(not props.IsExpanded)
+				end,
 
-					Disabled = props.Disabled,
-				}),
+				Disabled = props.Disabled,
 			}),
 
 			ImageList = React.createElement(ToggleScrollList, {
