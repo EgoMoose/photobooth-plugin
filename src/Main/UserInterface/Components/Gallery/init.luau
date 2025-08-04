@@ -64,7 +64,7 @@ local function Gallery(props: Props)
 			OnTabSelected = setSelectedTab,
 			Disabled = (props.Disabled or selectedTab == "Settings"),
 			Size = UDim2.new(1, 0, 0, 30),
-			ZIndex = if selectedTab == "Settings" then 2 else 1,
+			ZIndex = if selectedTab ~= "Viewer" then 2 else 1,
 		}, {
 			["Viewer"] = {
 				LayoutOrder = 1,
