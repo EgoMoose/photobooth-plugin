@@ -179,7 +179,7 @@ end
 function Photo.importFiles(parent: Instance?)
 	local results = {}
 
-	local files = (StudioService:PromptImportFiles({ "png", "jpeg" }) :: any) :: { File }
+	local files = (StudioService:PromptImportFiles({ "png" }) :: any) :: { File }
 	for _, file in files do
 		local content = Content.fromUri(file:GetTemporaryId())
 		local editImage = AssetService:CreateEditableImageAsync(content)
