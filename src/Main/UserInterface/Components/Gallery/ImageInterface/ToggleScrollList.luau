@@ -118,6 +118,13 @@ local function ToggleScrollList(props: Props)
 
 			ZIndex = 2,
 		}, {
+			BorderLine = React.createElement("Frame", {
+				BorderSizePixel = 0,
+				BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+				Position = UDim2.fromOffset(0, 1),
+				Size = UDim2.new(1, 0, 0, 1),
+				Visible = not (props.SinkInput or props.Disabled),
+			}),
 			Clipped = React.createElement("Frame", {
 				BackgroundTransparency = 1,
 				Size = UDim2.fromScale(1, 1),
