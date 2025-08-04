@@ -5,6 +5,8 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
+local VerticalScroll = require(script.VerticalScroll)
+
 export type Props = {
 	AnchorPoint: Vector2,
 	Position: UDim2,
@@ -92,6 +94,7 @@ local function ToggleScrollList(props: Props)
 	local inclusionCount = #props.EditableImageInfos - exclusionCount
 
 	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
 		AnchorPoint = props.AnchorPoint,
 		Position = props.Position,
 		Size = props.Size,
@@ -104,56 +107,62 @@ local function ToggleScrollList(props: Props)
 			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Light),
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 
-			ClipsDescendants = true,
+			ZIndex = 2,
 		}, {
-			Padding = React.createElement("UIPadding", {
-				PaddingLeft = UDim.new(0, 4),
-				PaddingRight = UDim.new(0, 4),
-				PaddingTop = UDim.new(0, 0),
-				PaddingBottom = UDim.new(0, 0),
-			}),
-			Checkbox = React.createElement(StudioComponents.Checkbox, {
-				AnchorPoint = Vector2.new(0, 0.5),
-				Position = UDim2.fromScale(0, 0.5),
+			Clipped = React.createElement("Frame", {
+				BackgroundTransparency = 1,
 				Size = UDim2.fromScale(1, 1),
+				ClipsDescendants = true,
+			}, {
+				Padding = React.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 4),
+					PaddingRight = UDim.new(0, 8),
+					PaddingTop = UDim.new(0, 0),
+					PaddingBottom = UDim.new(0, 0),
+				}),
+				Checkbox = React.createElement(StudioComponents.Checkbox, {
+					AnchorPoint = Vector2.new(0, 0.5),
+					Position = UDim2.fromScale(0, 0.5),
+					Size = UDim2.fromScale(1, 1),
 
-				Value = inclusionCount > 0,
-				OnChanged = function()
-					if inclusionCount > 0 then
-						local exclusions = {}
-						for _, info in props.EditableImageInfos do
-							exclusions[info.EditableImage] = true
+					Value = inclusionCount > 0,
+					OnChanged = function()
+						if inclusionCount > 0 then
+							local exclusions = {}
+							for _, info in props.EditableImageInfos do
+								exclusions[info.EditableImage] = true
+							end
+							props.SetUploadExclusions(exclusions)
+						else
+							props.SetUploadExclusions({})
 						end
-						props.SetUploadExclusions(exclusions)
-					else
-						props.SetUploadExclusions({})
-					end
-				end,
+					end,
 
-				Disabled = props.Disabled or (#props.EditableImageInfos == 0),
-			}),
-			Label = React.createElement(StudioComponents.Label, {
-				AnchorPoint = Vector2.new(0, 0.5),
-				Position = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight + 2, 0.5, 0),
-				Size = UDim2.new(1, -StudioComponents.Constants.DefaultToggleHeight, 1, 0),
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextYAlignment = Enum.TextYAlignment.Center,
-				TextTruncate = Enum.TextTruncate.AtEnd,
-				TextColorStyle = Enum.StudioStyleGuideColor.MainText,
-				Text = `{inclusionCount} Selected`,
+					Disabled = props.Disabled or (#props.EditableImageInfos == 0),
+				}),
+				Label = React.createElement(StudioComponents.Label, {
+					AnchorPoint = Vector2.new(0, 0.5),
+					Position = UDim2.new(0, StudioComponents.Constants.DefaultToggleHeight + 2, 0.5, 0),
+					Size = UDim2.new(1, -StudioComponents.Constants.DefaultToggleHeight, 1, 0),
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextYAlignment = Enum.TextYAlignment.Center,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					TextColorStyle = Enum.StudioStyleGuideColor.MainText,
+					Text = `{inclusionCount} Selected`,
+				}),
 			}),
 		}),
 
-		Scroll = React.createElement(StudioComponents.ScrollFrame, {
+		Scroll = React.createElement(VerticalScroll, {
+			AnchorPoint = Vector2.zero,
 			Position = UDim2.fromOffset(0, props.TitleHeight),
 			Size = UDim2.new(1, 0, 1, -props.TitleHeight),
-			ScrollingDirection = Enum.ScrollingDirection.Y,
-			Layout = {
-				ClassName = "UIListLayout",
-				Padding = UDim.new(0, 0),
+		}, {
+			Layout = React.createElement("UIListLayout", {
 				FillDirection = Enum.FillDirection.Vertical,
 				SortOrder = Enum.SortOrder.LayoutOrder,
-			},
+				Padding = UDim.new(0, 0),
+			}),
 		}, lines),
 	})
 end

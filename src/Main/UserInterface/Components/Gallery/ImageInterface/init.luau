@@ -149,13 +149,10 @@ local function ImageInterface(props: Props)
 		}),
 
 		Right = React.createElement("Frame", {
+			BackgroundTransparency = 1,
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
 			Size = UDim2.new(1, -leftAbsSize.X, 1, 0),
-			BackgroundTransparency = 0,
-			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
-			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-			BorderSizePixel = 0,
 			ZIndex = -1,
 		}, {
 			ImageViewer = React.createElement(ImageViewer, {

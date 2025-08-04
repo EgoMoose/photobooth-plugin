@@ -29,10 +29,10 @@ export type Props = {
 
 local function ImageViewer(props: Props)
 	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
 		AnchorPoint = props.AnchorPoint,
 		Position = props.Position,
 		Size = props.Size,
-		BackgroundTransparency = 1,
 	}, {
 		NoImage = not props.EditableImageInfo and React.createElement(NoImage, {
 			AnchorPoint = Vector2.new(0, 0),

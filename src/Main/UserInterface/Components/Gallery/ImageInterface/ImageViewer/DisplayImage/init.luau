@@ -74,13 +74,10 @@ local function DisplayImage(props: Props)
 	local dimensionsText = `{size.X} x {size.Y} - {props.Name}`
 
 	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
 		AnchorPoint = props.AnchorPoint,
 		Position = props.Position,
 		Size = props.Size,
-
-		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
-		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-		BorderSizePixel = 0,
 	}, {
 		Padded = React.createElement("Frame", {
 			BackgroundTransparency = 1,

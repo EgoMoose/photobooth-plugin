@@ -25,6 +25,11 @@ local assets = {
 			["ui-plugin-button"] = "rbxassetid://125013376553663",
 		},
 	},
+	scroll = {
+		["scroll-bottom"] = "rbxassetid://100620450449275",
+		["scroll-middle"] = "rbxassetid://103217370027697",
+		["scroll-top"] = "rbxassetid://124043012203553",
+	},
 }
 
 return assets
