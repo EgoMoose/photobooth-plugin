@@ -37,11 +37,11 @@ local function ImageViewer(props: Props)
 		NoImage = not props.EditableImageInfo and React.createElement(NoImage, {
 			AnchorPoint = Vector2.new(0, 0),
 			Position = UDim2.fromScale(0, 0),
-			Size = UDim2.fromScale(1, 1),
+			Size = UDim2.new(1, -44, 1, -44),
 		}),
 
 		DisplayImage = props.EditableImageInfo and React.createElement(DisplayImage, {
-			Size = UDim2.fromScale(1, 1),
+			Size = UDim2.new(1, -44, 1, -44),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 
@@ -50,8 +50,6 @@ local function ImageViewer(props: Props)
 
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
-
-			Padding = props.Padding or {},
 		}),
 	})
 end

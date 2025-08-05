@@ -6,6 +6,7 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 local Icons = require(uiRoot.Icons)
 
+local ControlFrame = require(script.ControlFrame)
 local HighResImageSplit = require(script.HighResImageSplit)
 
 local OUTLINE_THICKNESS = 2
@@ -22,13 +23,6 @@ export type Props = {
 
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
-
-	Padding: {
-		PaddingTop: UDim?,
-		PaddingLeft: UDim?,
-		PaddingRight: UDim?,
-		PaddingBottom: UDim?,
-	},
 }
 
 local function makeBackgroundTypeAction(text: string, backgroundType: string, setBackgroundType: (string) -> ())
@@ -75,20 +69,13 @@ local function DisplayImage(props: Props)
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
-		AnchorPoint = props.AnchorPoint,
-		Position = props.Position,
-		Size = props.Size,
+		Size = UDim2.fromScale(1, 1),
 	}, {
-		Padded = React.createElement("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(1, 1),
+		Control = React.createElement(ControlFrame, {
+			AnchorPoint = props.AnchorPoint,
+			Position = props.Position,
+			Size = props.Size,
 		}, {
-			Padding = React.createElement("UIPadding", {
-				PaddingLeft = props.Padding.PaddingLeft,
-				PaddingRight = props.Padding.PaddingRight,
-				PaddingTop = props.Padding.PaddingTop,
-				PaddingBottom = props.Padding.PaddingBottom,
-			}),
 			AspectContainer = React.createElement("Frame", {
 				BackgroundTransparency = 1,
 				AnchorPoint = Vector2.new(0.5, 0.5),

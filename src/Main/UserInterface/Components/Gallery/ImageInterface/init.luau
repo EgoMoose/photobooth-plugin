@@ -97,17 +97,19 @@ local function ImageInterface(props: Props)
 		BackgroundTransparency = 1,
 	}, {
 		Left = React.createElement("Frame", {
-			BackgroundTransparency = 1,
+			BackgroundTransparency = 0,
 			AnchorPoint = Vector2.new(0, 0),
 			Position = UDim2.fromOffset(0, 0),
 			Size = UDim2.new(splitUDim.Scale, splitUDim.Offset, 1, 0),
+			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 			ref = leftRef,
 		}, {
-			UIStroke = React.createElement("UIStroke", {
-				Thickness = 1,
-				Transparency = 0,
-				Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-			}),
+			-- UIStroke = React.createElement("UIStroke", {
+			-- 	Thickness = 1,
+			-- 	Transparency = 0,
+			-- 	Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+			-- }),
 			SizeConstraint = React.createElement("UISizeConstraint", {
 				MaxSize = Vector2.new(200, math.huge),
 			}),
@@ -172,13 +174,6 @@ local function ImageInterface(props: Props)
 
 				BackgroundType = props.BackgroundType,
 				SetBackgroundType = props.SetBackgroundType,
-
-				Padding = {
-					PaddingLeft = UDim.new(0, 22),
-					PaddingRight = UDim.new(0, 22),
-					PaddingTop = UDim.new(0, 22),
-					PaddingBottom = UDim.new(0, 22),
-				},
 			}),
 		}),
 	})
