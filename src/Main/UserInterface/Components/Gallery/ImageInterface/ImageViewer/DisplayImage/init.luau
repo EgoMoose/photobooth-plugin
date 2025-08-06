@@ -6,7 +6,6 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 local Icons = require(uiRoot.Icons)
 
-local ControlFrame = require(script.ControlFrame)
 local HighResImageSplit = require(script.HighResImageSplit)
 
 local OUTLINE_THICKNESS = 2
@@ -69,104 +68,99 @@ local function DisplayImage(props: Props)
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1),
+		AnchorPoint = props.AnchorPoint,
+		Position = props.Position,
+		Size = props.Size,
 	}, {
-		Control = React.createElement(ControlFrame, {
-			AnchorPoint = props.AnchorPoint,
-			Position = props.Position,
-			Size = props.Size,
-			ImageSize = size,
+		AspectContainer = React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(1, 1),
 		}, {
-			AspectContainer = React.createElement("Frame", {
+			SizeConstraint = React.createElement("UISizeConstraint", {
+				MaxSize = size,
+			}),
+			AspectConstraint = React.createElement("UIAspectRatioConstraint", {
+				AspectType = Enum.AspectType.ScaleWithParentSize,
+				DominantAxis = Enum.DominantAxis.Width,
+				AspectRatio = aspectRatio,
+			}),
+
+			ImageContainer = React.createElement("Frame", {
 				BackgroundTransparency = 1,
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
 			}, {
-				SizeConstraint = React.createElement("UISizeConstraint", {
-					MaxSize = size,
+				OutlineStroke = React.createElement("UIStroke", {
+					Thickness = OUTLINE_THICKNESS,
+					LineJoinMode = Enum.LineJoinMode.Miter,
+					Color = theme:GetColor(
+						Enum.StudioStyleGuideColor.InputFieldBorder,
+						Enum.StudioStyleGuideModifier.Selected
+					),
 				}),
-				AspectConstraint = React.createElement("UIAspectRatioConstraint", {
-					AspectType = Enum.AspectType.ScaleWithParentSize,
-					DominantAxis = Enum.DominantAxis.Width,
-					AspectRatio = aspectRatio,
+				AttachedDimensions = React.createElement("TextLabel", {
+					Size = UDim2.new(1, OUTLINE_THICKNESS * 2, 0, 10),
+					Position = UDim2.new(0, -OUTLINE_THICKNESS, 1, 4),
+					BackgroundTransparency = 1,
+					Text = dimensionsText,
+					TextSize = DIMENSIONS_FONT_SIZE,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					TextYAlignment = Enum.TextYAlignment.Bottom,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
+					TextTransparency = if bottomLabelTextFits then 0.7 else 1,
+					FontFace = DIMENSIONS_FONT,
+					ref = bottomLabel,
 				}),
 
-				ImageContainer = React.createElement("Frame", {
+				RightClickButton = React.createElement("TextButton", {
+					BorderSizePixel = 0,
 					BackgroundTransparency = 1,
 					Size = UDim2.fromScale(1, 1),
-				}, {
-					OutlineStroke = React.createElement("UIStroke", {
-						Thickness = OUTLINE_THICKNESS,
-						LineJoinMode = Enum.LineJoinMode.Miter,
-						Color = theme:GetColor(
-							Enum.StudioStyleGuideColor.InputFieldBorder,
-							Enum.StudioStyleGuideModifier.Selected
-						),
-					}),
-					AttachedDimensions = React.createElement("TextLabel", {
-						Size = UDim2.new(1, OUTLINE_THICKNESS * 2, 0, 10),
-						Position = UDim2.new(0, -OUTLINE_THICKNESS, 1, 4),
-						BackgroundTransparency = 1,
-						Text = dimensionsText,
-						TextSize = DIMENSIONS_FONT_SIZE,
-						TextXAlignment = Enum.TextXAlignment.Left,
-						TextYAlignment = Enum.TextYAlignment.Bottom,
-						TextTruncate = Enum.TextTruncate.AtEnd,
-						TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
-						TextTransparency = if bottomLabelTextFits then 0.7 else 1,
-						FontFace = DIMENSIONS_FONT,
-						ref = bottomLabel,
-					}),
+					Text = "",
+					ZIndex = 2,
+					[React.Event.MouseButton2Click] = function()
+						openMenu()
+					end,
+				}),
+				HighResImage = React.createElement(HighResImageSplit, {
+					Size = UDim2.fromScale(1, 1),
+					Position = UDim2.fromScale(0, 0),
+					AnchorPoint = Vector2.new(0, 0),
 
-					RightClickButton = React.createElement("TextButton", {
-						BorderSizePixel = 0,
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(1, 1),
-						Text = "",
-						ZIndex = 2,
-						[React.Event.MouseButton2Click] = function()
-							openMenu()
-						end,
-					}),
-					HighResImage = React.createElement(HighResImageSplit, {
-						Size = UDim2.fromScale(1, 1),
-						Position = UDim2.fromScale(0, 0),
-						AnchorPoint = Vector2.new(0, 0),
+					EditableImage = props.EditableImage,
+				}),
+			}),
 
-						EditableImage = props.EditableImage,
-					}),
+			BackgroundContrast = React.createElement("Frame", {
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				ClipsDescendants = true,
+				ZIndex = -1,
+			}, {
+				Checkerboard = props.BackgroundType == "Checkerboard" and React.createElement("ImageLabel", {
+					BackgroundTransparency = 1,
+					Image = "rbxassetid://6032311304",
+					ScaleType = Enum.ScaleType.Tile,
+					TileSize = UDim2.fromOffset(50, 50),
+					Size = UDim2.new(1, 100, 1, 100),
+					Position = UDim2.fromOffset(-(size.X % 50) / 2, -(size.Y % 50) / 2),
+					ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
 				}),
 
-				BackgroundContrast = React.createElement("Frame", {
+				Black = props.BackgroundType == "Black" and React.createElement("Frame", {
+					BorderSizePixel = 0,
+					BackgroundTransparency = 0,
+					BackgroundColor3 = Color3.new(0, 0, 0),
 					Size = UDim2.fromScale(1, 1),
-					BackgroundTransparency = 1,
-					ClipsDescendants = true,
-					ZIndex = -1,
-				}, {
-					Checkerboard = props.BackgroundType == "Checkerboard" and React.createElement("ImageLabel", {
-						BackgroundTransparency = 1,
-						Image = "rbxassetid://6032311304",
-						ScaleType = Enum.ScaleType.Tile,
-						TileSize = UDim2.fromOffset(50, 50),
-						Size = UDim2.new(1, 100, 1, 100),
-						Position = UDim2.fromOffset(-(size.X % 50) / 2, -(size.Y % 50) / 2),
-						ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-					}),
+				}),
 
-					Black = props.BackgroundType == "Black" and React.createElement("Frame", {
-						BorderSizePixel = 0,
-						BackgroundTransparency = 0,
-						BackgroundColor3 = Color3.new(0, 0, 0),
-						Size = UDim2.fromScale(1, 1),
-					}),
-
-					White = props.BackgroundType == "White" and React.createElement("Frame", {
-						BorderSizePixel = 0,
-						BackgroundTransparency = 0,
-						BackgroundColor3 = Color3.new(1, 1, 1),
-						Size = UDim2.fromScale(1, 1),
-					}),
+				White = props.BackgroundType == "White" and React.createElement("Frame", {
+					BorderSizePixel = 0,
+					BackgroundTransparency = 0,
+					BackgroundColor3 = Color3.new(1, 1, 1),
+					Size = UDim2.fromScale(1, 1),
 				}),
 			}),
 		}),
