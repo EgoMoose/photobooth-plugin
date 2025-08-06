@@ -6,7 +6,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 local usePlugin = require(script.Parent.usePlugin)
-local useConstant = require(script.Parent.useConstant)
 
 export type Props = {
 	Title: string,
@@ -23,9 +22,8 @@ export type Props = {
 
 local function usePluginMenu(props: Props)
 	local plugin = assert(usePlugin())
-	local unique = useConstant(function()
-		return HttpService:GenerateGUID()
-	end)
+	local uniqueRef = React.useRef(HttpService:GenerateGUID() :: string)
+	local unique = uniqueRef.current
 
 	local isOpen = React.useRef(false)
 	local menu, setMenu = React.useState(nil :: PluginMenu?)

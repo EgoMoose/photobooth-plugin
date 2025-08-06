@@ -13,8 +13,6 @@ export type Props = {
 	AnchorPoint: Vector2,
 
 	EditableImage: EditableImage,
-
-	ZIndex: number,
 }
 
 local function useHighResSplit(sourceEditableImage: EditableImage)
@@ -113,8 +111,6 @@ local function HighResImageSplit(props: Props)
 		AnchorPoint = props.AnchorPoint,
 		Position = props.Position,
 		Size = props.Size,
-
-		ZIndex = props.ZIndex,
 	}, labels)
 end
 

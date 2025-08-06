@@ -6,32 +6,42 @@ local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local Hooks = require(uiRoot.Hooks)
+local LucideButton = require(uiRoot.Components.Shared.LucideButton)
 
-export type UploadInfo = {
-	Title: string,
-	EditableImage: EditableImage,
-}
+local IMPORT_ICON = assert(Lucide.GetAsset("image-up", 16))
+local RIGHT_ICON = assert(Lucide.GetAsset("chevron-right", 16))
+local LEFT_ICON = assert(Lucide.GetAsset("chevron-left", 16))
 
 export type Props = {
 	AnchorPoint: Vector2,
 	Position: UDim2,
 	Size: UDim2,
 
-	EditableImage: EditableImage?,
-	EditableImageName: string,
+	SelectedIndex: number,
+	SetSelectedIndex: (number) -> (),
+	SelectedCount: number,
 
-	OnUpload: (UploadInfo) -> (),
+	OnImport: () -> (),
 
 	Disabled: boolean,
 }
 
+local function getImageButtonColor(theme: StudioTheme, modifier: Enum.StudioStyleGuideModifier)
+	if modifier == Enum.StudioStyleGuideModifier.Selected then
+		return theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Pressed)
+	elseif modifier == Enum.StudioStyleGuideModifier.Hover then
+		return theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Hover)
+	end
+	return theme:GetColor(Enum.StudioStyleGuideColor.ButtonText, Enum.StudioStyleGuideModifier.Disabled)
+end
+
 local function ActionBar(props: Props)
 	local theme = StudioComponents.useTheme()
-	local hasCreateAssetPermission = Hooks.useHasCreateAssetPermission()
 
-	local uploadIcon = assert(Lucide.GetAsset("upload", 16))
-	local uploadDisabled = not (not props.Disabled and props.EditableImage)
+	local function incrementIndex(step: number)
+		local newIndex = ((props.SelectedIndex + step - 1) % props.SelectedCount) + 1
+		props.SetSelectedIndex(newIndex)
+	end
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -41,43 +51,97 @@ local function ActionBar(props: Props)
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		Padding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
+			PaddingLeft = UDim.new(0, 8),
 			PaddingRight = UDim.new(0, 4),
 			PaddingTop = UDim.new(0, 4),
 			PaddingBottom = UDim.new(0, 4),
 		}),
-		Layout = React.createElement("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			FillDirection = Enum.FillDirection.Horizontal,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			HorizontalAlignment = Enum.HorizontalAlignment.Right,
-			Padding = UDim.new(0, 4),
+
+		ImageIndexer = React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromScale(0, 0.5),
+			Size = UDim2.fromOffset(16 * 6, 16),
+		}, {
+			LeftButton = React.createElement(LucideButton, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				Size = UDim2.fromOffset(LEFT_ICON.ImageRectSize.X, LEFT_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled or props.SelectedCount == 0,
+				Icon = LEFT_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
+
+				OnActivated = function()
+					incrementIndex(-1)
+				end,
+			}),
+
+			CountLabel = React.createElement("TextLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.new(1, -40, 1, 0),
+
+				Text = `{math.min(props.SelectedIndex, props.SelectedCount)} / {props.SelectedCount}`,
+				TextColor3 = theme:GetColor(
+					Enum.StudioStyleGuideColor.ButtonText,
+					Enum.StudioStyleGuideModifier.Disabled
+				),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+			}),
+
+			RightButton = React.createElement(LucideButton, {
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.new(1, 0, 0.5, 0),
+				Size = UDim2.fromOffset(RIGHT_ICON.ImageRectSize.X, RIGHT_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled or props.SelectedCount == 0,
+				Icon = RIGHT_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
+
+				OnActivated = function()
+					incrementIndex(1)
+				end,
+			}),
 		}),
 
-		Upload = hasCreateAssetPermission and React.createElement(StudioComponents.MainButton, {
-			LayoutOrder = -1,
-			Size = UDim2.new(0, 70, 1, 0),
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.fromScale(1, 0.5),
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Text = "Upload",
-			Disabled = uploadDisabled,
-			OnActivated = function()
-				if props.EditableImage then
-					props.OnUpload({
-						Title = props.EditableImageName,
-						EditableImage = props.EditableImage,
-					})
-				end
-			end,
+		Buttons = React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+		}, {
+			Layout = React.createElement("UIListLayout", {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				HorizontalAlignment = Enum.HorizontalAlignment.Right,
+				Padding = UDim.new(0, 4),
+			}),
 
-			Icon = {
-				Image = uploadIcon.Url,
-				RectSize = uploadIcon.ImageRectSize,
-				RectOffset = uploadIcon.ImageRectOffset,
-				Transparency = if uploadDisabled and theme.Name == "Dark" then 0.7 else nil,
-				Size = Vector2.new(uploadIcon.ImageRectSize.X, uploadIcon.ImageRectSize.Y),
-			},
+			Import = false and React.createElement(StudioComponents.MainButton, {
+				LayoutOrder = -1,
+				Size = UDim2.new(0, 70, 1, 0),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				Text = "Import",
+				Disabled = props.Disabled,
+				OnActivated = function()
+					props.OnImport()
+				end,
+
+				Icon = {
+					Image = IMPORT_ICON.Url,
+					RectSize = IMPORT_ICON.ImageRectSize,
+					RectOffset = IMPORT_ICON.ImageRectOffset,
+					Size = Vector2.new(IMPORT_ICON.ImageRectSize.X, IMPORT_ICON.ImageRectSize.Y),
+					UseThemeColor = true,
+				},
+			}),
 		}),
 	})
 end

@@ -6,7 +6,6 @@ local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local ContainerSize = require(uiRoot.Components.Shared.ContainerSize)
 local BaseButton = require(uiRoot.Components.Shared.BaseButton)
 local Hooks = require(uiRoot.Hooks)
 
@@ -242,7 +241,8 @@ end
 
 local function FullViewport(props: Props)
 	local isDragging, setIsDragging = React.useState(false)
-	local containerSize, setContainerSize = React.useState(Vector2.zero)
+	local containerRef = React.useRef(nil :: GuiObject?)
+	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
 
 	React.useEffect(function()
 		props.FocusLenseSizeRef.current = containerSize
@@ -258,8 +258,10 @@ local function FullViewport(props: Props)
 		draggerScale = math.min(containerSize.X / (draggerSize.X * 2), containerSize.Y / (draggerSize.Y * 2))
 	end
 
-	return React.createElement(ContainerSize, {
-		SetContainerSize = setContainerSize,
+	return React.createElement("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		ref = containerRef,
 	}, {
 		Outline = React.createElement(InnerBorder, {
 			Thickness = 2,

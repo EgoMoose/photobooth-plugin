@@ -18,7 +18,7 @@ local function useSpring<T>(goal: React.Binding<T & Ripple.MotionGoal>, options:
 	end
 
 	React.useEffect(function()
-		local connection = RunService.Heartbeat:Connect(function(dt)
+		local connection = RunService.Heartbeat:Connect(function(_dt)
 			local currentValue = goal:getValue()
 
 			if currentValue ~= previousValue.current then
@@ -32,7 +32,7 @@ local function useSpring<T>(goal: React.Binding<T & Ripple.MotionGoal>, options:
 		end
 	end)
 
-	return binding, setPosition
+	return (binding :: any) :: React.Binding<T>, setPosition :: (T) -> ()
 end
 
 return useSpring

@@ -6,6 +6,8 @@ local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 local Wally = require(pluginRoot.Wally)
 
+local Constants = require(pluginRoot.Constants)
+
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local Photo = require(pluginRoot.Main.Photo)
@@ -16,6 +18,10 @@ local Hooks = require(uiRoot.Hooks)
 local SettingsGroup = require(script.SettingsGroup)
 
 export type Props = {
+	AnchorPoint: Vector2,
+	Position: UDim2,
+	Size: UDim2,
+
 	OnConfirm: () -> (),
 	Disabled: boolean,
 }
@@ -231,7 +237,22 @@ local function ConfigurationWindow(props: Props)
 	local isLocalPlugin = Hooks.useIsLocalPlugin()
 	local configuration, setConfiguration = Hooks.usePhotoConfiguration()
 
-	return React.createElement(React.Fragment, nil, {
+	return React.createElement("Frame", {
+		AnchorPoint = props.AnchorPoint,
+		Position = props.Position,
+		Size = props.Size,
+
+		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+	}, {
+		UISizeConstraint = React.createElement("UISizeConstraint", {
+			MinSize = Vector2.new(Constants.DockWidgetSize.X - 20, Constants.DockWidgetSize.Y - 20),
+			MaxSize = Vector2.new((Constants.DockWidgetSize.X - 20) * 2, (Constants.DockWidgetSize.Y - 20) * 2),
+		}),
+		AspectConstraint = React.createElement("UIAspectRatioConstraint", {
+			AspectRatio = Constants.DockWidgetSize.X / Constants.DockWidgetSize.Y,
+		}),
+	}, {
 		Padding = React.createElement("UIPadding", {
 			PaddingLeft = UDim.new(0, 4),
 			PaddingRight = UDim.new(0, 4),
