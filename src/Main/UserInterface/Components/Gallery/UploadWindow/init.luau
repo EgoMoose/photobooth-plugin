@@ -347,6 +347,7 @@ local function UploadWindow(props: Props)
 						MaxSize = Vector2.new(70, math.huge),
 					}),
 					Dropdown = React.createElement(StudioComponents.Dropdown, {
+						Disabled = props.Disabled or uploadState == "Uploading",
 						Size = UDim2.fromScale(1, 1),
 						Items = creatorTargets,
 						SelectedItem = creator,
