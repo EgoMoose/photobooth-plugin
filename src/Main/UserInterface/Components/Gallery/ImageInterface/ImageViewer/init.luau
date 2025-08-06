@@ -35,8 +35,8 @@ local function ImageViewer(props: Props)
 		Size = props.Size,
 	}, {
 		NoImage = not props.EditableImageInfo and React.createElement(NoImage, {
-			AnchorPoint = Vector2.new(0, 0),
-			Position = UDim2.fromScale(0, 0),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
 			Size = UDim2.new(1, -44, 1, -44),
 		}),
 
