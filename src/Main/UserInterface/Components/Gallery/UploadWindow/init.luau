@@ -34,9 +34,15 @@ export type Props = {
 	Disabled: boolean,
 }
 
+local function useCreatorTargets()
+	return { "Me" }
+end
+
 local function UploadWindow(props: Props)
 	local theme = StudioComponents.useTheme()
-	local creator, setCreator = React.useState("Me")
+
+	local creatorTargets = useCreatorTargets()
+	local creator, setCreator = React.useState(creatorTargets[1])
 
 	local cancelSignal = Hooks.useConstant(function()
 		return Signal.new() :: Signal.Signal<number>
@@ -342,7 +348,7 @@ local function UploadWindow(props: Props)
 					}),
 					Dropdown = React.createElement(StudioComponents.Dropdown, {
 						Size = UDim2.fromScale(1, 1),
-						Items = { "Me", "Group1", "Group2", "Group3" },
+						Items = creatorTargets,
 						SelectedItem = creator,
 						OnItemSelected = function(item)
 							setCreator(item :: string)
