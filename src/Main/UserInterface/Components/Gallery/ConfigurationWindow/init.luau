@@ -246,11 +246,11 @@ local function ConfigurationWindow(props: Props)
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
 		UISizeConstraint = React.createElement("UISizeConstraint", {
-			MinSize = Vector2.new(Constants.DockWidgetSize.X - 20, Constants.DockWidgetSize.Y - 20),
-			MaxSize = Vector2.new((Constants.DockWidgetSize.X - 20) * 2, (Constants.DockWidgetSize.Y - 20) * 2),
+			MinSize = Vector2.new(Constants.ConfigWindowSize.X - 20, Constants.ConfigWindowSize.Y - 20),
+			MaxSize = Vector2.new((Constants.ConfigWindowSize.X - 20) * 2, (Constants.ConfigWindowSize.Y - 20) * 2),
 		}),
 		AspectConstraint = React.createElement("UIAspectRatioConstraint", {
-			AspectRatio = Constants.DockWidgetSize.X / Constants.DockWidgetSize.Y,
+			AspectRatio = Constants.ConfigWindowSize.X / Constants.ConfigWindowSize.Y,
 		}),
 	}, {
 		Padding = React.createElement("UIPadding", {
