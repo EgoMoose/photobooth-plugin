@@ -75,6 +75,7 @@ local function DisplayImage(props: Props)
 			AnchorPoint = props.AnchorPoint,
 			Position = props.Position,
 			Size = props.Size,
+			ImageSize = size,
 		}, {
 			AspectContainer = React.createElement("Frame", {
 				BackgroundTransparency = 1,

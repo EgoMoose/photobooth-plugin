@@ -6,8 +6,6 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
-local isDraggingContext = React.createContext(false)
-
 export type Props = {
 	SetIsDragging: (boolean) -> (),
 
@@ -71,26 +69,22 @@ local function FreeDrag(props: Props & { ContainerSize: Vector2 })
 		end
 	end, { isDragging })
 
-	return React.createElement(isDraggingContext.Provider, {
-		value = isDragging,
+	return React.createElement("ImageButton", {
+		Size = props.Size,
+		Position = clampedPosition,
+		BackgroundTransparency = 1,
+
+		Image = "",
+		AutoButtonColor = false,
+
+		[React.Event.InputBegan] = dragger.onInputBegan,
+		[React.Event.InputChanged] = dragger.onInputChanged,
+		[React.Event.InputEnded] = dragger.onInputEnded,
 	}, {
-		Dragger = React.createElement("ImageButton", {
-			Size = props.Size,
-			Position = clampedPosition,
-			BackgroundTransparency = 1,
-
-			Image = "",
-			AutoButtonColor = false,
-
-			[React.Event.InputBegan] = dragger.onInputBegan,
-			[React.Event.InputChanged] = dragger.onInputChanged,
-			[React.Event.InputEnded] = dragger.onInputEnded,
-		}, {
-			UIScale = React.createElement("UIScale", {
-				Scale = props.Scale,
-			}),
-		}, props.children),
-	})
+		UIScale = props.Scale ~= 1 and React.createElement("UIScale", {
+			Scale = props.Scale,
+		}),
+	}, props.children)
 end
 
 return function(props: Props)
