@@ -89,9 +89,6 @@ local function DisplayImage(props: Props)
 			[React.Event.InputChanged] = controls.onInputChanged,
 			[React.Event.InputEnded] = controls.onInputEnded,
 
-			[React.Event.MouseWheelForward] = controls.onZoomIn,
-			[React.Event.MouseWheelBackward] = controls.onZoomOut,
-
 			ref = inputRef,
 		}),
 

@@ -108,14 +108,19 @@ local function createStory(component: React.FC<any>)
 		return React.createElement(StudioComponents.PluginProvider, {
 			Plugin = GetStoryPlugin(),
 		}, {
-			Layout = React.createElement("UIListLayout", {
-				SortOrder = Enum.SortOrder.LayoutOrder,
-				FillDirection = Enum.FillDirection.Horizontal,
-			}),
-			Padding = React.createElement("UIPadding", {
-				PaddingBottom = UDim.new(0, 45), -- tray buttons
-			}),
-		}, items)
+			React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, -1, 1, -1),
+			}, {
+				Layout = React.createElement("UIListLayout", {
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					FillDirection = Enum.FillDirection.Horizontal,
+				}),
+				Padding = React.createElement("UIPadding", {
+					PaddingBottom = UDim.new(0, 0), -- tray buttons
+				}),
+			}, items),
+		})
 	end
 end
 

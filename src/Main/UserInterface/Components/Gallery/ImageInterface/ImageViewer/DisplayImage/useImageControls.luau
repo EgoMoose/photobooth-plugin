@@ -14,7 +14,11 @@ end
 
 local function scaleRect(rect: Rect, scale: number, anchorPoint: Vector2)
 	local anchor = rect.Min + Vector2.new(rect.Width, rect.Height) * anchorPoint
-	return Rect.new(anchor + (rect.Min - anchor) * scale, anchor + (rect.Max - anchor) * scale)
+	-- stylua: ignore
+	return Rect.new(
+		(anchor + (rect.Min - anchor) * scale):Floor(),
+		(anchor + (rect.Max - anchor) * scale):Ceil()
+	)
 end
 
 local function clampRect(rect: Rect, size: Vector2)
@@ -48,13 +52,19 @@ local function useImageControls(size: Vector2, inputRef: { current: GuiObject? }
 	local state = React.useRef({
 		zoom = 0,
 		scale = 1,
+		position = Vector3.zero,
 	})
 
 	local dragger = Hooks.useMouseDrag({
 		deps = { size, inputScale } :: { any },
+		onBeganCallback = function(_rbx, input)
+			state.current.position = input.Position
+		end,
 		onDragCallback = function(_rbx, input)
-			local delta = Vector2.new(-input.Delta.X, -input.Delta.Y)
-			local scaledDelta = (delta / inputScale) / state.current.scale
+			local delta = input.Position - state.current.position
+			state.current.position = input.Position
+
+			local scaledDelta = (Vector2.new(-delta.X, -delta.Y) / inputScale) / state.current.scale
 			setRect(clampRect(translateRect(rectBind:getValue(), scaledDelta), size))
 		end,
 	})
@@ -84,15 +94,17 @@ local function useImageControls(size: Vector2, inputRef: { current: GuiObject? }
 		rect = scaledRect,
 		isZoomed = not (scaledRect.Width == 1 and scaledRect.Height == 1),
 
-		onInputBegan = dragger.onInputBegan,
-		onInputChanged = dragger.onInputChanged,
-		onInputEnded = dragger.onInputEnded,
-
-		onZoomIn = function()
-			incrementZoom(0.01)
+		onInputBegan = function(rbx: GuiObject, input: InputObject)
+			dragger.onInputBegan(rbx, input)
 		end,
-		onZoomOut = function()
-			incrementZoom(-0.01)
+		onInputChanged = function(rbx: GuiObject, input: InputObject)
+			if input.UserInputType == Enum.UserInputType.MouseWheel then
+				incrementZoom(input.Position.Z * 0.05)
+			end
+			dragger.onInputChanged(rbx, input)
+		end,
+		onInputEnded = function(rbx: GuiObject, input: InputObject)
+			dragger.onInputEnded(rbx, input)
 		end,
 
 		reset = reset,
