@@ -66,14 +66,11 @@ local function DisplayImage(props: Props)
 	local openMenu = usePluginMenu(props.BackgroundType, props.SetBackgroundType)
 
 	local inputRef = React.useRef(nil :: GuiObject?)
-	local controls = useImageControls(size, inputRef)
+	local aspectRef = React.useRef(nil :: GuiObject?)
+	local controlRect = useImageControls(size, inputRef, aspectRef)
 
 	local bottomLabel = React.useRef(nil :: TextLabel?)
-	local bottomLabelTextFits = Hooks.useRefProperty(bottomLabel, "TextFits", true) and not controls.isZoomed
-
-	React.useEffect(function()
-		controls.reset()
-	end, { props.EditableImageInfo })
+	local bottomLabelTextFits = Hooks.useRefProperty(bottomLabel, "TextFits", true)
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -85,24 +82,21 @@ local function DisplayImage(props: Props)
 			Active = false,
 			ZIndex = 3,
 
-			[React.Event.InputBegan] = controls.onInputBegan,
-			[React.Event.InputChanged] = controls.onInputChanged,
-			[React.Event.InputEnded] = controls.onInputEnded,
-
 			ref = inputRef,
 		}),
 
-		Image = React.createElement("Frame", {
+		Container = React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			AnchorPoint = props.AnchorPoint,
 			Position = props.Position,
 			Size = props.Size,
 		}, {
-			AspectContainer = React.createElement("Frame", {
+			Aspect = React.createElement("Frame", {
 				BackgroundTransparency = 1,
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.fromScale(1, 1),
+				ref = aspectRef,
 			}, {
 				SizeConstraint = React.createElement("UISizeConstraint", {
 					MaxSize = size,
@@ -112,87 +106,88 @@ local function DisplayImage(props: Props)
 					DominantAxis = Enum.DominantAxis.Width,
 					AspectRatio = aspectRatio,
 				}),
+			}),
 
-				SizeControl = React.createElement("Frame", {
-					BackgroundTransparency = 1,
-					Size = UDim2.fromScale(1 / controls.rect.Width, 1 / controls.rect.Height),
+			Image = React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.fromOffset(size.X, size.Y),
+			}, {
+				Control = React.createElement("Frame", {
+					BackgroundTransparency = 0.7,
+					Size = UDim2.fromScale(controlRect.Width, controlRect.Height),
+					Position = UDim2.fromScale(controlRect.Min.X, controlRect.Min.Y),
 				}, {
-					PositionControl = React.createElement("Frame", {
+					OutlineStroke = React.createElement("UIStroke", {
+						Thickness = OUTLINE_THICKNESS,
+						LineJoinMode = Enum.LineJoinMode.Miter,
+						Color = theme:GetColor(
+							Enum.StudioStyleGuideColor.InputFieldBorder,
+							Enum.StudioStyleGuideModifier.Selected
+						),
+					}),
+					AttachedDimensions = React.createElement("TextLabel", {
+						Size = UDim2.new(1, OUTLINE_THICKNESS * 2, 0, 10),
+						Position = UDim2.new(0, -OUTLINE_THICKNESS, 1, 4),
+						BackgroundTransparency = 1,
+						Text = dimensionsText,
+						TextSize = DIMENSIONS_FONT_SIZE,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextYAlignment = Enum.TextYAlignment.Bottom,
+						TextTruncate = Enum.TextTruncate.AtEnd,
+						TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
+						TextTransparency = if bottomLabelTextFits then 0.7 else 1,
+						FontFace = DIMENSIONS_FONT,
+						ref = bottomLabel,
+					}),
+
+					RightClickButton = React.createElement("TextButton", {
+						BorderSizePixel = 0,
 						BackgroundTransparency = 1,
 						Size = UDim2.fromScale(1, 1),
-						Position = UDim2.fromScale(-controls.rect.Min.X, -controls.rect.Min.Y),
+						Text = "",
+						ZIndex = 2,
+						[React.Event.MouseButton2Click] = function()
+							openMenu()
+						end,
+					}),
+					HighResImage = React.createElement(HighResImageSplit, {
+						Size = UDim2.fromScale(1, 1),
+						Position = UDim2.fromScale(0, 0),
+						AnchorPoint = Vector2.new(0, 0),
+
+						EditableImage = props.EditableImageInfo.EditableImage,
+					}),
+
+					BackgroundContrast = React.createElement("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						BackgroundTransparency = 1,
+						ClipsDescendants = true,
+						ZIndex = -1,
 					}, {
-						OutlineStroke = React.createElement("UIStroke", {
-							Thickness = OUTLINE_THICKNESS,
-							LineJoinMode = Enum.LineJoinMode.Miter,
-							Color = theme:GetColor(
-								Enum.StudioStyleGuideColor.InputFieldBorder,
-								Enum.StudioStyleGuideModifier.Selected
-							),
-						}),
-						AttachedDimensions = React.createElement("TextLabel", {
-							Size = UDim2.new(1, OUTLINE_THICKNESS * 2, 0, 10),
-							Position = UDim2.new(0, -OUTLINE_THICKNESS, 1, 4),
+						Checkerboard = props.BackgroundType == "Checkerboard" and React.createElement("ImageLabel", {
 							BackgroundTransparency = 1,
-							Text = dimensionsText,
-							TextSize = DIMENSIONS_FONT_SIZE,
-							TextXAlignment = Enum.TextXAlignment.Left,
-							TextYAlignment = Enum.TextYAlignment.Bottom,
-							TextTruncate = Enum.TextTruncate.AtEnd,
-							TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
-							TextTransparency = if bottomLabelTextFits then 0.7 else 1,
-							FontFace = DIMENSIONS_FONT,
-							ref = bottomLabel,
+							Image = "rbxassetid://6032311304",
+							ScaleType = Enum.ScaleType.Tile,
+							TileSize = UDim2.fromOffset(50, 50),
+							Size = UDim2.new(1, 100, 1, 100),
+							Position = UDim2.fromOffset(-(size.X % 50) / 2, -(size.Y % 50) / 2),
+							ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
 						}),
 
-						RightClickButton = React.createElement("TextButton", {
+						Black = props.BackgroundType == "Black" and React.createElement("Frame", {
 							BorderSizePixel = 0,
-							BackgroundTransparency = 1,
+							BackgroundTransparency = 0,
+							BackgroundColor3 = Color3.new(0, 0, 0),
 							Size = UDim2.fromScale(1, 1),
-							Text = "",
-							ZIndex = 2,
-							[React.Event.MouseButton2Click] = function()
-								openMenu()
-							end,
-						}),
-						HighResImage = React.createElement(HighResImageSplit, {
-							Size = UDim2.fromScale(1, 1),
-							Position = UDim2.fromScale(0, 0),
-							AnchorPoint = Vector2.new(0, 0),
-
-							EditableImage = props.EditableImageInfo.EditableImage,
 						}),
 
-						BackgroundContrast = React.createElement("Frame", {
+						White = props.BackgroundType == "White" and React.createElement("Frame", {
+							BorderSizePixel = 0,
+							BackgroundTransparency = 0,
+							BackgroundColor3 = Color3.new(1, 1, 1),
 							Size = UDim2.fromScale(1, 1),
-							BackgroundTransparency = 1,
-							ClipsDescendants = true,
-							ZIndex = -1,
-						}, {
-							Checkerboard = props.BackgroundType == "Checkerboard"
-								and React.createElement("ImageLabel", {
-									BackgroundTransparency = 1,
-									Image = "rbxassetid://6032311304",
-									ScaleType = Enum.ScaleType.Tile,
-									TileSize = UDim2.fromOffset(50, 50),
-									Size = UDim2.new(1, 100, 1, 100),
-									Position = UDim2.fromOffset(-(size.X % 50) / 2, -(size.Y % 50) / 2),
-									ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-								}),
-
-							Black = props.BackgroundType == "Black" and React.createElement("Frame", {
-								BorderSizePixel = 0,
-								BackgroundTransparency = 0,
-								BackgroundColor3 = Color3.new(0, 0, 0),
-								Size = UDim2.fromScale(1, 1),
-							}),
-
-							White = props.BackgroundType == "White" and React.createElement("Frame", {
-								BorderSizePixel = 0,
-								BackgroundTransparency = 0,
-								BackgroundColor3 = Color3.new(1, 1, 1),
-								Size = UDim2.fromScale(1, 1),
-							}),
 						}),
 					}),
 				}),

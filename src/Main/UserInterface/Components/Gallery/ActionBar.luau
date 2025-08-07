@@ -8,7 +8,10 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
 
-local IMPORT_ICON = assert(Lucide.GetAsset("image-up", 16))
+local FIT_ICON = assert(Lucide.GetAsset("scan-eye", 16))
+local ZOOM_IN_ICON = assert(Lucide.GetAsset("zoom-in", 16))
+local ZOOM_OUT_ICON = assert(Lucide.GetAsset("zoom-out", 16))
+
 local RIGHT_ICON = assert(Lucide.GetAsset("chevron-right", 16))
 local LEFT_ICON = assert(Lucide.GetAsset("chevron-left", 16))
 
@@ -112,7 +115,7 @@ local function ActionBar(props: Props)
 			}),
 		}),
 
-		Buttons = React.createElement("Frame", {
+		ImageViewerControls = React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
 		}, {
@@ -124,23 +127,57 @@ local function ActionBar(props: Props)
 				Padding = UDim.new(0, 4),
 			}),
 
-			Import = false and React.createElement(StudioComponents.MainButton, {
-				LayoutOrder = -1,
-				Size = UDim2.new(0, 70, 1, 0),
-				TextXAlignment = Enum.TextXAlignment.Center,
-				Text = "Import",
-				Disabled = props.Disabled,
-				OnActivated = function()
-					props.OnImport()
+			Zoom = React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(0.25, 1),
+			}, {
+				ZoomIn = React.createElement(LucideButton, {
+					AnchorPoint = Vector2.new(1, 0.5),
+					Position = UDim2.fromScale(1, 0.5),
+					Size = UDim2.fromOffset(ZOOM_IN_ICON.ImageRectSize.X, ZOOM_IN_ICON.ImageRectSize.Y),
+					Disabled = props.Disabled or props.SelectedCount == 0,
+					Icon = ZOOM_IN_ICON,
+
+					GetColor = function(modifier)
+						return getImageButtonColor(theme, modifier)
+					end,
+
+					OnActivated = function()
+						print("Zoom In!")
+					end,
+				}),
+
+				ZoomOut = React.createElement(LucideButton, {
+					AnchorPoint = Vector2.new(0, 0.5),
+					Position = UDim2.fromScale(0, 0.5),
+					Size = UDim2.fromOffset(ZOOM_OUT_ICON.ImageRectSize.X, ZOOM_OUT_ICON.ImageRectSize.Y),
+					Disabled = props.Disabled or props.SelectedCount == 0,
+					Icon = ZOOM_OUT_ICON,
+
+					GetColor = function(modifier)
+						return getImageButtonColor(theme, modifier)
+					end,
+
+					OnActivated = function()
+						print("Zoom Out!")
+					end,
+				}),
+			}),
+
+			LeftButton = false and React.createElement(LucideButton, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				Size = UDim2.fromOffset(FIT_ICON.ImageRectSize.X, FIT_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled or props.SelectedCount == 0,
+				Icon = FIT_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
 				end,
 
-				Icon = {
-					Image = IMPORT_ICON.Url,
-					RectSize = IMPORT_ICON.ImageRectSize,
-					RectOffset = IMPORT_ICON.ImageRectOffset,
-					Size = Vector2.new(IMPORT_ICON.ImageRectSize.X, IMPORT_ICON.ImageRectSize.Y),
-					UseThemeColor = true,
-				},
+				OnActivated = function()
+					print("Fit!")
+				end,
 			}),
 		}),
 	})
