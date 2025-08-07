@@ -40,7 +40,7 @@ end
 
 local function useImageControls(size: Vector2, inputRef: { current: GuiObject? })
 	local inputSize = Hooks.useRefProperty(inputRef, "AbsoluteSize", Vector2.zero)
-	local inputScale = inputSize / size
+	local inputScale = math.min(inputSize.X / size.X, inputSize.Y / size.Y)
 
 	local rectBind, setRect = React.useBinding(Rect.new(Vector2.zero, size))
 	local rect = Hooks.useBindingState(rectBind)
@@ -51,7 +51,7 @@ local function useImageControls(size: Vector2, inputRef: { current: GuiObject? }
 	})
 
 	local dragger = Hooks.useMouseDrag({
-		deps = { size, inputScale },
+		deps = { size, inputScale } :: { any },
 		onDragCallback = function(_rbx, input)
 			local delta = Vector2.new(-input.Delta.X, -input.Delta.Y)
 			local scaledDelta = (delta / inputScale) / state.current.scale
