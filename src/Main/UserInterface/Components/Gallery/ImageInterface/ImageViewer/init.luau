@@ -45,8 +45,7 @@ local function ImageViewer(props: Props)
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 
-			Name = props.EditableImageInfo.Name,
-			EditableImage = props.EditableImageInfo.EditableImage,
+			EditableImageInfo = props.EditableImageInfo,
 
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
