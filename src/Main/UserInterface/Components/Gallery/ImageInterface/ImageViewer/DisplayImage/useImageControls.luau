@@ -76,10 +76,13 @@ local function useImageControls(size: Vector2, inputRef: { current: GuiObject? }
 		state.current.zoom = 0
 		state.current.scale = 1
 		setRect(Rect.new(Vector2.zero, size))
-	end, {})
+	end, { size })
+
+	local scaledRect = Rect.new(rect.Min / size, rect.Max / size)
 
 	return {
-		rect = Rect.new(rect.Min / size, rect.Max / size),
+		rect = scaledRect,
+		isZoomed = not (scaledRect.Width == 1 and scaledRect.Height == 1),
 
 		onInputBegan = dragger.onInputBegan,
 		onInputChanged = dragger.onInputChanged,

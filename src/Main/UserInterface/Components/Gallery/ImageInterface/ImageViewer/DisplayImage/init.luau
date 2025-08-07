@@ -58,18 +58,18 @@ local function usePluginMenu(backgroundType: string, setBackgroundType: (string)
 end
 
 local function DisplayImage(props: Props)
-	local theme = StudioComponents.useTheme()
-	local openMenu = usePluginMenu(props.BackgroundType, props.SetBackgroundType)
-
-	local bottomLabel = React.useRef(nil :: TextLabel?)
-	local bottomLabelTextFits = Hooks.useRefProperty(bottomLabel, "TextFits", true)
-
 	local size = props.EditableImageInfo.EditableImage.Size
 	local aspectRatio = size.X / size.Y
 	local dimensionsText = `{size.X} x {size.Y} - {props.EditableImageInfo.Name}`
 
+	local theme = StudioComponents.useTheme()
+	local openMenu = usePluginMenu(props.BackgroundType, props.SetBackgroundType)
+
 	local inputRef = React.useRef(nil :: GuiObject?)
 	local controls = useImageControls(size, inputRef)
+
+	local bottomLabel = React.useRef(nil :: TextLabel?)
+	local bottomLabelTextFits = Hooks.useRefProperty(bottomLabel, "TextFits", true) and not controls.isZoomed
 
 	React.useEffect(function()
 		controls.reset()
@@ -83,7 +83,7 @@ local function DisplayImage(props: Props)
 			BackgroundTransparency = 1,
 			Size = UDim2.fromScale(1, 1),
 			Active = false,
-			ZIndex = 2,
+			ZIndex = 3,
 
 			[React.Event.InputBegan] = controls.onInputBegan,
 			[React.Event.InputChanged] = controls.onInputChanged,
@@ -214,7 +214,7 @@ local function DisplayImage(props: Props)
 			TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
 			TextTruncate = Enum.TextTruncate.AtEnd,
 			FontFace = DIMENSIONS_FONT,
-			ZIndex = -1,
+			ZIndex = 2,
 		}, {
 			Padding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, 18),
