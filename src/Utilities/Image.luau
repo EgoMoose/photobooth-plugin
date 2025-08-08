@@ -153,7 +153,7 @@ function ImageClass.GetXYFromPixelIndex(self: Image, pixelIndex: number)
 	return x, y
 end
 
-function ImageClass.GetNeighbors(self: Image, pixelIndex: number)
+function ImageClass.IterateNeighbors(self: Image, pixelIndex: number)
 	local width = self.size.X
 	local height = self.size.Y
 	local x, y = self:GetXYFromPixelIndex(pixelIndex)
