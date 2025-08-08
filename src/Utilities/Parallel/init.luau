@@ -22,6 +22,7 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 	{} :: {
 		ticket: number,
 		actors: { Actor },
+		bindings: { [Actor]: BindableEvent },
 		schedules: { [Actor]: { () -> T... } },
 		isWorking: boolean,
 		isReady: boolean,
@@ -29,7 +30,6 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 		required: Required<T..., U...>,
 
 		moduleRef: ObjectValue,
-		binding: BindableEvent,
 	},
 	ParallelClass
 ))
@@ -39,6 +39,7 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 
 	self.ticket = 0
 	self.actors = {}
+	self.bindings = {}
 	self.schedules = {}
 	self.isWorking = false
 	self.isReady = false
@@ -50,10 +51,6 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	self.moduleRef.Value = required.script
 	self.moduleRef.Archivable = false
 	self.moduleRef.Parent = script
-
-	self.binding = Instance.new("BindableEvent")
-	self.binding.Name = "Binding"
-	self.binding.Parent = self.moduleRef
 
 	local workerModule = script.Worker:Clone()
 	workerModule.Parent = self.moduleRef
@@ -74,11 +71,16 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 		actor.Name = tostring(i)
 		actor.Parent = actorFolder
 
+		local binding = Instance.new("BindableEvent")
+		binding.Name = "Binding"
+		binding.Parent = actor
+
 		local worker = template:Clone()
 		worker.Enabled = true
 		worker.Parent = actor
 
 		self.actors[i] = actor
+		self.bindings[actor] = binding
 		self.schedules[actor] = {}
 	end
 
@@ -137,7 +139,7 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 			futures[k] = future
 
 			local connection
-			connection = self.binding.Event:Connect(function(index: number, ...: any)
+			connection = self.bindings[actor].Event:Connect(function(index: number, ...: any)
 				if k == index then
 					future:complete(Future.packAsCallback(...) :: () -> U...)
 					connection:Disconnect()
@@ -161,7 +163,6 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 end
 
 function ParallelClass.Destroy<T..., U...>(self: Parallel<T..., U...>)
-	self.binding:Destroy()
 	self.moduleRef:Destroy()
 	self.actors = {}
 	self.schedules = {}
