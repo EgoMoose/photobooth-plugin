@@ -3,7 +3,7 @@
 return function(script: LuaSourceContainer)
 	local actor = assert(script:GetActor(), "No actor found.")
 	local moduleRef = assert(actor.Parent and actor.Parent.Parent, "No module found.")
-	local binding = assert(moduleRef:FindFirstChild("Binding"), "Not binding instance found.")
+	local binding = assert(actor:FindFirstChild("Binding"), "Not binding instance found.")
 
 	assert(moduleRef:IsA("ObjectValue"), "Not a ObjectValue.")
 	assert(binding:IsA("BindableEvent"), "Not a BindableEvent.")
