@@ -1,3 +1,4 @@
+--!native
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
@@ -19,7 +20,7 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 			local rgb = { 0, 0, 0 }
 			local contributing = 0
 
-			for _, neighborIndex in img:GetNeighbors(index) do
+			for _, neighborIndex in img:IterateNeighbors(index) do
 				if bit32.band(buffer.readu8(visited, neighborIndex - 1), CAN_SAMPLE) > 0 then
 					local r, g, b = img:GetRGBA255(neighborIndex)
 

@@ -1,3 +1,4 @@
+--!native
 --!strict
 
 local AssetService = game:GetService("AssetService")
@@ -151,25 +152,6 @@ function ImageClass.GetXYFromPixelIndex(self: Image, pixelIndex: number)
 	local y = math.floor((pixelIndex - 1) / self.size.X) + 1
 	local x = pixelIndex - ((y - 1) * self.size.X)
 	return x, y
-end
-
-function ImageClass.GetNeighbors(self: Image, pixelIndex: number)
-	local width = self.size.X
-	local height = self.size.Y
-
-	local x, y = self:GetXYFromPixelIndex(pixelIndex)
-
-	local neighbors = {}
-	for _, offset in NEIGHBOR_OFFSETS do
-		local xn = x + offset[1]
-		local yn = y + offset[2]
-
-		if not (xn < 1 or xn > width or yn < 1 or yn > height) then
-			table.insert(neighbors, self:GetPixelIndex(xn, yn))
-		end
-	end
-
-	return neighbors
 end
 
 function ImageClass.IterateNeighbors(self: Image, pixelIndex: number)

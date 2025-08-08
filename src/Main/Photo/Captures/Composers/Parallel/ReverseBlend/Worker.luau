@@ -1,3 +1,4 @@
+--!native
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
