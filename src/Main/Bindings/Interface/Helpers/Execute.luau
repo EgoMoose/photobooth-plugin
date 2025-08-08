@@ -2,7 +2,8 @@
 
 local ScriptEditorService = game:GetService("ScriptEditorService") :: ScriptEditorService
 
-local function execute(script: LuaSourceContainer)
+local execute
+function execute(script: LuaSourceContainer)
 	assert(game:GetService("CoreGui"), "This should only be run in the command line.")
 	assert(typeof(script) == "Instance" and script:IsA("LuaSourceContainer"), "Not a LuaSourceContainer.")
 
@@ -14,12 +15,12 @@ local function execute(script: LuaSourceContainer)
 
 	ScriptEditorService:UpdateSourceAsync(moduleScript, function()
 		-- the formatting is crazy here, but we retain line numbers!
-		return `return (function(script) {content} end)`
+		return `return (function(script, require) {content} end)`
 	end)
 
-	local callback = require(moduleScript) :: (LuaSourceContainer) -> ...any
+	local callback = require(moduleScript) :: (...any) -> ...any
 	moduleScript:Destroy()
-	return callback(script)
+	return callback(script, execute)
 end
 
 return execute
