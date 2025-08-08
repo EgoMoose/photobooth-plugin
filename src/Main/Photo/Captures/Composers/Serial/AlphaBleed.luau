@@ -98,7 +98,7 @@ local function alphaBleedSerial(img: Image.Image)
 			local rgb = { 0, 0, 0 }
 			local contributing = 0
 
-			for _, neighborIndex in copy:GetNeighbors(index) do
+			for _, neighborIndex in copy:IterateNeighbors(index) do
 				if bit32.band(buffer.readu8(visited, neighborIndex - 1), CAN_SAMPLE) > 0 then
 					local r, g, b = copy:GetRGBA255(neighborIndex)
 
