@@ -200,7 +200,7 @@ local function UploadWindow(props: Props)
 
 								cleanupTrove:Add(cancelSignal:Connect(function(i)
 									local statuses = uploadStatusesBinding:getValue()
-									if statuses[i] == "InProgress" then
+									if statuses[i] == "InProgress" or statuses[i] == "Queued" then
 										statuses[i] = "Cancel"
 										setUploadStatuses(table.clone(statuses))
 
@@ -245,14 +245,16 @@ local function UploadWindow(props: Props)
 									-- signal library has an annoying warn on cleanup so can't use signal:Wait()
 									local isCancelled = false
 									local myThread = coroutine.running()
-									cleanupTrove:Add(uploadCompleteSignal:Connect(function(j, canceled)
-										if i == j then
-											isCancelled = canceled
-											task.spawn(myThread)
-										end
-									end))
+									local connection =
+										cleanupTrove:Add(uploadCompleteSignal:Connect(function(j, canceled)
+											if i == j then
+												isCancelled = canceled
+												task.spawn(myThread)
+											end
+										end))
 
 									coroutine.yield()
+									connection:Disconnect()
 
 									if not isCancelled then
 										statuses = uploadStatusesBinding:getValue()
@@ -275,21 +277,22 @@ local function UploadWindow(props: Props)
 								local count = 0
 								local thread = coroutine.running()
 								for i, info in props.UploadInfos do
-									if uploadStatusesBinding:getValue()[i] ~= "Queued" then
-										continue
-									end
-
-									if SEQUENTIAL_UPLOAD then
-										uploadYielding(i, info)
-										count = count + 1
-									else
-										cleanupTrove:Add(task.spawn(function()
+									local status = uploadStatusesBinding:getValue()[i]
+									if status == "Queued" then
+										if SEQUENTIAL_UPLOAD then
 											uploadYielding(i, info)
 											count = count + 1
-											if count == #props.UploadInfos then
-												task.spawn(thread)
-											end
-										end))
+										else
+											cleanupTrove:Add(task.spawn(function()
+												uploadYielding(i, info)
+												count = count + 1
+												if count == #props.UploadInfos then
+													task.spawn(thread)
+												end
+											end))
+										end
+									elseif status == "Cancel" then
+										count = count + 1
 									end
 								end
 
