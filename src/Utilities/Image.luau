@@ -4,6 +4,8 @@
 
 local AssetService = game:GetService("AssetService")
 
+local ImageStatic = {}
+
 local ImageClass = {}
 ImageClass.__index = ImageClass
 ImageClass.ClassName = "Image"
@@ -36,7 +38,7 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 
 -- Constructors
 
-function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
+function ImageStatic.fromBuffer(buffer: buffer, size: Vector2)
 	local self = setmetatable({} :: any, ImageClass) :: Image
 
 	self.buffer = buffer
@@ -45,11 +47,11 @@ function ImageClass.fromBuffer(buffer: buffer, size: Vector2)
 	return self
 end
 
-function ImageClass.fromSize(size: Vector2)
-	return ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
+function ImageStatic.fromSize(size: Vector2)
+	return ImageStatic.fromBuffer(buffer.create(size.X * size.Y * 4), size)
 end
 
-function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
+function ImageStatic.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 	local fullSize = editableImage.Size
 	local origin = if crop then crop.Min:Min(fullSize) else Vector2.zero
 	local cropSize = if crop then (crop.Max - crop.Min):Min(fullSize) else fullSize
@@ -81,15 +83,15 @@ function ImageClass.fromEditableImage(editableImage: EditableImage, crop: Rect?)
 			end
 		end
 
-		return ImageClass.fromBuffer(resultBuffer, cropSize)
+		return ImageStatic.fromBuffer(resultBuffer, cropSize)
 	end
 
 	local resultBuffer = editableImage:ReadPixelsBuffer(origin, cropSize)
-	return ImageClass.fromBuffer(resultBuffer, cropSize)
+	return ImageStatic.fromBuffer(resultBuffer, cropSize)
 end
 
-function ImageClass.fromRGBA255(r: number, g: number, b: number, a: number, size: Vector2)
-	local img = ImageClass.fromBuffer(buffer.create(size.X * size.Y * 4), size)
+function ImageStatic.fromRGBA255(r: number, g: number, b: number, a: number, size: Vector2)
+	local img = ImageStatic.fromBuffer(buffer.create(size.X * size.Y * 4), size)
 	for x = 1, size.X do
 		for y = 1, size.Y do
 			local pixelIndex = img:GetPixelIndex(x, y)
@@ -99,8 +101,8 @@ function ImageClass.fromRGBA255(r: number, g: number, b: number, a: number, size
 	return img
 end
 
-function ImageClass.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
-	return ImageClass.fromRGBA255(r * 255, g * 255, b * 255, a * 255, size)
+function ImageStatic.fromRGBA(r: number, g: number, b: number, a: number, size: Vector2)
+	return ImageStatic.fromRGBA255(r * 255, g * 255, b * 255, a * 255, size)
 end
 
 -- Public Methods
@@ -108,7 +110,7 @@ end
 function ImageClass.Clone(self: Image)
 	local copyBuffer = buffer.create(buffer.len(self.buffer))
 	buffer.copy(copyBuffer, 0, self.buffer, 0)
-	local copy = ImageClass.fromBuffer(copyBuffer, self.size)
+	local copy = ImageStatic.fromBuffer(copyBuffer, self.size)
 	copy.templateUri = self.templateUri
 	return copy
 end
@@ -126,7 +128,7 @@ function ImageClass.Crop(self: Image, rect: Rect)
 		buffer.copy(targetBuffer, targetOffset * 4, self.buffer, sourceOffset * 4, clampedWidth * 4)
 	end
 
-	return ImageClass.fromBuffer(targetBuffer, Vector2.new(clampedWidth, clampedHeight))
+	return ImageStatic.fromBuffer(targetBuffer, Vector2.new(clampedWidth, clampedHeight))
 end
 
 function ImageClass.GetSize(self: Image)
@@ -290,4 +292,4 @@ function ImageClass.Destroy(_self: Image) end
 
 --
 
-return ImageClass
+return ImageStatic
