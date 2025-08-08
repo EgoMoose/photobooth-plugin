@@ -75,11 +75,13 @@ local function useImageControls2(size: Vector2, inputRef: { current: GuiObject? 
 				prevDragPosition = input.Position
 
 				local scale = aspectFrame.AbsoluteSize / size
-				local scaledDelta = Vector2.new(-delta3.X, -delta3.Y) / scale
+				local scaledDelta = (Vector2.new(delta3.X, delta3.Y) / scale) * zoomPercentBind:getValue()
 
 				setRect(clampRect(translateRect(rectBind:getValue(), scaledDelta), size))
 			elseif input.UserInputType == Enum.UserInputType.MouseWheel then
-				setZoomPercent(zoomPercentBind:getValue() + input.Position.Z * 0.05)
+				local prevZoom = zoomPercentBind:getValue()
+				setZoomPercent(prevZoom + input.Position.Z * 0.05)
+				setRect(scaleRect(rectBind:getValue(), zoomPercentBind:getValue() / prevZoom, Vector2.new(0.5, 0.5)))
 			end
 		end))
 
