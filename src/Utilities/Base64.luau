@@ -1,6 +1,4 @@
 --!strict
---!native
---!optimize 2
 
 --[[
     Pulled from https://github.com/Reselim/Base64
