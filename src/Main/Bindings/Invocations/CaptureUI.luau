@@ -13,12 +13,12 @@ end)
 
 -- stylua: ignore
 local typechecker = gt.fn(
-	gt.args(gt.IsA("GuiObject"), gt.union(unpack(captureTypeLiterals))),
+	gt.args(gt.IsA("GuiObject"), gt.union(unpack(captureTypeLiterals)), gt.opt(gt.number())),
 	gt.returns(gt.IsA("MeshPart"))
 )
 
-local function callback(subject: GuiObject, captureType: Captures.UICaptureTypes)
-	local result = Photo.captureUI(subject, captureType)
+local function callback(subject: GuiObject, captureType: Captures.UICaptureTypes, captureDelay: number?)
+	local result = Photo.captureUI(subject, captureType, captureDelay)
 	local exported = Photo.export(result, nil)
 	return exported[1]
 end
