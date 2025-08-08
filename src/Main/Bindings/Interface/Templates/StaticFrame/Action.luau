@@ -10,12 +10,12 @@
 		5. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.StaticFrame.Action)` in the command bar.
 		6. After completion your captures will be in a timestamped folder under the StarterGui.
 
-	DELAY_BETWEEN_CAPTURES
+	CAPTURE_DELAY
 		> This represents how much time to delay once the capture target is about to be captured. This can be useful
 		> when your targets have particles that need time to emit before capturing.
 --]]
 
-local DELAY_BETWEEN_CAPTURES = 0
+local CAPTURE_DELAY = 0
 
 local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
@@ -67,8 +67,8 @@ local function capture()
 
 		-- let the camera render since we just changed our scene
 		Photobooth.yieldUntilNextFrame()
-		if DELAY_BETWEEN_CAPTURES > 0 then
-			task.wait(DELAY_BETWEEN_CAPTURES)
+		if CAPTURE_DELAY > 0 then
+			task.wait(CAPTURE_DELAY)
 		end
 
 		-- use photobooth to capture

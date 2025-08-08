@@ -39,7 +39,11 @@ local function createIsCapturingTrove()
 	return trove
 end
 
-local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trove.Trove) -> { Image.Image })
+local function captureUI(
+	subject: GuiObject,
+	processor: (UIBounds.UIBounds, Trove.Trove) -> { Image.Image },
+	captureDelay: number
+)
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
@@ -58,8 +62,9 @@ local function captureUI(subject: GuiObject, processor: (UIBounds.UIBounds, Trov
 		freezeEmitters = false,
 
 		callback = function()
-			-- let a frame render so the ui bounds clone can fully load
-			SceneControl.yieldUntilNextFrame()
+			if captureDelay > 0 then
+				task.wait(captureDelay)
+			end
 			results = processor(uiBounds, trove)
 		end,
 	})
@@ -134,8 +139,8 @@ function Photo.setViewportApp(app: LayerCollector?)
 	viewportApp = app
 end
 
-function Photo.captureUI(subject: GuiObject, captureType: Captures.UICaptureTypes)
-	return captureUI(subject, Captures.UserInterface.Processors[captureType])
+function Photo.captureUI(subject: GuiObject, captureType: Captures.UICaptureTypes, captureDelay: number?)
+	return captureUI(subject, Captures.UserInterface.Processors[captureType], captureDelay or 0)
 end
 
 function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCaptureTypes)
