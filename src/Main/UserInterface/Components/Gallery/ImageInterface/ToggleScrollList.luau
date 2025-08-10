@@ -195,26 +195,34 @@ local function ToggleScrollList(props: Props)
 			ClipsDescendants = true,
 		}, {
 			Padding = React.createElement("UIPadding", {
-				PaddingLeft = UDim.new(0, 4),
-				PaddingRight = UDim.new(0, 4),
-				PaddingTop = UDim.new(0, 4),
-				PaddingBottom = UDim.new(0, 4),
+				PaddingLeft = UDim.new(0, 3),
+				PaddingRight = UDim.new(0, 3),
+				PaddingTop = UDim.new(0, 3),
+				PaddingBottom = UDim.new(0, 3),
 			}),
-			Button = React.createElement(StudioComponents.Button, {
-				LayoutOrder = -2,
-				Size = UDim2.new(1, 0, 0, 28),
-				TextXAlignment = Enum.TextXAlignment.Center,
-				Text = "Upload",
-				Disabled = props.Disabled or inclusionCount == 0,
-				OnActivated = props.OnUpload,
+			ClipFrame = React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 1, 0),
+				ClipsDescendants = true,
+			}, {
+				Button = React.createElement(StudioComponents.Button, {
+					LayoutOrder = -2,
+					Size = UDim2.new(1, -2, 1, -2),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Position = UDim2.fromScale(0.5, 0.5),
+					TextXAlignment = Enum.TextXAlignment.Center,
+					Text = "Upload",
+					Disabled = props.Disabled or inclusionCount == 0,
+					OnActivated = props.OnUpload,
 
-				Icon = {
-					Image = UPLOAD_ICON.Url,
-					RectSize = UPLOAD_ICON.ImageRectSize,
-					RectOffset = UPLOAD_ICON.ImageRectOffset,
-					Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
-					UseThemeColor = true,
-				},
+					Icon = {
+						Image = UPLOAD_ICON.Url,
+						RectSize = UPLOAD_ICON.ImageRectSize,
+						RectOffset = UPLOAD_ICON.ImageRectOffset,
+						Size = Vector2.new(UPLOAD_ICON.ImageRectSize.X, UPLOAD_ICON.ImageRectSize.Y),
+						UseThemeColor = true,
+					},
+				}),
 			}),
 		}),
 	})

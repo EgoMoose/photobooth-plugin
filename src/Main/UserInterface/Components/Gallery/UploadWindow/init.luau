@@ -104,259 +104,265 @@ local function UploadWindow(props: Props)
 			MinSize = Vector2.new(0, 0),
 			MaxSize = Vector2.new(350, 400),
 		}),
-		Padding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
-			PaddingRight = UDim.new(0, 4),
-			PaddingTop = UDim.new(0, 4),
-			PaddingBottom = UDim.new(0, 4),
-		}),
-		Layout = React.createElement("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			FillDirection = Enum.FillDirection.Vertical,
-			VerticalAlignment = Enum.VerticalAlignment.Top,
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			Padding = UDim.new(0, 6),
-		}),
-
-		Title = React.createElement("TextLabel", {
+		ClipFrame = React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 24),
-			Text = "Upload",
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextYAlignment = Enum.TextYAlignment.Bottom,
-			TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
-			Font = StudioComponents.Constants.DefaultFont,
-			TextScaled = true,
-			LayoutOrder = 1,
+			Size = UDim2.fromScale(1, 1),
+			ClipsDescendants = true,
 		}, {
 			Padding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, 4),
-				PaddingRight = UDim.new(0, 0),
-				PaddingTop = UDim.new(0, 0),
-				PaddingBottom = UDim.new(0, 0),
+				PaddingRight = UDim.new(0, 4),
+				PaddingTop = UDim.new(0, 4),
+				PaddingBottom = UDim.new(0, 4),
 			}),
-		}),
+			Layout = React.createElement("UIListLayout", {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				FillDirection = Enum.FillDirection.Vertical,
+				VerticalAlignment = Enum.VerticalAlignment.Top,
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				Padding = UDim.new(0, 6),
+			}),
 
-		FileList = React.createElement("Frame", {
-			Size = UDim2.new(1, 0, 1, -24 - 6 - 32 - 6),
-			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-			LayoutOrder = 2,
-		}, {
-			Scroll = React.createElement(VerticalScroll, {
-				AnchorPoint = Vector2.zero,
-				Position = UDim2.fromScale(0, 0),
-				Size = UDim2.fromScale(1, 1),
-
-				GradientColor = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-				GradientHeight = 8,
-
-				Disabled = props.Disabled,
-			}, {
-				Layout = React.createElement("UIListLayout", {
-					FillDirection = Enum.FillDirection.Vertical,
-					SortOrder = Enum.SortOrder.LayoutOrder,
-					Padding = UDim.new(0, 0),
-				}),
-			}, lines),
-		}),
-
-		BottomRow = React.createElement("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 32),
-			LayoutOrder = 3,
-		}, {
-			Buttons = React.createElement("Frame", {
+			Title = React.createElement("TextLabel", {
 				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 1),
+				Size = UDim2.new(1, 0, 0, 24),
+				Text = "Upload",
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Bottom,
+				TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainText),
+				Font = StudioComponents.Constants.DefaultFont,
+				TextScaled = true,
+				LayoutOrder = 1,
 			}, {
-				Layout = React.createElement("UIListLayout", {
-					SortOrder = Enum.SortOrder.LayoutOrder,
-					FillDirection = Enum.FillDirection.Horizontal,
-					VerticalAlignment = Enum.VerticalAlignment.Center,
-					HorizontalAlignment = Enum.HorizontalAlignment.Right,
-					Padding = UDim.new(0, 4),
+				Padding = React.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 4),
+					PaddingRight = UDim.new(0, 0),
+					PaddingTop = UDim.new(0, 0),
+					PaddingBottom = UDim.new(0, 0),
 				}),
+			}),
 
-				Confirm = React.createElement(StudioComponents.MainButton, {
-					LayoutOrder = -1,
-					Size = UDim2.new(0, 70, 1, 0),
-					TextXAlignment = Enum.TextXAlignment.Center,
-					Text = if uploadState == "Complete" then "Open" else "Upload",
-					Disabled = props.Disabled or uploadState == "Uploading",
-					OnActivated = function()
-						if uploadState == "Complete" then
-							props.OnUploadComplete(outputRef.current)
-						else
-							local cleanupTrove = Trove.new()
-							closeTrove:Add(cleanupTrove)
-							closeTrove:Add(task.spawn(function()
-								setIsUploadState("Uploading")
+			FileList = React.createElement("Frame", {
+				Size = UDim2.new(1, 0, 1, -24 - 6 - 32 - 6),
+				BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+				BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+				LayoutOrder = 2,
+			}, {
+				Scroll = React.createElement(VerticalScroll, {
+					AnchorPoint = Vector2.zero,
+					Position = UDim2.fromScale(0, 0),
+					Size = UDim2.fromScale(1, 1),
 
-								outputRef.current = {}
+					GradientColor = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
+					GradientHeight = 8,
 
-								local uploadThreads = {}
-								local uploadCompleteSignal = Signal.new()
+					Disabled = props.Disabled,
+				}, {
+					Layout = React.createElement("UIListLayout", {
+						FillDirection = Enum.FillDirection.Vertical,
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(0, 0),
+					}),
+				}, lines),
+			}),
 
-								cleanupTrove:Add(cancelSignal:Connect(function(i)
-									local statuses = uploadStatusesBinding:getValue()
-									if statuses[i] == "InProgress" or statuses[i] == "Queued" then
-										statuses[i] = "Cancel"
-										setUploadStatuses(table.clone(statuses))
+			BottomRow = React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.new(1, 0, 0, 32),
+				LayoutOrder = 3,
+			}, {
+				Buttons = React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.fromScale(1, 1),
+				}, {
+					Layout = React.createElement("UIListLayout", {
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						FillDirection = Enum.FillDirection.Horizontal,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						HorizontalAlignment = Enum.HorizontalAlignment.Right,
+						Padding = UDim.new(0, 4),
+					}),
 
-										local uploadThread = uploadThreads[i]
-										if uploadThread and coroutine.status(uploadThread) == "suspended" then
-											task.cancel(uploadThread)
-										end
+					Confirm = React.createElement(StudioComponents.MainButton, {
+						LayoutOrder = -1,
+						Size = UDim2.new(0, 70, 1, 0),
+						TextXAlignment = Enum.TextXAlignment.Center,
+						Text = if uploadState == "Complete" then "Open" else "Upload",
+						Disabled = props.Disabled or uploadState == "Uploading",
+						OnActivated = function()
+							if uploadState == "Complete" then
+								props.OnUploadComplete(outputRef.current)
+							else
+								local cleanupTrove = Trove.new()
+								closeTrove:Add(cleanupTrove)
+								closeTrove:Add(task.spawn(function()
+									setIsUploadState("Uploading")
 
-										uploadCompleteSignal:Fire(i, true)
-									end
-								end))
+									outputRef.current = {}
 
-								local statuses = uploadStatusesBinding:getValue()
-								for i, _info in props.UploadInfos do
-									statuses[i] = "Queued"
-								end
-								setUploadStatuses(table.clone(statuses))
+									local uploadThreads = {}
+									local uploadCompleteSignal = Signal.new()
 
-								local function uploadYielding(i: number, info: Hooks.EditableImageInfo)
-									statuses = uploadStatusesBinding:getValue()
-									statuses[i] = "InProgress"
-									setUploadStatuses(table.clone(statuses))
+									cleanupTrove:Add(cancelSignal:Connect(function(i)
+										local statuses = uploadStatusesBinding:getValue()
+										if statuses[i] == "InProgress" or statuses[i] == "Queued" then
+											statuses[i] = "Cancel"
+											setUploadStatuses(table.clone(statuses))
 
-									local assetId: number?
-									uploadThreads[i] = cleanupTrove:Add(task.spawn(function()
-										for _ = 1, MAX_RETRIES do
-											local success, err = pcall(function()
-												assetId = props.TryUpload(i, info.Name, info.EditableImage)
-											end)
-
-											if not success and err then
-												warn(err)
+											local uploadThread = uploadThreads[i]
+											if uploadThread and coroutine.status(uploadThread) == "suspended" then
+												task.cancel(uploadThread)
 											end
 
-											if assetId then
-												break
-											end
+											uploadCompleteSignal:Fire(i, true)
 										end
-										uploadCompleteSignal:Fire(i, false)
 									end))
 
-									-- signal library has an annoying warn on cleanup so can't use signal:Wait()
-									local isCancelled = false
-									local myThread = coroutine.running()
-									local connection =
-										cleanupTrove:Add(uploadCompleteSignal:Connect(function(j, canceled)
-											if i == j then
-												isCancelled = canceled
-												task.spawn(myThread)
+									local statuses = uploadStatusesBinding:getValue()
+									for i, _info in props.UploadInfos do
+										statuses[i] = "Queued"
+									end
+									setUploadStatuses(table.clone(statuses))
+
+									local function uploadYielding(i: number, info: Hooks.EditableImageInfo)
+										statuses = uploadStatusesBinding:getValue()
+										statuses[i] = "InProgress"
+										setUploadStatuses(table.clone(statuses))
+
+										local assetId: number?
+										uploadThreads[i] = cleanupTrove:Add(task.spawn(function()
+											for _ = 1, MAX_RETRIES do
+												local success, err = pcall(function()
+													assetId = props.TryUpload(i, info.Name, info.EditableImage)
+												end)
+
+												if not success and err then
+													warn(err)
+												end
+
+												if assetId then
+													break
+												end
 											end
+											uploadCompleteSignal:Fire(i, false)
 										end))
 
-									coroutine.yield()
-									connection:Disconnect()
-
-									if not isCancelled then
-										statuses = uploadStatusesBinding:getValue()
-
-										if assetId then
-											assetIdRef.current[i] = assetId
-											statuses[i] = "Complete"
-											table.insert(outputRef.current, {
-												Name = info.Name,
-												AssetId = assetId,
-											})
-										else
-											statuses[i] = "Fail"
-										end
-
-										setUploadStatuses(table.clone(statuses))
-									end
-								end
-
-								local count = 0
-								local thread = coroutine.running()
-								for i, info in props.UploadInfos do
-									local status = uploadStatusesBinding:getValue()[i]
-									if status == "Queued" then
-										if SEQUENTIAL_UPLOAD then
-											uploadYielding(i, info)
-											count = count + 1
-										else
-											cleanupTrove:Add(task.spawn(function()
-												uploadYielding(i, info)
-												count = count + 1
-												if count == #props.UploadInfos then
-													task.spawn(thread)
+										-- signal library has an annoying warn on cleanup so can't use signal:Wait()
+										local isCancelled = false
+										local myThread = coroutine.running()
+										local connection =
+											cleanupTrove:Add(uploadCompleteSignal:Connect(function(j, canceled)
+												if i == j then
+													isCancelled = canceled
+													task.spawn(myThread)
 												end
 											end))
+
+										coroutine.yield()
+										connection:Disconnect()
+
+										if not isCancelled then
+											statuses = uploadStatusesBinding:getValue()
+
+											if assetId then
+												assetIdRef.current[i] = assetId
+												statuses[i] = "Complete"
+												table.insert(outputRef.current, {
+													Name = info.Name,
+													AssetId = assetId,
+												})
+											else
+												statuses[i] = "Fail"
+											end
+
+											setUploadStatuses(table.clone(statuses))
 										end
-									elseif status == "Cancel" then
-										count = count + 1
 									end
-								end
 
-								if count < #props.UploadInfos then
-									coroutine.yield()
-								end
-								cleanupTrove:Destroy()
+									local count = 0
+									local thread = coroutine.running()
+									for i, info in props.UploadInfos do
+										local status = uploadStatusesBinding:getValue()[i]
+										if status == "Queued" then
+											if SEQUENTIAL_UPLOAD then
+												uploadYielding(i, info)
+												count = count + 1
+											else
+												cleanupTrove:Add(task.spawn(function()
+													uploadYielding(i, info)
+													count = count + 1
+													if count == #props.UploadInfos then
+														task.spawn(thread)
+													end
+												end))
+											end
+										elseif status == "Cancel" then
+											count = count + 1
+										end
+									end
 
-								setIsUploadState("Complete")
-							end))
-						end
-					end,
-				}),
-				Cancel = React.createElement(StudioComponents.Button, {
-					LayoutOrder = -2,
-					Size = UDim2.new(0, 70, 1, 0),
-					TextXAlignment = Enum.TextXAlignment.Center,
-					Text = if uploadState == "Complete" then "Close" else "Cancel",
-					Disabled = props.Disabled,
-					OnActivated = function()
-						closeTrove:Clean()
-						props.OnCancel()
-					end,
-				}),
-			}),
+									if count < #props.UploadInfos then
+										coroutine.yield()
+									end
+									cleanupTrove:Destroy()
 
-			Creator = React.createElement("Frame", {
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, -152, 1, 0),
-				Position = UDim2.fromOffset(4, 0),
-			}, {
-				Layout = React.createElement("UIListLayout", {
-					SortOrder = Enum.SortOrder.LayoutOrder,
-					FillDirection = Enum.FillDirection.Horizontal,
-					VerticalAlignment = Enum.VerticalAlignment.Center,
-					HorizontalAlignment = Enum.HorizontalAlignment.Left,
-					Padding = UDim.new(0, 4),
-				}),
-
-				Label = React.createElement(StudioComponents.Label, {
-					BackgroundTransparency = 1,
-					Size = UDim2.new(0, 44, 1, 0),
-					Text = "Creator:",
-					TextXAlignment = Enum.TextXAlignment.Left,
-					TextYAlignment = Enum.TextYAlignment.Center,
-					LayoutOrder = 1,
-				}),
-
-				Container = React.createElement("Frame", {
-					BackgroundTransparency = 1,
-					Size = UDim2.new(1, -48, 0, StudioComponents.Constants.DefaultDropdownHeight),
-					LayoutOrder = 2,
-				}, {
-					UISizeConstraint = React.createElement("UISizeConstraint", {
-						MaxSize = Vector2.new(70, math.huge),
-					}),
-					Dropdown = React.createElement(StudioComponents.Dropdown, {
-						Disabled = props.Disabled or uploadState == "Uploading",
-						Size = UDim2.fromScale(1, 1),
-						Items = creatorTargets,
-						SelectedItem = creator,
-						OnItemSelected = function(item)
-							setCreator(item :: string)
+									setIsUploadState("Complete")
+								end))
+							end
 						end,
+					}),
+					Cancel = React.createElement(StudioComponents.Button, {
+						LayoutOrder = -2,
+						Size = UDim2.new(0, 70, 1, 0),
+						TextXAlignment = Enum.TextXAlignment.Center,
+						Text = if uploadState == "Complete" then "Close" else "Cancel",
+						Disabled = props.Disabled,
+						OnActivated = function()
+							closeTrove:Clean()
+							props.OnCancel()
+						end,
+					}),
+				}),
+
+				Creator = React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, -152, 1, 0),
+					Position = UDim2.fromOffset(4, 0),
+				}, {
+					Layout = React.createElement("UIListLayout", {
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						FillDirection = Enum.FillDirection.Horizontal,
+						VerticalAlignment = Enum.VerticalAlignment.Center,
+						HorizontalAlignment = Enum.HorizontalAlignment.Left,
+						Padding = UDim.new(0, 4),
+					}),
+
+					Label = React.createElement(StudioComponents.Label, {
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0, 44, 1, 0),
+						Text = "Creator:",
+						TextXAlignment = Enum.TextXAlignment.Left,
+						TextYAlignment = Enum.TextYAlignment.Center,
+						LayoutOrder = 1,
+					}),
+
+					Container = React.createElement("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, -48, 0, StudioComponents.Constants.DefaultDropdownHeight),
+						LayoutOrder = 2,
+					}, {
+						UISizeConstraint = React.createElement("UISizeConstraint", {
+							MaxSize = Vector2.new(70, math.huge),
+						}),
+						Dropdown = React.createElement(StudioComponents.Dropdown, {
+							Disabled = props.Disabled or uploadState == "Uploading",
+							Size = UDim2.fromScale(1, 1),
+							Items = creatorTargets,
+							SelectedItem = creator,
+							OnItemSelected = function(item)
+								setCreator(item :: string)
+							end,
+						}),
 					}),
 				}),
 			}),
