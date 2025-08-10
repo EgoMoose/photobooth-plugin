@@ -12,6 +12,8 @@ local scheduler = Parallel.new(32, {
 })
 
 local function parallelize(img: Image.Image)
+	scheduler:WaitForReady()
+
 	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
 		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
 	end

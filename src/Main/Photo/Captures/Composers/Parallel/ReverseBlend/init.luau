@@ -17,6 +17,8 @@ local function parallelize(
 	onBlack: Image.Image?,
 	colorCorrection: ColorCorrectionEffect
 )
+	scheduler:WaitForReady()
+
 	local splitOnWhiteRetro = onWhiteRetro:Split(scheduler:GetActorCount())
 	local splitOnBlackRetro = onBlackRetro:Split(scheduler:GetActorCount())
 	local splitOnBlack = if onBlack then onBlack:Split(scheduler:GetActorCount()) else {}
