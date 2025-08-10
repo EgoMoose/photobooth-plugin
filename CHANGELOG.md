@@ -3,6 +3,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.8.0]
+### Added
+- New gallery viewer supports selecting and viewing multiple images
+- New upload wizard that supports uploading multiple images
+- Add a UI capture delay parameter to the bindings to ensure subjects like viewport frames have time to load
+
+### Changes
+- `PhotoboothBindings.execute` now cachelessly loads sub requires
+
 ## [0.7.0]
 ### Added
 - Support cropped capture up to 2048 x 2048!!!

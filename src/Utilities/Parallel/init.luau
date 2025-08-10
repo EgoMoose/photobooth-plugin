@@ -21,15 +21,19 @@ export type Required<T..., U...> = {
 export type Parallel<T..., U...> = typeof(setmetatable(
 	{} :: {
 		ticket: number,
-		actors: { Actor },
-		bindings: { [Actor]: BindableEvent },
-		schedules: { [Actor]: { () -> T... } },
 		isWorking: boolean,
-		isReady: boolean,
-
+		moduleRef: ObjectValue,
 		required: Required<T..., U...>,
 
-		moduleRef: ObjectValue,
+		isReadyFuture: Future.Future<()>,
+
+		actorEntries: {
+			{
+				actor: Actor,
+				binding: BindableEvent,
+				scheduled: { () -> T... },
+			}
+		},
 	},
 	ParallelClass
 ))
@@ -38,13 +42,11 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	local self = setmetatable({}, ParallelClass) :: Parallel<T..., U...>
 
 	self.ticket = 0
-	self.actors = {}
-	self.bindings = {}
-	self.schedules = {}
-	self.isWorking = false
-	self.isReady = false
-
+	self.actorEntries = {}
 	self.required = required
+
+	self.isWorking = false
+	self.isReadyFuture = Future.new()
 
 	self.moduleRef = Instance.new("ObjectValue")
 	self.moduleRef.Name = `Parallel_{required.script.Name}`
@@ -79,19 +81,21 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 		worker.Enabled = true
 		worker.Parent = actor
 
-		self.actors[i] = actor
-		self.bindings[actor] = binding
-		self.schedules[actor] = {}
+		self.actorEntries[i] = {
+			actor = actor,
+			binding = binding,
+			scheduled = {},
+		}
 	end
 
 	task.spawn(function()
-		for _, actor in self.actors do
-			while not actor:GetAttribute("IsReady") do
-				actor:GetAttributeChangedSignal("IsReady"):Wait()
+		for _, actorEntry in self.actorEntries do
+			while not actorEntry.actor:GetAttribute("IsReady") do
+				actorEntry.actor:GetAttributeChangedSignal("IsReady"):Wait()
 			end
 		end
 
-		self.isReady = true
+		self.isReadyFuture:complete()
 	end)
 
 	return self
@@ -99,54 +103,57 @@ end
 
 -- Public
 
+function ParallelClass.WaitForReady<T..., U...>(self: Parallel<T..., U...>)
+	self.isReadyFuture:expect()
+end
+
 function ParallelClass.GetActorCount<T..., U...>(self: Parallel<T..., U...>)
-	assert(self.isReady, "Not ready!")
-	return #self.actors
+	assert(self.isReadyFuture:isCompleted(), "Not ready!")
+	return #self.actorEntries
 end
 
 function ParallelClass.Schedule<T..., U...>(self: Parallel<T..., U...>, ...: T...)
-	assert(self.isReady, "Not ready!")
+	assert(self.isReadyFuture:isCompleted(), "Not ready!")
 
 	self.ticket = self.ticket + 1
 	local myTicket = self.ticket
 
-	local actorIndex = ((myTicket - 1) % #self.actors) + 1
-	local actor = self.actors[actorIndex]
+	local actorIndex = ((myTicket - 1) % #self.actorEntries) + 1
+	local actorEntry = self.actorEntries[actorIndex]
 
-	table.insert(self.schedules[actor], Future.packAsCallback(...))
+	table.insert(actorEntry.scheduled, Future.packAsCallback(...))
 end
 
 function ParallelClass.Clear<T..., U...>(self: Parallel<T..., U...>)
-	assert(self.isReady, "Not ready!")
+	assert(self.isReadyFuture:isCompleted(), "Not ready!")
 
 	self.ticket = 0
-	for actor, _ in self.schedules do
-		table.clear(self.schedules[actor])
+	for _, actorEntry in self.actorEntries do
+		table.clear(actorEntry.scheduled)
 	end
 end
 
 function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
-	assert(self.isReady, "Not ready!")
+	assert(self.isReadyFuture:isCompleted(), "Not ready!")
 	assert(not self.isWorking, "Already working!")
 	self.isWorking = true
 
 	local futures = {}
-	for i, actor in self.actors do
-		local schedule = self.schedules[actor]
-		for j, unpackArgs in schedule do
-			local k = ((j - 1) * #self.actors) + i
+	for i, actorEntry in self.actorEntries do
+		for j, unpackArgs in actorEntry.scheduled do
+			local k = ((j - 1) * #self.actorEntries) + i
 			local future = Future.new()
 			futures[k] = future
 
 			local connection
-			connection = self.bindings[actor].Event:Connect(function(index: number, ...: any)
+			connection = actorEntry.binding.Event:Connect(function(index: number, ...: any)
 				if k == index then
 					future:complete(Future.packAsCallback(...) :: () -> U...)
 					connection:Disconnect()
 				end
 			end)
 
-			actor:SendMessage("Work", k, unpackArgs())
+			actorEntry.actor:SendMessage("Work", k, unpackArgs())
 		end
 	end
 
@@ -164,8 +171,7 @@ end
 
 function ParallelClass.Destroy<T..., U...>(self: Parallel<T..., U...>)
 	self.moduleRef:Destroy()
-	self.actors = {}
-	self.schedules = {}
+	self.actorEntries = {}
 end
 
 --

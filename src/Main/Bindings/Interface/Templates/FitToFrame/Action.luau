@@ -14,13 +14,13 @@
 		> If you have some capture targets that are larger than others you may want to use a consistent camera distance so
 		> that all targets are captured showing their relative size to each other.
 	
-	DELAY_BETWEEN_CAPTURES
+	CAPTURE_DELAY
 		> This represents how much time to delay once the capture target is about to be captured. This can be useful
 		> when your targets have particles that need time to emit before capturing.
 --]]
 
 local UNIFORM_SCALE = false
-local DELAY_BETWEEN_CAPTURES = 0
+local CAPTURE_DELAY = 0
 
 local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
@@ -107,8 +107,8 @@ local function capture()
 
 		-- let the camera render since we just changed our scene
 		Photobooth.yieldUntilNextFrame()
-		if DELAY_BETWEEN_CAPTURES > 0 then
-			task.wait(DELAY_BETWEEN_CAPTURES)
+		if CAPTURE_DELAY > 0 then
+			task.wait(CAPTURE_DELAY)
 		end
 
 		-- use photobooth to capture

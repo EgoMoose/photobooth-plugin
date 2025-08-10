@@ -38,8 +38,8 @@ function Bindings.captureViewport(rect: Rect, captureType: ViewportCaptureTypes)
 	return invokeBinding("captureViewport", rect, captureType)
 end
 
-function Bindings.captureUI(subject: GuiObject, captureType: UICaptureTypes): MeshPart
-	return invokeBinding("captureUI", subject, captureType)
+function Bindings.captureUI(subject: GuiObject, captureType: UICaptureTypes, captureDelay: number?): MeshPart
+	return invokeBinding("captureUI", subject, captureType, captureDelay)
 end
 
 function Bindings.yieldUntilNextFrame(): ()

@@ -32,6 +32,8 @@ function UIBoundsClass.new(parent: Instance, subject: GuiObject, scale: Vector2)
 	self.aabbFrame = self:_createAABBFrame(subject)
 	self.aabbFrame.Parent = self.surfaceGui
 
+	self:SetColor(Color3.new(1, 1, 1))
+
 	return self
 end
 
