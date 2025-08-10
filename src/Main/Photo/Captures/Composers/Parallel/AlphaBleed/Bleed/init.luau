@@ -15,6 +15,7 @@ local function parallelize(img: Image.Image, visited: buffer, pending: { number 
 	-- not really taking advantage of parallel luau here
 	-- however, by using a worker we stop studio from getting hung up
 
+	scheduler:WaitForReady()
 	scheduler:Schedule(img.buffer, img.size, visited, pending)
 	local packedResults = scheduler:Work()
 
