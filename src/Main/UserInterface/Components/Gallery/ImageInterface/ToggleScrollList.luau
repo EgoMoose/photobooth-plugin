@@ -33,7 +33,7 @@ export type Props = {
 
 local function ToggleScrollList(props: Props)
 	local theme = StudioComponents.useTheme()
-	local hasCreateAssetPermission = true --Hooks.useHasCreateAssetPermission()
+	local hasCreateAssetPermission = Hooks.useHasCreateAssetPermission()
 
 	local nSelected = #props.EditableImageInfos
 	local uploadHeight = if hasCreateAssetPermission then 36 else 0
