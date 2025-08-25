@@ -100,8 +100,7 @@ It's very important that you use the "Actual Resolution" option when capturing i
 
 If you want to save any of the plugin captures to your computer, you can do so by right clicking the exported mesh part and selecting "Export Selection".
 
-<img src="docs/assets/readme/general/exportA.png" height=400>
-<img src="docs/assets/readme/general/exportB.png" height=400>
+<img src="docs/assets/readme/general/exportA.png" height=400> <img src="docs/assets/readme/general/exportB.png" height=400>
 
 This will prompt you to export the mesh in `.obj` format which will include the texture of the mesh in `.png` format. Both the `.obj` and `.mtl` files can be discarded.
 
