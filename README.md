@@ -148,6 +148,4 @@ end
 
 When this feature is enabled this is what the upload process will look like:
 
-
-<img src="docs/assets/readme/general/uploadA.png" width=40%>
-<img src="docs/assets/readme/general/uploadB.png" width=40%>
+<img src="docs/assets/readme/general/upload.png" width=70%>
