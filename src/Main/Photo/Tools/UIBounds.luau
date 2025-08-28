@@ -220,10 +220,12 @@ local function getBoundingRect(qualified: { GuiObject }): Rect
 	return RenderRect.fromAbs(min, max - min)
 end
 
-local function getMinZIndex(qualified: { GuiObject }): number
-	local minZIndex = math.huge
-	for _, frame in qualified do
-		minZIndex = math.max(minZIndex, frame.ZIndex)
+local function getMinZIndex(subject: GuiObject): number
+	local minZIndex = subject.ZIndex
+	for _, descendant in subject:GetDescendants() do
+		if descendant:IsA("GuiObject") then
+			minZIndex = math.min(minZIndex, descendant.ZIndex)
+		end
 	end
 	return minZIndex
 end
@@ -233,7 +235,7 @@ function UIBoundsClass._createAABBFrame(self: UIBounds, subject: GuiObject)
 	local aabbRect = getBoundingRect(qualified)
 
 	local boundingFrame = Instance.new("Frame")
-	boundingFrame.ZIndex = getMinZIndex(qualified) - 1
+	boundingFrame.ZIndex = getMinZIndex(subject) - 1
 	boundingFrame.Size = UDim2.fromOffset(aabbRect.Width, aabbRect.Height)
 	boundingFrame.BorderSizePixel = 0
 
