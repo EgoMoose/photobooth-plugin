@@ -3,6 +3,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.8.2]
+### Fixed
+- Add support for Roblox's UI styling feature when capturing UI
+- Fix an issue where the UI capture subject would sometimes be one pixel too small when capturing
+
 ## [0.8.1]
 ### Fixed
 - Fix some UI scaling clipping in the gallery
