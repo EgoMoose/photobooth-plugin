@@ -15,8 +15,11 @@ UIBoundsClass.ClassName = "UIBounds"
 export type UIBounds = typeof(setmetatable(
 	{} :: {
 		scale: Vector2,
+		subject: GuiObject,
+
 		surfaceGui: SurfaceGui,
 		surfacePart: BasePart,
+
 		aabbFrame: Frame,
 	},
 	UIBoundsClass
@@ -28,6 +31,8 @@ function UIBoundsClass.new(parent: Instance, subject: GuiObject, scale: Vector2)
 	local self = setmetatable({}, UIBoundsClass) :: UIBounds
 
 	self.scale = scale
+	self.subject = subject
+
 	self.surfaceGui, self.surfacePart = self:_createSurface(parent)
 	self.aabbFrame = self:_createAABBFrame(subject)
 	self.aabbFrame.Parent = self.surfaceGui
@@ -38,6 +43,18 @@ function UIBoundsClass.new(parent: Instance, subject: GuiObject, scale: Vector2)
 end
 
 -- Private
+
+function UIBoundsClass._findNearestStyleLink(self: UIBounds)
+	local styleLink: StyleLink?
+	local pointer = self.subject.Parent :: Instance?
+
+	while pointer and not styleLink do
+		styleLink = pointer:FindFirstChildWhichIsA("StyleLink")
+		pointer = pointer.Parent
+	end
+
+	return styleLink
+end
 
 function UIBoundsClass._createSurface(self: UIBounds, parent: Instance)
 	local camera = workspace.CurrentCamera
@@ -207,7 +224,7 @@ local function getMinZIndex(qualified: { GuiObject }): number
 	return minZIndex
 end
 
-function UIBoundsClass._createAABBFrame(_self: UIBounds, subject: GuiObject)
+function UIBoundsClass._createAABBFrame(self: UIBounds, subject: GuiObject)
 	local qualified = getQualified(subject)
 	local aabbRect = getBoundingRect(qualified)
 
@@ -218,19 +235,23 @@ function UIBoundsClass._createAABBFrame(_self: UIBounds, subject: GuiObject)
 
 	local subjectAbsSize = subject.AbsoluteSize
 	local subjectAbsPosition = subject.AbsolutePosition
+	local subjectRect = RenderRect.fromAbs(subjectAbsPosition, subjectAbsSize)
 
-	-- stylua: ignore
-	local subjectAABBOffset = UDim2.fromOffset(
-		subjectAbsPosition.X - aabbRect.Min.X, 
-		subjectAbsPosition.Y - aabbRect.Min.Y
-	)
+	local folder = Instance.new("Folder")
+	folder.Name = "SubjectFolder"
+	folder.Parent = boundingFrame
+
+	local styleLink = self:_findNearestStyleLink()
+	if styleLink then
+		styleLink:Clone().Parent = folder
+	end
 
 	local subjectCopy = subject:Clone()
 	subjectCopy.AnchorPoint = Vector2.zero
-	subjectCopy.Size = UDim2.fromOffset(subjectAbsSize.X, subjectAbsSize.Y)
+	subjectCopy.Size = UDim2.fromOffset(subjectRect.Width, subjectRect.Height)
 	subjectCopy.Rotation = subject.AbsoluteRotation
-	subjectCopy.Position = subjectAABBOffset
-	subjectCopy.Parent = boundingFrame
+	subjectCopy.Position = UDim2.fromOffset(subjectRect.Min.X - aabbRect.Min.X, subjectRect.Min.Y - aabbRect.Min.Y)
+	subjectCopy.Parent = folder
 
 	return boundingFrame
 end
