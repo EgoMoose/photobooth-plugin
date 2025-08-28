@@ -3,6 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.8.3]
+### Fixed
+- Inherit ZIndexBehavior from nearest layer collector when capturing UI
+
 ## [0.8.2]
 ### Fixed
 - Add support for Roblox's UI styling feature when capturing UI
