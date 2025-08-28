@@ -68,10 +68,14 @@ function UIBoundsClass._createSurface(self: UIBounds, parent: Instance)
 	surfacePart.Size = Vector3.new(aspect, 1, 1)
 	surfacePart.Parent = parent
 
+	local layerCollector = self.subject:FindFirstAncestorWhichIsA("LayerCollector")
+	local zIndexBehavior = if layerCollector then layerCollector.ZIndexBehavior else Enum.ZIndexBehavior.Sibling
+
 	local surfaceGui = Instance.new("SurfaceGui")
 	surfaceGui.AlwaysOnTop = true
 	surfaceGui.Face = Enum.NormalId.Back
 	surfaceGui.Name = "UIBounds"
+	surfaceGui.ZIndexBehavior = zIndexBehavior
 	surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
 	surfaceGui.CanvasSize = viewportSize * self.scale
 	surfaceGui.Adornee = surfacePart
