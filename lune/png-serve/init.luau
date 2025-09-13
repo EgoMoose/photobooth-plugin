@@ -3,6 +3,7 @@
 local fs = require("@lune/fs")
 local net = require("@lune/net")
 local serde = require("@lune/serde")
+local process = require("@lune/process")
 
 local PngEncoder = require("@self/png-encoder")
 local Constants = require("@root/src/Constants")
@@ -15,12 +16,8 @@ type ImageJSON = {
 }
 
 local function relativePath(path: string)
-	local root = debug.info(2, "s"):sub(10, -3):gsub("\\", "/")
+	local root = tostring(debug.info(2, "s"):gsub("\\", "/"))
 	local splitRoot = string.split(root, "/")
-
-	if not fs.isDir(table.concat(splitRoot, "/")) then
-		table.remove(splitRoot)
-	end
 
 	for _, step in path:split("/") do
 		local onlyDots = step:match("[%.]+") == step
@@ -33,7 +30,8 @@ local function relativePath(path: string)
 		end
 	end
 
-	return table.concat(splitRoot, "/")
+	local absPath = table.concat(splitRoot, "/")
+	return "." .. absPath:sub(#process.cwd)
 end
 
 local function processPng(request: net.ServeRequest): net.ServeResponse
