@@ -13,14 +13,14 @@ local FreeDrag = require(script.FreeDrag)
 
 export type Props = {
 	OnMinimize: () -> ()?,
-	OnCapture: (Rect) -> (),
+	OnCapture: (Rect) -> (boolean, string?),
 	FocusLenseSizeRef: { current: Vector2? },
 	Disabled: boolean,
 }
 
 type ActionBarProps = {
 	OnMinimize: () -> ()?,
-	OnCapture: (Rect) -> (),
+	OnCapture: (Rect) -> (boolean, string?),
 	IsDragging: boolean,
 	ContainerSize: Vector2,
 	Disabled: boolean,
@@ -34,6 +34,21 @@ local function ActionBar(props: ActionBarProps)
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
 
+	local underFrameRef = React.useRef(nil)
+	local underFrameAbsPosition = Hooks.useRefProperty(underFrameRef, "AbsolutePosition", Vector2.zero)
+	local underFrameAbsSize = Hooks.useRefProperty(underFrameRef, "AbsoluteSize", Vector2.zero)
+	local underFrameBottomY = underFrameAbsPosition.Y + underFrameAbsSize.Y
+	local useUnderFrame = underFrameBottomY <= workspace.CurrentCamera.ViewportSize.Y
+
+	local shakeOffset, makeShake = Hooks.useShake()
+	local errorOffset, makeError = Hooks.useShake()
+
+	local overlayColor = React.useMemo(function()
+		return theme
+			:GetColor(Enum.StudioStyleGuideColor.MainBackground)
+			:Lerp(theme:GetColor(Enum.StudioStyleGuideColor.ErrorText), 0.2)
+	end, { theme })
+
 	-- stylua: ignore
 	local displaySize = Vector2.new(
 		math.round(scaleOS.X * props.ContainerSize.X),
@@ -46,107 +61,146 @@ local function ActionBar(props: ActionBarProps)
 	end
 
 	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
-		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 	}, {
-		Padding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, 4),
-			PaddingRight = UDim.new(0, 4),
-			PaddingTop = UDim.new(0, 4),
-			PaddingBottom = UDim.new(0, 4),
-		}),
-		Layout = React.createElement("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			FillDirection = Enum.FillDirection.Horizontal,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			HorizontalAlignment = Enum.HorizontalAlignment.Left,
-			Padding = UDim.new(0, 0),
-		}),
-
-		Icon = React.createElement("ImageLabel", {
-			Image = moveIcon.Url,
-			ImageRectSize = moveIcon.ImageRectSize,
-			ImageRectOffset = moveIcon.ImageRectOffset,
-
-			Size = UDim2.fromOffset(moveIcon.ImageRectSize.X, moveIcon.ImageRectSize.Y),
+		ShakeFrame = React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			ImageColor3 = Color3.fromRGB(102, 102, 102),
-			LayoutOrder = 1,
+			Size = UDim2.fromScale(1, 1),
+			Position = UDim2.fromOffset(shakeOffset.X, shakeOffset.Y),
+		}, {
+			Overlay = shakeOffset.Z < 1 and React.createElement("Frame", {
+				Active = false,
+				BackgroundTransparency = math.lerp(0.6, 1, shakeOffset.Z ^ 2),
+				BackgroundColor3 = overlayColor,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 2,
+			}),
+			ActionBar = React.createElement("Frame", {
+				Size = UDim2.fromScale(1, 1),
+				BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+				BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+			}, {
+				Padding = React.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 4),
+					PaddingRight = UDim.new(0, 4),
+					PaddingTop = UDim.new(0, 4),
+					PaddingBottom = UDim.new(0, 4),
+				}),
+				Layout = React.createElement("UIListLayout", {
+					SortOrder = Enum.SortOrder.LayoutOrder,
+					FillDirection = Enum.FillDirection.Horizontal,
+					VerticalAlignment = Enum.VerticalAlignment.Center,
+					HorizontalAlignment = Enum.HorizontalAlignment.Left,
+					Padding = UDim.new(0, 0),
+				}),
+
+				Icon = React.createElement("ImageLabel", {
+					Image = moveIcon.Url,
+					ImageRectSize = moveIcon.ImageRectSize,
+					ImageRectOffset = moveIcon.ImageRectOffset,
+
+					Size = UDim2.fromOffset(moveIcon.ImageRectSize.X, moveIcon.ImageRectSize.Y),
+					BackgroundTransparency = 1,
+					ImageColor3 = Color3.fromRGB(102, 102, 102),
+					LayoutOrder = 1,
+				}),
+
+				Spacing1 = React.createElement("Frame", {
+					Size = UDim2.new(0, 4, 1, 0),
+					BackgroundTransparency = 1,
+					LayoutOrder = 2,
+				}),
+
+				Label = React.createElement("TextLabel", {
+					Size = UDim2.new(1, -24 - 16 - 4 - 6 + labelWithOffset, 1, 0),
+					BackgroundTransparency = 1,
+
+					Text = `{displaySize.X} x {displaySize.Y}`,
+					TextColor3 = Color3.fromRGB(102, 102, 102),
+					TextXAlignment = Enum.TextXAlignment.Center,
+					TextYAlignment = Enum.TextYAlignment.Center,
+					TextTruncate = Enum.TextTruncate.AtEnd,
+					TextSize = 8,
+
+					LayoutOrder = 3,
+				}),
+
+				Spacing2 = React.createElement("Frame", {
+					Size = UDim2.new(0, 6, 1, 0),
+					BackgroundTransparency = 1,
+					LayoutOrder = 4,
+				}),
+
+				Minimize = props.OnMinimize and React.createElement(BaseButton, {
+					Size = UDim2.new(0, 24, 1, 0),
+
+					BackgroundColorStyle = Enum.StudioStyleGuideColor.Button,
+					BorderColorStyle = Enum.StudioStyleGuideColor.Border,
+					TextColorStyle = Enum.StudioStyleGuideColor.ButtonText,
+
+					Icon = {
+						Image = minimizeIcon.Url,
+						RectSize = minimizeIcon.ImageRectSize,
+						RectOffset = minimizeIcon.ImageRectOffset,
+
+						Size = minimizeIcon.ImageRectSize,
+						Transparency = if props.Disabled then 0.7 else 0,
+						UseThemeColor = true,
+					},
+
+					OnActivated = props.OnMinimize,
+					Disabled = props.Disabled,
+					LayoutOrder = 5,
+				}),
+
+				Spacing3 = props.OnMinimize and React.createElement("Frame", {
+					Size = UDim2.new(0, 4, 1, 0),
+					BackgroundTransparency = 1,
+					LayoutOrder = 6,
+				}),
+
+				Capture = React.createElement(StudioComponents.MainButton, {
+					Size = UDim2.new(0, 24, 1, 0),
+
+					Icon = {
+						Image = cameraIcon.Url,
+						RectSize = cameraIcon.ImageRectSize,
+						RectOffset = cameraIcon.ImageRectOffset,
+
+						Size = cameraIcon.ImageRectSize,
+						Transparency = if props.Disabled then 0.7 else 0,
+						Color = Color3.new(1, 1, 1),
+					},
+
+					OnActivated = function()
+						local success, _err = props.OnCapture(Rect.new(Vector2.zero, displaySize))
+						if not success then
+							makeShake(1, Vector2.new(7, 4), Vector2.new(4, 2))
+							makeError(1.5, Vector2.new(7, 4), Vector2.new(0, 0))
+						end
+					end,
+					Disabled = props.Disabled,
+					LayoutOrder = 7,
+				}),
+			}),
 		}),
 
-		Spacing1 = React.createElement("Frame", {
-			Size = UDim2.new(0, 4, 1, 0),
+		ErrorLabel = errorOffset.Z < 1 and React.createElement(StudioComponents.Label, {
 			BackgroundTransparency = 1,
-			LayoutOrder = 2,
-		}),
-
-		Label = React.createElement("TextLabel", {
-			Size = UDim2.new(1, -24 - 16 - 4 - 6 + labelWithOffset, 1, 0),
-			BackgroundTransparency = 1,
-
-			Text = `{displaySize.X} x {displaySize.Y}`,
-			TextColor3 = Color3.fromRGB(102, 102, 102),
+			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(0, 0, -1, -2),
+			Size = UDim2.fromScale(1, 1),
+			Text = "Error: Check the output.",
+			TextTransparency = errorOffset.Z ^ 20,
+			TextColorStyle = Enum.StudioStyleGuideColor.ErrorText,
 			TextXAlignment = Enum.TextXAlignment.Center,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			TextTruncate = Enum.TextTruncate.AtEnd,
-			TextSize = 8,
-
-			LayoutOrder = 3,
+			TextYAlignment = if useUnderFrame then Enum.TextYAlignment.Top else Enum.TextYAlignment.Bottom,
 		}),
-
-		Spacing2 = React.createElement("Frame", {
-			Size = UDim2.new(0, 6, 1, 0),
+		UnderFrame = React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			LayoutOrder = 4,
-		}),
-
-		Minimize = props.OnMinimize and React.createElement(BaseButton, {
-			Size = UDim2.new(0, 24, 1, 0),
-
-			BackgroundColorStyle = Enum.StudioStyleGuideColor.Button,
-			BorderColorStyle = Enum.StudioStyleGuideColor.Border,
-			TextColorStyle = Enum.StudioStyleGuideColor.ButtonText,
-
-			Icon = {
-				Image = minimizeIcon.Url,
-				RectSize = minimizeIcon.ImageRectSize,
-				RectOffset = minimizeIcon.ImageRectOffset,
-
-				Size = minimizeIcon.ImageRectSize,
-				Transparency = if props.Disabled then 0.7 else 0,
-				UseThemeColor = true,
-			},
-
-			OnActivated = props.OnMinimize,
-			Disabled = props.Disabled,
-			LayoutOrder = 5,
-		}),
-
-		Spacing3 = props.OnMinimize and React.createElement("Frame", {
-			Size = UDim2.new(0, 4, 1, 0),
-			BackgroundTransparency = 1,
-			LayoutOrder = 6,
-		}),
-
-		Capture = React.createElement(StudioComponents.MainButton, {
-			Size = UDim2.new(0, 24, 1, 0),
-
-			Icon = {
-				Image = cameraIcon.Url,
-				RectSize = cameraIcon.ImageRectSize,
-				RectOffset = cameraIcon.ImageRectOffset,
-
-				Size = cameraIcon.ImageRectSize,
-				Transparency = if props.Disabled then 0.7 else 0,
-				Color = Color3.new(1, 1, 1),
-			},
-
-			OnActivated = function()
-				props.OnCapture(Rect.new(Vector2.zero, displaySize))
-			end,
-			Disabled = props.Disabled,
-			LayoutOrder = 7,
+			Size = UDim2.fromScale(1, 1),
+			Position = UDim2.new(0, 0, 1, 2),
+			ref = underFrameRef,
 		}),
 	})
 end

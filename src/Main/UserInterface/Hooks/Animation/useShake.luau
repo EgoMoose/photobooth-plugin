@@ -1,4 +1,6 @@
-local RunService = game:GetService("RunService")
+--!strict
+
+local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)

@@ -39,6 +39,7 @@ local function story()
 				}, "\n"))
 				task.wait(1)
 				setIsDisabled(false)
+				return true
 			end,
 
 			FocusLenseSizeRef = focusLenseSizeRef,

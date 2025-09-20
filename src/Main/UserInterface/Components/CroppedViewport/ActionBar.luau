@@ -130,8 +130,14 @@ local function ActionBar(props: Props)
 	local underFrameBottomY = underFrameAbsPosition.Y + underFrameAbsSize.Y
 	local useUnderFrame = underFrameBottomY <= workspace.CurrentCamera.ViewportSize.Y
 
-	local shake, makeShake = Hooks.useShake()
-	local error, makeError = Hooks.useShake()
+	local shakeOffset, makeShake = Hooks.useShake()
+	local errorOffset, makeError = Hooks.useShake()
+
+	local overlayColor = React.useMemo(function()
+		return theme
+			:GetColor(Enum.StudioStyleGuideColor.MainBackground)
+			:Lerp(theme:GetColor(Enum.StudioStyleGuideColor.ErrorText), 0.2)
+	end, { theme })
 
 	local dimensionsWidthOffset = 0
 	if props.OnMaximize then
@@ -146,16 +152,14 @@ local function ActionBar(props: Props)
 	}, {
 		ShakeFrame = React.createElement("Frame", {
 			Size = UDim2.fromScale(1, 1),
-			Position = UDim2.fromOffset(shake.X, shake.Y),
+			Position = UDim2.fromOffset(shakeOffset.X, shakeOffset.Y),
 			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 		}, {
-			RedOverlay = shake.Z < 1 and React.createElement("Frame", {
+			Overlay = shakeOffset.Z < 1 and React.createElement("Frame", {
 				Active = false,
-				BackgroundTransparency = math.lerp(0.6, 1, shake.Z ^ 2),
-				BackgroundColor3 = theme
-					:GetColor(Enum.StudioStyleGuideColor.MainBackground)
-					:Lerp(theme:GetColor(Enum.StudioStyleGuideColor.ErrorText), 0.2),
+				BackgroundTransparency = math.lerp(0.6, 1, shakeOffset.Z ^ 2),
+				BackgroundColor3 = overlayColor,
 				Size = UDim2.fromScale(1, 1),
 				ZIndex = 2,
 			}),
@@ -231,12 +235,12 @@ local function ActionBar(props: Props)
 			}),
 		}),
 
-		ErrorLabel = error.Z < 1 and React.createElement(StudioComponents.Label, {
+		ErrorLabel = errorOffset.Z < 1 and React.createElement(StudioComponents.Label, {
 			BackgroundTransparency = 1,
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 8, 0, 0),
 			Size = UDim2.fromScale(1, 1),
 			Text = "Error: Check the output.",
-			TextTransparency = error.Z ^ 20,
+			TextTransparency = errorOffset.Z ^ 20,
 			TextColorStyle = Enum.StudioStyleGuideColor.ErrorText,
 			TextXAlignment = if useUnderFrame then Enum.TextXAlignment.Center else Enum.TextXAlignment.Left,
 			TextYAlignment = if useUnderFrame then Enum.TextYAlignment.Top else Enum.TextYAlignment.Center,
