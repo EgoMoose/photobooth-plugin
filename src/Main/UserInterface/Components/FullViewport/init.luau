@@ -151,60 +151,6 @@ local function ActionBar(props: ActionBarProps)
 	})
 end
 
-type HoverFadeProps = {
-	DetectionSize: UDim2,
-	HoverOnTransparency: number,
-	HoverOffTransparency: number,
-	IsDragging: boolean,
-	children: React.ReactNode,
-}
-
-local function HoverFade(props: HoverFadeProps)
-	if props.HoverOnTransparency == props.HoverOffTransparency then
-		return React.createElement(React.Fragment, nil, props.children)
-	end
-
-	local goal, setGoal = React.useBinding(props.HoverOffTransparency)
-	local transparency, setTransparency = Hooks.useSpring(goal)
-
-	React.useEffect(function()
-		if not props.IsDragging then
-			setTransparency(props.HoverOnTransparency)
-		end
-	end, { props.IsDragging })
-
-	return React.createElement("Frame", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-	}, {
-		Fade = React.createElement("CanvasGroup", {
-			Size = UDim2.fromScale(1, 1),
-			BackgroundTransparency = 1,
-			GroupTransparency = if props.IsDragging then props.HoverOnTransparency else transparency,
-		}, props.children),
-
-		Detection = React.createElement("Frame", {
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = props.DetectionSize,
-
-			BackgroundTransparency = 1,
-			ZIndex = -1,
-
-			[React.Event.InputBegan] = function(_rbx, input: InputObject)
-				if input.UserInputType == Enum.UserInputType.MouseMovement then
-					setGoal(props.HoverOnTransparency)
-				end
-			end,
-			[React.Event.InputEnded] = function(_rbx, input: InputObject)
-				if input.UserInputType == Enum.UserInputType.MouseMovement then
-					setGoal(props.HoverOffTransparency)
-				end
-			end,
-		}),
-	})
-end
-
 local function InnerBorder(props: { Thickness: number, Padding: number, Disabled: boolean, children: React.ReactNode })
 	local theme = StudioComponents.useTheme()
 
@@ -279,19 +225,12 @@ local function FullViewport(props: Props)
 
 				Disabled = props.Disabled,
 			}, {
-				HoverFade = React.createElement(HoverFade, {
-					DetectionSize = UDim2.new(1, 500, 1, 500),
-					HoverOnTransparency = 0,
-					HoverOffTransparency = 0,
+				ActionBar = React.createElement(ActionBar, {
 					IsDragging = isDragging,
-				}, {
-					ActionBar = React.createElement(ActionBar, {
-						IsDragging = isDragging,
-						ContainerSize = containerSize,
-						OnMinimize = props.OnMinimize,
-						OnCapture = props.OnCapture,
-						Disabled = props.Disabled,
-					}),
+					ContainerSize = containerSize,
+					OnMinimize = props.OnMinimize,
+					OnCapture = props.OnCapture,
+					Disabled = props.Disabled,
 				}),
 			}),
 		}),
