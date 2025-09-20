@@ -194,9 +194,10 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					Photo.Configuration.set(config)
 				end,
 				OnCapture = function(rect)
-					local captures = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
+					local captures, err = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
+					return not err, err
 				end,
 				InitialSize = initialLenseSizeRef.current,
 				FocusLenseSizeRef = focusLenseSizeRef,

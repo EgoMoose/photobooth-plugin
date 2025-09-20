@@ -18,7 +18,7 @@ type Props = {
 	OnDimensionInput: (Vector2) -> (),
 
 	OnMaximize: () -> ()?,
-	OnCapture: () -> (),
+	OnCapture: () -> (boolean, string?),
 
 	Disabled: boolean,
 }
@@ -219,10 +219,12 @@ local function ActionBar(props: Props)
 						Color = Color3.new(1, 1, 1),
 					},
 
-					--OnActivated = props.OnCapture,
 					OnActivated = function()
-						makeShake(1, Vector2.new(7, 4), Vector2.new(4, 2))
-						makeError(1.5, Vector2.new(7, 4), Vector2.new(0, 0))
+						local success, _err = props.OnCapture()
+						if not success then
+							makeShake(1, Vector2.new(7, 4), Vector2.new(4, 2))
+							makeError(1.5, Vector2.new(7, 4), Vector2.new(0, 0))
+						end
 					end,
 					Disabled = props.Disabled,
 				}),
@@ -231,7 +233,7 @@ local function ActionBar(props: Props)
 
 		ErrorLabel = error.Z < 1 and React.createElement(StudioComponents.Label, {
 			BackgroundTransparency = 1,
-			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 4, 0, 0),
+			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 8, 0, 0),
 			Size = UDim2.fromScale(1, 1),
 			Text = "Error: Check the output.",
 			TextTransparency = error.Z ^ 20,

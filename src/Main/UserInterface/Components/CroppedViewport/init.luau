@@ -47,7 +47,7 @@ local actionBarMargin = ACTION_BAR.Height + actionBarPadding
 export type Props = {
 	InitialSize: UDim2,
 	FocusLenseSizeRef: { current: Vector2? },
-	OnCapture: (Rect) -> (),
+	OnCapture: (Rect) -> (boolean, string?),
 	OnMaximize: () -> ()?,
 	Disabled: boolean,
 }
@@ -217,7 +217,7 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 
 				OnMaximize = props.OnMaximize,
 				OnCapture = function()
-					props.OnCapture(scaledLenseRect)
+					return props.OnCapture(scaledLenseRect)
 				end,
 
 				Disabled = props.Disabled,

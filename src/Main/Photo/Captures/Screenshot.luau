@@ -41,8 +41,7 @@ local function screenshot(rect: Rect?)
 	local scale = editImage.Size / viewportSize
 
 	if scale ~= Configuration.get().ScaleOS then
-		warn("OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.")
-		error("SKIP", 0)
+		error("WARN: OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.", 0)
 	end
 
 	local bilinearScale = nil --bilinearScaleContext:Use()

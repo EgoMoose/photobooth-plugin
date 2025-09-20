@@ -33,6 +33,7 @@ local function story()
 			}, "\n"))
 			task.wait(1)
 			setIsDisabled(false)
+			return true
 		end,
 
 		InitialSize = UDim2.fromScale(0.5, 0.5),

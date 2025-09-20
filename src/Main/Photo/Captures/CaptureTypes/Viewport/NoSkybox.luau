@@ -18,8 +18,7 @@ type Background = Background.Background
 
 local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
 	if Lighting:FindFirstChildWhichIsA("Atmosphere") then
-		warn("Skybox cannot be removed when Atmosphere is present.")
-		error("SKIP", 0)
+		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
 	end
 
 	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
