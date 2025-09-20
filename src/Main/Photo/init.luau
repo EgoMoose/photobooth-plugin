@@ -72,13 +72,18 @@ local function captureUI(
 	trove:Destroy()
 
 	if not success then
-		if err ~= "SKIP" then
-			error(err, 2)
+		if err then
+			if err:sub(1, 4) == "WARN" then
+				err = err:sub(7)
+				warn(err)
+			else
+				task.spawn(error, err)
+			end
 		end
 		results = {}
 	end
 
-	return results
+	return results, err
 end
 
 local function captureViewport(rect: Rect, processor: (Rect, Background.Background, Trove.Trove) -> { Image.Image })
@@ -121,13 +126,18 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	trove:Destroy()
 
 	if not success then
-		if err ~= "SKIP" then
-			error(err, 2)
+		if err then
+			if err:sub(1, 4) == "WARN" then
+				err = err:sub(7)
+				warn(err)
+			else
+				task.spawn(error, err)
+			end
 		end
 		results = {}
 	end
 
-	return results
+	return results, err
 end
 
 -- Public

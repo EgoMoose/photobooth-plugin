@@ -10,6 +10,7 @@ local useBindingState = require(script.Generic.useBindingState)
 -- Animation
 local useMotion = require(script.Animation.useMotion)
 local useSpring = require(script.Animation.useSpring)
+local useShake = require(script.Animation.useShake)
 
 -- Plugin
 local usePlugin = require(script.Plugin.usePlugin)
@@ -35,6 +36,7 @@ return {
 
 	useMotion = useMotion,
 	useSpring = useSpring,
+	useShake = useShake,
 
 	usePlugin = usePlugin,
 	usePluginMenu = usePluginMenu,

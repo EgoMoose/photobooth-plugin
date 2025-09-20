@@ -115,7 +115,7 @@ function SceneControl.apply(options: Options)
 
 	trove:Destroy()
 
-	return success, err
+	return success, err :: string?
 end
 
 function SceneControl.yieldUntilNextFrame()
