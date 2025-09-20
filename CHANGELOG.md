@@ -3,6 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.8.4]
+### Added
+- Better feedback added when an error / warn occurs while using the cropped or full viewport mode.
+
 ## [0.8.3]
 ### Fixed
 - Inherit ZIndexBehavior from nearest layer collector when capturing UI
