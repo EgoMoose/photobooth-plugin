@@ -1,6 +1,7 @@
 --!strict
 
 local Reversible = require(script.Helpers.Reversible)
+local CachelessRequire = require(script.Helpers.CachelessRequire)
 
 local Bindings = {}
 local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
@@ -24,7 +25,11 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 end
 
 Bindings.reversible = Reversible.wrap
-Bindings.execute = require(script.Helpers.Execute)
+
+function Bindings.execute(script: LuaSourceContainer)
+	assert(game:GetService("CoreGui"), "This should only be run in the command line.")
+	return CachelessRequire.execute(script)
+end
 
 function Bindings.getVersion(): string
 	return invokeBinding("getVersion")
