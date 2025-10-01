@@ -28,7 +28,7 @@ Bindings.reversible = Reversible.wrap
 
 function Bindings.execute(script: LuaSourceContainer)
 	assert(game:GetService("CoreGui"), "This should only be run in the command line.")
-	return CachelessRequire.execute(script)
+	return CachelessRequire.execute(script, {})
 end
 
 function Bindings.getVersion(): string

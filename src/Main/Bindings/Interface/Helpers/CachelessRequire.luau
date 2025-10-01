@@ -34,7 +34,7 @@ local function getExecutionCallback(script: LuaSourceContainer, params: { string
 	return callback
 end
 
-local function execute(root: LuaSourceContainer, env: { [string]: any })
+function CachelessRequire.execute(root: LuaSourceContainer, env: { [string]: any })
 	assert(typeof(root) == "Instance" and root:IsA("LuaSourceContainer"), "Not a LuaSourceContainer.")
 
 	local nEnv = 0
@@ -57,10 +57,6 @@ local function execute(root: LuaSourceContainer, env: { [string]: any })
 	end
 
 	return getExecutionCallback(root, params)(root, import, table.unpack(args, 1, nEnv))
-end
-
-function CachelessRequire.execute(root: LuaSourceContainer)
-	return execute(root, {})
 end
 
 return CachelessRequire
