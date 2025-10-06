@@ -4,9 +4,10 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
+local Types = require(pluginRoot.Main.Bindings.Interface.Types)
+
 local Configuration = require(script.Parent.Configuration)
 local Composers = require(script.Composers)
-local Types = require(script.Types)
 
 -- Private
 
