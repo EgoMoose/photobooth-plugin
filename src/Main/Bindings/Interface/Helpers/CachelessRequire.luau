@@ -4,6 +4,8 @@ local ScriptEditorService = game:GetService("ScriptEditorService") :: ScriptEdit
 
 local CachelessRequire = {}
 
+-- Private
+
 local function getExecutionCallback(script: LuaSourceContainer, params: { string })
 	local tmpScript = Instance.new("ModuleScript")
 	tmpScript.Name = script.Name
@@ -34,6 +36,8 @@ local function getExecutionCallback(script: LuaSourceContainer, params: { string
 	return callback
 end
 
+-- Public
+
 function CachelessRequire.execute(root: LuaSourceContainer, env: { [string]: any })
 	assert(typeof(root) == "Instance" and root:IsA("LuaSourceContainer"), "Not a LuaSourceContainer.")
 
@@ -58,5 +62,7 @@ function CachelessRequire.execute(root: LuaSourceContainer, env: { [string]: any
 
 	return getExecutionCallback(root, params)(root, import, table.unpack(args, 1, nEnv))
 end
+
+--
 
 return CachelessRequire
