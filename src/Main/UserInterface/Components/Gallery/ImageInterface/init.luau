@@ -105,12 +105,8 @@ local function ImageInterface(props: Props)
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 			ref = leftRef,
 		}, {
-			-- UIStroke = React.createElement("UIStroke", {
-			-- 	Thickness = 1,
-			-- 	Transparency = 0,
-			-- 	Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
-			-- }),
-			SizeConstraint = React.createElement("UISizeConstraint", {
+			SizeConstraint = props.IsExpanded and React.createElement("UISizeConstraint", {
+				MinSize = Vector2.new(150, 0),
 				MaxSize = Vector2.new(200, math.huge),
 			}),
 
