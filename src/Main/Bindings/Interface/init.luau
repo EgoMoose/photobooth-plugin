@@ -12,13 +12,9 @@ export type ViewportCaptureTypes = Types.ViewportCaptureTypes
 export type UICaptureTypes = Types.UICaptureTypes
 
 local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
-	local results
-	local args = table.pack(...)
-	Reversible.critical(3, function()
-		results = table.pack(binding:Invoke(identifier, table.unpack(args)))
-	end)
-
+	local results = table.pack(binding:Invoke(identifier, ...))
 	local success = table.unpack(results, 1, 1)
+
 	if not success then
 		error(table.unpack(results, 2, 2), 2)
 	end

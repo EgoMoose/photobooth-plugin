@@ -1,31 +1,56 @@
 --!strict
 
+local SelectionService = game:GetService("Selection") :: Selection
 local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
 
-local criticalRoots = {}
+local Reversible = {}
 
-local function quickFuture<T>()
-	local result: T
-	local completed = false
+-- Private
+
+local function createRevertCameraCallback()
+	local camera = workspace.CurrentCamera :: Camera
+	local properties = {
+		CameraType = camera.CameraType,
+		CameraSubject = camera.CameraSubject,
+		FieldOfView = camera.FieldOfView,
+		CFrame = camera.CFrame,
+		Focus = camera.Focus,
+	}
+
+	return function()
+		local currentCamera = workspace.CurrentCamera :: Camera
+		currentCamera.CameraType = properties.CameraType
+		currentCamera.CameraSubject = properties.CameraSubject
+		currentCamera.FieldOfView = properties.FieldOfView
+		currentCamera.CFrame = properties.CFrame
+		currentCamera.Focus = properties.Focus
+	end
+end
+
+local function simpleFuture<T>()
+	local isComplete = false
 	local awaiting: { [thread]: boolean } = {}
+	local result: T
 
-	local function isComplete()
-		return completed
+	local function isCompleted()
+		return isComplete
 	end
 
 	local function complete(value: T)
-		if not completed then
-			completed = true
-			result = value
-			for thread, _ in awaiting do
-				task.spawn(thread)
-			end
-			awaiting = {}
+		assert(not isComplete, "Already completed")
+
+		isComplete = true
+		result = value
+
+		local threads = awaiting
+		awaiting = {}
+		for thread, _ in threads do
+			coroutine.resume(thread)
 		end
 	end
 
 	local function expect()
-		if not completed then
+		if not isCompleted then
 			local thread = coroutine.running()
 			awaiting[thread] = true
 			coroutine.yield()
@@ -34,108 +59,77 @@ local function quickFuture<T>()
 	end
 
 	return {
-		isComplete = isComplete,
+		isCompleted = isCompleted,
 		complete = complete,
 		expect = expect,
 	}
 end
 
-local function copyCurrentCamera()
-	local currentCamera = workspace.CurrentCamera :: Camera
-	local archivable = currentCamera.Archivable
-	currentCamera.Archivable = true
-	local copy = currentCamera:Clone()
-	currentCamera.Archivable = archivable
-	copy.Archivable = archivable
-	return copy
-end
+-- Public
 
-local function critical(level: number, callback: () -> ())
-	local stack = level
-	local rootCallback: (() -> ())?
-	while not rootCallback do
-		stack = stack + 1
-		local potentialCallback = debug.info(stack, "f")
-		if not potentialCallback then
-			break
-		end
-		rootCallback = if criticalRoots[potentialCallback] then potentialCallback else nil
-	end
-
-	if rootCallback then
-		local future = quickFuture()
-		criticalRoots[rootCallback] = future
-		task.spawn(function()
-			callback()
-			future.complete(nil)
-		end)
-		future.expect()
-	else
-		callback()
-	end
-end
-
-local function wrap(callback: () -> ())
-	criticalRoots[callback] = quickFuture()
-
-	local cameraCopy = copyCurrentCamera()
+function Reversible.wrap(callback: () -> ())
+	local selection = SelectionService:Get()
+	local revertCamera = createRevertCameraCallback()
 	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_bindings", "Photobooth"))
 
-	local callbackFuture = quickFuture()
-	local finishedFuture = quickFuture()
-
-	local success: boolean, err: string?
-	local thread = task.spawn(function()
-		success, err = pcall(function()
+	local callbackFuture = simpleFuture()
+	local callbackThread = task.spawn(function()
+		local success, err = pcall(function()
 			callback()
 		end)
-		callbackFuture.complete(nil)
-	end)
 
-	local hasCancelled = false
-	local function cancel()
-		if not hasCancelled and not callbackFuture.isComplete() then
-			hasCancelled = true
-
-			while criticalRoots[callback].isComplete() do
-				criticalRoots[callback].expect()
-			end
-
-			coroutine.close(thread)
-			success, err = false, "Cancelled"
-			callbackFuture.complete(nil)
-		end
-	end
-
-	local function expectResult()
-		finishedFuture.expect()
-		return success, err
-	end
-
-	task.spawn(function()
-		callbackFuture.expect()
 		if success then
 			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
-			cameraCopy:Destroy()
-		else
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
-
-			local camera = workspace.CurrentCamera :: Camera
-			camera.CameraType = cameraCopy.CameraType
-			camera.CameraSubject = cameraCopy.CameraSubject
-			camera.FieldOfView = cameraCopy.FieldOfView
-			camera.CFrame = cameraCopy.CFrame
-			camera.Focus = cameraCopy.Focus
 		end
 
-		criticalRoots[callback] = nil
-		finishedFuture.complete(nil)
+		callbackFuture.complete({
+			success = success,
+			err = err,
+		})
 	end)
 
-	return expectResult, cancel
+	local alreadyCalled = false
+	local function undo()
+		if not alreadyCalled then
+			alreadyCalled = true
+
+			if not callbackFuture.isCompleted() then
+				-- wait until the callback thread is suspended so we can cancel it
+				while coroutine.status(callbackThread) ~= "suspended" do
+					task.wait()
+				end
+
+				-- cancel the thread before reverting
+				coroutine.close(callbackThread)
+				callbackFuture.complete({
+					success = false,
+					err = "Cancelled",
+				})
+			end
+
+			local result = callbackFuture.expect()
+
+			if not result.success then
+				-- finish recording w/ cancel arg which will undo everything up to when the recording started
+				ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+
+				-- for some reason when cancelling studio selects a lot of random stuff in the explorer
+				SelectionService:Set(selection)
+
+				-- manually reset camera properties b/c change history service doesn't seem to work w/ cameras
+				revertCamera()
+			end
+		end
+	end
+
+	local function expect()
+		local result = callbackFuture.expect()
+		return result.success, result.err
+	end
+
+	return expect, undo
 end
 
-return {
-	critical = critical,
-	wrap = wrap,
-}
+--
+
+return Reversible
