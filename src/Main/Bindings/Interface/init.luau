@@ -1,22 +1,20 @@
 --!strict
 
+local Types = require(script.Types)
+
 local Reversible = require(script.Helpers.Reversible)
 local CachelessRequire = require(script.Helpers.CachelessRequire)
 
 local Bindings = {}
 local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
 
-export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
-export type UICaptureTypes = "NoBackground" | "AlphaMask"
+export type ViewportCaptureTypes = Types.ViewportCaptureTypes
+export type UICaptureTypes = Types.UICaptureTypes
 
 local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
-	local results
-	local args = table.pack(...)
-	Reversible.critical(3, function()
-		results = table.pack(binding:Invoke(identifier, table.unpack(args)))
-	end)
-
+	local results = table.pack(binding:Invoke(identifier, ...))
 	local success = table.unpack(results, 1, 1)
+
 	if not success then
 		error(table.unpack(results, 2, 2), 2)
 	end

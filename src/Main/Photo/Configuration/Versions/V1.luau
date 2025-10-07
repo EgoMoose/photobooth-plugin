@@ -3,8 +3,7 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Sift = require(pluginRoot.Packages.Sift)
 
-local photoRoot = script:FindFirstAncestor("Photo")
-local CapturesTypes = require(photoRoot.Captures.Types)
+local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 
 local ConfigurationFormatV1 = {}
 
@@ -17,10 +16,10 @@ export type Configuration = {
 
 	-- Viewport
 	IsFullscreen: boolean,
-	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
+	ViewportCaptureType: Types.ViewportCaptureTypes,
 
 	-- User Interface
-	UserInterfaceCaptureType: CapturesTypes.UICaptureTypes,
+	UserInterfaceCaptureType: Types.UICaptureTypes,
 }
 
 export type Serialized = {
@@ -30,10 +29,10 @@ export type Serialized = {
 	GalleryListExpanded: boolean,
 
 	-- Viewport
-	ViewportCaptureType: CapturesTypes.ViewportCaptureTypes,
+	ViewportCaptureType: Types.ViewportCaptureTypes,
 
 	-- User Interface
-	UserInterfaceCaptureType: CapturesTypes.UICaptureTypes,
+	UserInterfaceCaptureType: Types.UICaptureTypes,
 }
 
 -- Public
