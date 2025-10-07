@@ -111,6 +111,7 @@ local function ImageInterface(props: Props)
 			-- 	Color = theme:GetColor(Enum.StudioStyleGuideColor.Border),
 			-- }),
 			SizeConstraint = React.createElement("UISizeConstraint", {
+				MinSize = Vector2.new(150, 0),
 				MaxSize = Vector2.new(200, math.huge),
 			}),
 
