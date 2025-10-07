@@ -4,7 +4,6 @@ local AssetService = game:GetService("AssetService") :: AssetService
 local CaptureService = game:GetService("CaptureService") :: CaptureService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Context = require(pluginRoot.Utilities.Context)
 local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
 local Constants = require(pluginRoot.Constants)
@@ -15,8 +14,6 @@ local Configuration = require(photoRoot.Configuration)
 local Screenshot = {}
 
 local ALLOW_FULLSCREEN = true
-
-local _bilinearScaleContext = Context.new(nil :: Vector2?)
 
 -- Private
 
@@ -42,15 +39,6 @@ local function screenshot(rect: Rect?)
 
 	if scale ~= Configuration.get().ScaleOS then
 		error("WARN: OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.", 0)
-	end
-
-	local bilinearScale = nil --bilinearScaleContext:Use()
-	if bilinearScale then
-		editImage:DrawImageTransformed(Vector2.zero, bilinearScale, 0, editImage, {
-			CombineType = Enum.ImageCombineType.Overwrite,
-			SamplingMode = Enum.ResamplerMode.Default, -- Bilinear Interpolation
-			PivotPoint = Vector2.zero,
-		})
 	end
 
 	local img = Image.fromEditableImage(editImage, rect)

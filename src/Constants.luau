@@ -4,9 +4,6 @@
 -- so do not use roblox data types
 
 return {
-	ServeEnabled = false,
-	ServePort = 1816, -- Camera invention date!
-
 	ShowFullscreenActionBarButton = true,
 
 	TileHighResImagesEnabled = true,
