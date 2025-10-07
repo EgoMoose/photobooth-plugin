@@ -8,18 +8,18 @@ local Reversible = {}
 -- Private
 
 local function simpleFuture<T>()
-	local isComplete = false
-	local awaiting: { [thread]: boolean } = {}
 	local result: T
+	local completed = false
+	local awaiting: { [thread]: boolean } = {}
 
 	local function isCompleted()
-		return isComplete
+		return completed
 	end
 
-	local function complete(value: T)
-		assert(not isComplete, "Already completed")
+	local function resolve(value: T)
+		assert(not completed, "Already completed")
 
-		isComplete = true
+		completed = true
 		result = value
 
 		local threads = awaiting
@@ -30,7 +30,7 @@ local function simpleFuture<T>()
 	end
 
 	local function expect()
-		if not isCompleted then
+		if not completed then
 			local thread = coroutine.running()
 			awaiting[thread] = true
 			coroutine.yield()
@@ -40,7 +40,7 @@ local function simpleFuture<T>()
 
 	return {
 		isCompleted = isCompleted,
-		complete = complete,
+		resolve = resolve,
 		expect = expect,
 	}
 end
@@ -78,7 +78,15 @@ function Reversible.wrap(callback: () -> ())
 			callback()
 		end)
 
-		callbackFuture.complete({
+		if success then
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
+		else
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+			SelectionService:Set(selection)
+			revertCamera()
+		end
+
+		callbackFuture.resolve({
 			success = success,
 			err = err,
 		})
@@ -90,28 +98,21 @@ function Reversible.wrap(callback: () -> ())
 			alreadyCalled = true
 
 			if not callbackFuture.isCompleted() then
-				-- wait until the callback thread is suspended so we can cancel it
 				while coroutine.status(callbackThread) ~= "suspended" do
 					task.wait()
 				end
 
-				-- cancel the thread
 				coroutine.close(callbackThread)
 
 				if not callbackFuture.isCompleted() then
-					callbackFuture.complete({
+					ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+					SelectionService:Set(selection)
+					revertCamera()
+
+					callbackFuture.resolve({
 						success = false,
 						err = "Cancelled",
 					})
-
-					-- finish recording w/ cancel arg which will undo everything up to when the recording started
-					ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
-
-					-- for some reason when cancelling studio selects a lot of random stuff in the explorer
-					SelectionService:Set(selection)
-
-					-- manually reset camera properties b/c change history service doesn't seem to work w/ cameras
-					revertCamera()
 				end
 			end
 		end
