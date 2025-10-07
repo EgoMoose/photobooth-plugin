@@ -16,7 +16,6 @@ local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
 local Background = require(script.Tools.Background)
-local PngServe = require(script.Tools.PngServe)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
@@ -155,18 +154,6 @@ end
 
 function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 	return captureViewport(rect, Captures.Viewport.Processors[captureType])
-end
-
-function Photo.serve(port: number, serving: { { name: string, img: Image.Image } })
-	local successCount = 0
-	local serveCallback = PngServe.create(port)
-	for _, target in serving do
-		local result = serveCallback(target.name, target.img)
-		if result:expect() then
-			successCount = successCount + 1
-		end
-	end
-	return successCount
 end
 
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
