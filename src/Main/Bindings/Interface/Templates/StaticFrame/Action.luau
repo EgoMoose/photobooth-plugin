@@ -88,7 +88,7 @@ end
 
 validate()
 
-local expect, _undo = Photobooth.reversible(function()
+local expect = Photobooth.reversible(function()
 	local results = capture()
 	results.Name = DateTime.now():ToIsoDate()
 	results.Archivable = false

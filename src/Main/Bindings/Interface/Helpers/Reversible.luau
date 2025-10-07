@@ -7,26 +7,6 @@ local Reversible = {}
 
 -- Private
 
-local function createRevertCameraCallback()
-	local camera = workspace.CurrentCamera :: Camera
-	local properties = {
-		CameraType = camera.CameraType,
-		CameraSubject = camera.CameraSubject,
-		FieldOfView = camera.FieldOfView,
-		CFrame = camera.CFrame,
-		Focus = camera.Focus,
-	}
-
-	return function()
-		local currentCamera = workspace.CurrentCamera :: Camera
-		currentCamera.CameraType = properties.CameraType
-		currentCamera.CameraSubject = properties.CameraSubject
-		currentCamera.FieldOfView = properties.FieldOfView
-		currentCamera.CFrame = properties.CFrame
-		currentCamera.Focus = properties.Focus
-	end
-end
-
 local function simpleFuture<T>()
 	local isComplete = false
 	local awaiting: { [thread]: boolean } = {}
@@ -65,6 +45,26 @@ local function simpleFuture<T>()
 	}
 end
 
+local function createRevertCameraCallback()
+	local camera = workspace.CurrentCamera :: Camera
+	local properties = {
+		CameraType = camera.CameraType,
+		CameraSubject = camera.CameraSubject,
+		FieldOfView = camera.FieldOfView,
+		CFrame = camera.CFrame,
+		Focus = camera.Focus,
+	}
+
+	return function()
+		local currentCamera = workspace.CurrentCamera :: Camera
+		currentCamera.CameraType = properties.CameraType
+		currentCamera.CameraSubject = properties.CameraSubject
+		currentCamera.FieldOfView = properties.FieldOfView
+		currentCamera.CFrame = properties.CFrame
+		currentCamera.Focus = properties.Focus
+	end
+end
+
 -- Public
 
 function Reversible.wrap(callback: () -> ())
@@ -78,10 +78,6 @@ function Reversible.wrap(callback: () -> ())
 			callback()
 		end)
 
-		if success then
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
-		end
-
 		callbackFuture.complete({
 			success = success,
 			err = err,
@@ -89,7 +85,7 @@ function Reversible.wrap(callback: () -> ())
 	end)
 
 	local alreadyCalled = false
-	local function undo()
+	local function cancel()
 		if not alreadyCalled then
 			alreadyCalled = true
 
@@ -99,25 +95,24 @@ function Reversible.wrap(callback: () -> ())
 					task.wait()
 				end
 
-				-- cancel the thread before reverting
+				-- cancel the thread
 				coroutine.close(callbackThread)
-				callbackFuture.complete({
-					success = false,
-					err = "Cancelled",
-				})
-			end
 
-			local result = callbackFuture.expect()
+				if not callbackFuture.isCompleted() then
+					callbackFuture.complete({
+						success = false,
+						err = "Cancelled",
+					})
 
-			if not result.success then
-				-- finish recording w/ cancel arg which will undo everything up to when the recording started
-				ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+					-- finish recording w/ cancel arg which will undo everything up to when the recording started
+					ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
 
-				-- for some reason when cancelling studio selects a lot of random stuff in the explorer
-				SelectionService:Set(selection)
+					-- for some reason when cancelling studio selects a lot of random stuff in the explorer
+					SelectionService:Set(selection)
 
-				-- manually reset camera properties b/c change history service doesn't seem to work w/ cameras
-				revertCamera()
+					-- manually reset camera properties b/c change history service doesn't seem to work w/ cameras
+					revertCamera()
+				end
 			end
 		end
 	end
@@ -127,7 +122,7 @@ function Reversible.wrap(callback: () -> ())
 		return result.success, result.err
 	end
 
-	return expect, undo
+	return expect, cancel
 end
 
 --
