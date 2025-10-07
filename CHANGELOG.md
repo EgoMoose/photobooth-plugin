@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changes
 - Removed a lot of dead code
 - Binding helpers have been revamped / cleaned up
+- Multi-image selection tab now has a min size constraint
 
 ## [0.8.4]
 ### Added
