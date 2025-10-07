@@ -8,8 +8,6 @@ local UserInterface = require(pluginRoot.Main.UserInterface)
 local Bindings = require(pluginRoot.Main.Bindings)
 local Photo = require(pluginRoot.Main.Photo)
 
-local Constants = require(pluginRoot.Constants)
-
 local Plugin = {}
 
 local DISPLAY_SCALE_WARNING = false
@@ -66,10 +64,6 @@ function Plugin.build(plugin: Plugin)
 	UserInterface.mountCaptureViewport(plugin, toolbar)
 	UserInterface.mountCaptureUI(plugin, toolbar)
 	UserInterface.mountGallery(plugin, toolbar)
-
-	if Constants.ServeEnabled then
-		UserInterface.mountServePng(plugin, toolbar)
-	end
 
 	Bindings.setup(plugin)
 
