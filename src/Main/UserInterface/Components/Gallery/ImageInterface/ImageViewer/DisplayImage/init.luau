@@ -141,7 +141,7 @@ local function DisplayImage(props: Props)
 			}, {
 				Checkerboard = props.BackgroundType == "Checkerboard" and React.createElement("ImageLabel", {
 					BackgroundTransparency = 1,
-					Image = "rbxassetid://6032311304",
+					Image = Icons.misc.checkerboard,
 					ScaleType = Enum.ScaleType.Tile,
 					TileSize = UDim2.fromOffset(50, 50),
 					Size = UDim2.new(1, 100, 1, 100),
