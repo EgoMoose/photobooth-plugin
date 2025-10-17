@@ -69,7 +69,16 @@ local function StoryTheme(props: {
 	})
 end
 
-local function createStory(component: React.FC<any>)
+local function readFlipbookTheme(screenFrame: Frame)
+	local color = screenFrame:GetStyled("BackgroundColor3") :: Color3
+	if color == Color3.new(1, 1, 1) then
+		return settings().Studio:GetAvailableThemes()[1]
+	else
+		return settings().Studio:GetAvailableThemes()[2]
+	end
+end
+
+local function createSplitThemeStory(component: React.FC<any>)
 	return function(props: any)
 		local order = 0
 		local function getOrder()
@@ -121,4 +130,49 @@ local function createStory(component: React.FC<any>)
 	end
 end
 
-return createStory
+local function createFlipbookStory(component: React.FC<any>)
+	return function(props: any)
+		local scroll = props.container :: ScrollingFrame
+		local screenFrame = scroll:FindFirstAncestor("Screen") :: Frame
+		local theme, setTheme = React.useState(readFlipbookTheme(screenFrame))
+
+		React.useEffect(function()
+			local prevEnabled = scroll.ScrollingEnabled
+			local prevThickness = scroll.ScrollBarThickness
+
+			scroll.ScrollingEnabled = false
+			scroll.ScrollBarThickness = 0
+
+			setTheme(readFlipbookTheme(screenFrame))
+			local connection = screenFrame:GetStyledPropertyChangedSignal("BackgroundColor3"):Connect(function()
+				setTheme(readFlipbookTheme(screenFrame))
+			end)
+
+			return function()
+				scroll.ScrollingEnabled = prevEnabled
+				scroll.ScrollBarThickness = prevThickness
+				connection:Disconnect()
+			end
+		end, {})
+
+		return React.createElement(StudioComponents.PluginProvider, {
+			Plugin = GetStoryPlugin(),
+		}, {
+			Provider = React.createElement(StudioComponents.ThemeContext.Provider, {
+				value = theme,
+			}, {
+				Container = React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.fromScale(1, 1),
+				}, {
+					Component = React.createElement(component, props),
+				}),
+			}),
+		})
+	end
+end
+
+return {
+	split = createSplitThemeStory,
+	flipbook = createFlipbookStory,
+}

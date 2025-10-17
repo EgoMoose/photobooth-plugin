@@ -10,6 +10,7 @@
         "cframe",
         "deque",
         "egomoose",
+        "flipbook",
         "fromstring",
         "getfenv",
         "gmatch",

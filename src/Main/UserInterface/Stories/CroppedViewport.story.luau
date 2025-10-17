@@ -43,5 +43,5 @@ local function story()
 end
 
 return {
-	story = CreateStory(story),
+	story = CreateStory.split(story),
 }
