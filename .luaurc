@@ -1,6 +1,6 @@
 {
   "aliases": {
-    "lune": "~/.lune/.typedefs/0.10.2/",
+    "lune": "~/.lune/.typedefs/0.10.4/",
     "root": "."
   }
 }
