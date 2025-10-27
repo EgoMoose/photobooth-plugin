@@ -8,18 +8,14 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
-local Configuration = require(script.Configuration)
-local Flags = require(script.Flags)
-
 local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
+local State = require(script.State)
 
 local Background = require(script.Tools.Background)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
-
-export type Configuration = Configuration.Configuration
 
 local Photo = {}
 local viewportApp: LayerCollector?
@@ -27,12 +23,17 @@ local viewportApp: LayerCollector?
 -- Private
 
 local function createIsCapturingTrove()
-	assert(not Flags.get("isCapturing"), "A capture is already in progress.")
+	assert(not State.read().temporary.isCapturing, "A capture is already in progress.")
 
-	Flags.set("isCapturing", true)
+	State.mutate(function(state)
+		state.temporary.isCapturing = true
+	end)
+
 	local trove = Trove.new()
 	trove:Add(function()
-		Flags.set("isCapturing", false)
+		State.mutate(function(state)
+			state.temporary.isCapturing = false
+		end)
 	end)
 
 	return trove
@@ -46,7 +47,7 @@ local function captureUI(
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
-	local uiBounds = UIBounds.new(CoreGui, subject, Configuration.get().ScaleOS)
+	local uiBounds = UIBounds.new(CoreGui, subject, State.read().temporary.scaleOS)
 	local uiHider = UIHider.new({ uiBounds.surfaceGui })
 
 	trove:Add(function()
@@ -93,7 +94,7 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	if
 		viewportApp
 		and not Screenshot.isFullscreenRect(rect)
-		and Screenshot.isUnitScaleOS(Configuration.get().ScaleOS)
+		and Screenshot.isUnitScaleOS(State.read().temporary.scaleOS)
 	then
 		table.insert(exclusions, viewportApp)
 	end
@@ -141,8 +142,7 @@ end
 
 -- Public
 
-Photo.Flags = Flags
-Photo.Configuration = Configuration
+Photo.State = State
 
 function Photo.setViewportApp(app: LayerCollector?)
 	viewportApp = app

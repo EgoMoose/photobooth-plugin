@@ -72,8 +72,8 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 	end)
 
 	local clickConnection = captureButton.Click:Connect(function()
-		if selection and not Photo.Flags.get("isCapturing") then
-			local captures = Photo.captureUI(selection, Photo.Configuration.get().UserInterfaceCaptureType)
+		if selection and not Photo.State.read().temporary.isCapturing then
+			local captures = Photo.captureUI(selection, Photo.State.read().temporary.uiCaptureType)
 			local exported = Photo.export(captures, StarterGui)
 			SelectionService:Set(exported :: any)
 		end

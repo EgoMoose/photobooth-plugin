@@ -11,7 +11,6 @@ local Photo = require(pluginRoot.Main.Photo)
 local Plugin = {}
 
 local DISPLAY_SCALE_WARNING = false
-local PLUGIN_SAVED_KEY = "egomoose_photobooth_save"
 
 -- Private
 
@@ -31,10 +30,9 @@ end
 
 local function updateScaleOS()
 	local scale = Screenshot.calculateScaleOS()
-
-	local configuration = table.clone(Photo.Configuration.get())
-	configuration.ScaleOS = scale
-	Photo.Configuration.set(configuration)
+	Photo.State.mutate(function(state)
+		state.temporary.scaleOS = scale
+	end)
 
 	if DISPLAY_SCALE_WARNING and not (scale.X == 1 and scale.Y == 1) then
 		warn(table.concat({
@@ -66,18 +64,6 @@ function Plugin.build(plugin: Plugin)
 	UserInterface.mountGallery(plugin, toolbar)
 
 	Bindings.setup(plugin)
-
-	local _success, _err = pcall(function()
-		local serializedWrapped = plugin:GetSetting(PLUGIN_SAVED_KEY)
-		local deserializedConfiguration = Photo.Configuration.deserialize(serializedWrapped)
-		Photo.Configuration.set(deserializedConfiguration)
-	end)
-
-	plugin.Unloading:Connect(function()
-		local currentConfiguration = Photo.Configuration.get()
-		local serializedWrapped = Photo.Configuration.serialize(currentConfiguration)
-		plugin:SetSetting(PLUGIN_SAVED_KEY, serializedWrapped)
-	end)
 end
 
 return Plugin
