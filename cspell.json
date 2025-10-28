@@ -41,6 +41,7 @@
         "setmetatable",
         "skyboxes",
         "Titlebar",
+        "toboolean",
         "tonemapper",
         "Topbar",
         "udim",

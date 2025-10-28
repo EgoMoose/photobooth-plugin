@@ -17,6 +17,10 @@ export type Deserialized = {
 	galleryListExpanded: boolean,
 }
 
+local function toboolean(bool: boolean)
+	return if typeof(bool) == "boolean" then bool else nil
+end
+
 SaveFormatV1.version = 1
 
 function SaveFormatV1.default(): Deserialized
@@ -41,9 +45,9 @@ end
 
 function SaveFormatV1.deserialize(serialized: Serialized): Deserialized
 	return Sift.Dictionary.mergeDeep(SaveFormatV1.default(), {
-		alphaBleedingEnabled = not not serialized.alphaBleedingEnabled,
-		bindingsEnabled = not not serialized.bindingsEnabled,
-		galleryListExpanded = not not serialized.galleryListExpanded,
+		alphaBleedingEnabled = toboolean(serialized.alphaBleedingEnabled),
+		bindingsEnabled = toboolean(serialized.bindingsEnabled),
+		galleryListExpanded = toboolean(serialized.galleryListExpanded),
 	})
 end
 

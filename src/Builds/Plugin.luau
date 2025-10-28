@@ -57,6 +57,8 @@ function Plugin.build(plugin: Plugin)
 		updateScaleOS()
 	end)
 
+	Photo.State.setup(plugin)
+
 	local toolbar = plugin:CreateToolbar("Photobooth")
 
 	UserInterface.mountCaptureViewport(plugin, toolbar)

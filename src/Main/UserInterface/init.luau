@@ -153,12 +153,6 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 				setIsEnabled(not isEnabled)
 			end))
 
-			trove:Add(Photo.State.onChanged(function(path)
-				if path[1] == "temporary" and path[2] == "isFullscreen" then
-					updateInitialLenseSizeRef()
-				end
-			end))
-
 			return function()
 				trove:Destroy()
 			end
