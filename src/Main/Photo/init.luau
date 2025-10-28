@@ -17,6 +17,8 @@ local Background = require(script.Tools.Background)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
+export type State = State.State
+
 local Photo = {}
 local viewportApp: LayerCollector?
 

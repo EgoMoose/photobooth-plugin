@@ -76,9 +76,9 @@ end
 -- Public
 
 function Bindings.setup(plugin: Plugin)
-	setEnabled(Photo.Configuration.get().BindingsEnabled)
-	local disconnect = Photo.Configuration.onChanged(function()
-		setEnabled(Photo.Configuration.get().BindingsEnabled)
+	setEnabled(Photo.State.read().saved.bindingsEnabled)
+	local disconnect = Photo.State.onChanged(function()
+		setEnabled(Photo.State.read().saved.bindingsEnabled)
 	end)
 
 	plugin.Unloading:Connect(function()

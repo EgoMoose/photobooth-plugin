@@ -12,7 +12,7 @@ local typechecker = gt.fn(
 )
 
 local function callback()
-	return Photo.Configuration.get().ScaleOS
+	return Photo.State.read().temporary.scaleOS
 end
 
 return {

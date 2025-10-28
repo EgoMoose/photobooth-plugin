@@ -39,7 +39,7 @@ function SaveFormatV1.serialize(deserialized: Deserialized): Serialized
 	}
 end
 
-function SaveFormatV1.deserialize(serialized: Serialized): Configuration
+function SaveFormatV1.deserialize(serialized: Serialized): Deserialized
 	return Sift.Dictionary.mergeDeep(SaveFormatV1.default(), {
 		alphaBleedingEnabled = not not serialized.alphaBleedingEnabled,
 		bindingsEnabled = not not serialized.bindingsEnabled,

@@ -9,7 +9,7 @@ local Image = require(pluginRoot.Utilities.Image)
 local Constants = require(pluginRoot.Constants)
 
 local photoRoot = script:FindFirstAncestor("Photo")
-local Configuration = require(photoRoot.Configuration)
+local State = require(photoRoot.State)
 
 local Screenshot = {}
 
@@ -37,7 +37,7 @@ local function screenshot(rect: Rect?)
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
 	local scale = editImage.Size / viewportSize
 
-	if scale ~= Configuration.get().ScaleOS then
+	if scale ~= State.read().temporary.scaleOS then
 		error("WARN: OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.", 0)
 	end
 
@@ -75,7 +75,7 @@ function Screenshot.isFullscreenRect(rect: Rect)
 		return false
 	end
 
-	local scaleOS = Configuration.get().ScaleOS
+	local scaleOS = State.read().temporary.scaleOS
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
 
 	-- stylua: ignore

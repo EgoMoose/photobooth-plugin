@@ -34,6 +34,25 @@ local function readOnly<T>(tbl: T)
 	}) :: any) :: T
 end
 
+local function initState(saved: SaveVersions.Saved?)
+	if not (saved and saved.version and saved.serialized) then
+		saved = {
+			version = SaveVersions.Current.version,
+			serialized = {},
+		}
+	end
+
+	currentState = {
+		saved = SaveVersions.load(saved :: SaveVersions.Saved),
+		temporary = defaultTemporary(),
+	}
+
+	currentStateReadOnly = {
+		saved = readOnly(currentState.saved),
+		temporary = readOnly(currentState.temporary),
+	}
+end
+
 --
 
 export type State = {
@@ -97,18 +116,8 @@ end
 
 function State.setup(plugin: Plugin)
 	local _success, _err = pcall(function()
-		local serializedWrapped = plugin:GetSetting(PLUGIN_SAVED_KEY)
-		local deserialized = SaveVersions.load(serializedWrapped)
-
-		currentState = {
-			saved = deserialized,
-			temporary = defaultTemporary(),
-		}
-
-		currentStateReadOnly = {
-			saved = readOnly(currentState.saved),
-			temporary = readOnly(currentState.temporary),
-		}
+		local saved = plugin:GetSetting(PLUGIN_SAVED_KEY)
+		initState(saved)
 	end)
 
 	plugin.Unloading:Connect(function()
@@ -117,4 +126,5 @@ function State.setup(plugin: Plugin)
 	end)
 end
 
+initState(nil)
 return State

@@ -21,7 +21,7 @@ local typechecker = gt.fn(
 )
 
 local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
-	local scaleOS = Photo.Configuration.get().ScaleOS
+	local scaleOS = Photo.State.read().temporary.scaleOS
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
