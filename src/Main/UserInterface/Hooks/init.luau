@@ -19,6 +19,8 @@ local useIsLocalPlugin = require(script.Plugin.useIsLocalPlugin)
 local useHasCreateAssetPermission = require(script.Plugin.useHasCreateAssetPermission)
 
 -- Photobooth specific
+local useState = require(script.Photobooth.useState)
+local useStatePath = require(script.Photobooth.useStatePath)
 local useEditableImageInfos = require(script.Photobooth.useEditableImageInfos)
 
 export type EditableImageInfo = useEditableImageInfos.EditableImageInfo
@@ -41,5 +43,7 @@ return {
 	useIsLocalPlugin = useIsLocalPlugin,
 	useHasCreateAssetPermission = useHasCreateAssetPermission,
 
+	useState = useState,
+	useStatePath = useStatePath,
 	useEditableImageInfos = useEditableImageInfos,
 }

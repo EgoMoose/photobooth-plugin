@@ -21,6 +21,7 @@ local function defaultTemporary()
 	return {
 		isCapturing = false,
 		scaleOS = Vector2.one,
+		isFullscreen = false,
 		uiCaptureType = "NoBackground" :: Types.UICaptureTypes,
 		viewportCaptureType = "NoSkybox" :: Types.ViewportCaptureTypes,
 	}
@@ -44,7 +45,7 @@ function State.read()
 	return currentStateReadOnly
 end
 
-function State.mutate(callback: (State) -> ())
+function State.mutate(callback: (state: State) -> ())
 	local tmpMutatedKeys = {}
 	local tmpClone = table.clone(currentState.temporary)
 	local tmpProxy = setmetatable({}, {
@@ -79,24 +80,19 @@ function State.mutate(callback: (State) -> ())
 	} :: any)
 
 	for key, _ in savedMutatedKeys do
-		stateChanged:Fire(key)
+		stateChanged:Fire({ "saved", key }, currentState.saved[key], savedClone[key])
 	end
 
 	for key, _ in tmpMutatedKeys do
-		stateChanged:Fire(key)
+		stateChanged:Fire({ "temporary", key }, currentState.temporary[key], tmpClone[key])
 	end
 end
 
-function State.setTemp(key: string, value: any)
-	State.mutate(function(state)
-		state.temporary[key] = value
-	end)
-end
-
-function State.setSaved(key: string, value: any)
-	State.mutate(function(state)
-		state.saved[key] = value
-	end)
+function State.onChanged(callback: (path: { string }, new: any, prev: any) -> ())
+	local connection = stateChanged:Connect(callback)
+	return function()
+		connection:Disconnect()
+	end
 end
 
 function State.setup(plugin: Plugin)
