@@ -7,9 +7,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
 local Constants = require(pluginRoot.Constants)
-
-local photoRoot = script:FindFirstAncestor("Photo")
-local State = require(photoRoot.State)
+local State = require(pluginRoot.Main.State)
 
 local Screenshot = {}
 

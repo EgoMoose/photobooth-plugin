@@ -5,8 +5,8 @@ local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
+local State = require(pluginRoot.Main.State)
 
-local State = require(script.Parent.State)
 local Composers = require(script.Composers)
 
 -- Private

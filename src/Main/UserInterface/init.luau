@@ -18,6 +18,7 @@ local Wally = require(pluginRoot.Wally)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Hooks = require(script.Hooks)
@@ -71,8 +72,8 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 	end)
 
 	local clickConnection = captureButton.Click:Connect(function()
-		if selection and not Photo.State.read().temporary.isCapturing then
-			local captures = Photo.captureUI(selection, Photo.State.read().temporary.uiCaptureType)
+		if selection and not State.read().temporary.isCapturing then
+			local captures = Photo.captureUI(selection, State.read().temporary.uiCaptureType)
 			local exported = Photo.export(captures, StarterGui)
 			SelectionService:Set(exported :: any)
 		end
@@ -137,7 +138,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 
 		local updateInitialLenseSizeRef = React.useCallback(function()
 			local focusLenseSize = focusLenseSizeRef.current
-			if not Photo.State.read().temporary.isFullscreen and focusLenseSize then
+			if not State.read().temporary.isFullscreen and focusLenseSize then
 				initialLenseSizeRef.current = UDim2.fromOffset(focusLenseSize.X, focusLenseSize.Y)
 			end
 		end, {})
@@ -186,12 +187,12 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
 				[onFullscreenCallbackKey] = Screenshot.isFullscreenAllowed() and Constants.ShowFullscreenActionBarButton and function()
 					updateInitialLenseSizeRef()
-					Photo.State.mutate(function(state)
+					State.mutate(function(state)
 						state.temporary.isFullscreen = not state.temporary.isFullscreen
 					end)
 				end,
 				OnCapture = function(rect)
-					local captures, err = Photo.captureViewport(rect, Photo.State.read().temporary.viewportCaptureType)
+					local captures, err = Photo.captureViewport(rect, State.read().temporary.viewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 					return not err, err
@@ -281,7 +282,7 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 			and React.createElement(Gallery, {
 				IsExpanded = galleryListExpanded,
 				SetIsExpanded = function()
-					Photo.State.mutate(function(state)
+					State.mutate(function(state)
 						state.saved.galleryListExpanded = not state.saved.galleryListExpanded
 					end)
 				end,

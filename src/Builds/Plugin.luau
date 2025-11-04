@@ -7,6 +7,7 @@ local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local UserInterface = require(pluginRoot.Main.UserInterface)
 local Bindings = require(pluginRoot.Main.Bindings)
 local Photo = require(pluginRoot.Main.Photo)
+local State = require(pluginRoot.Main.State)
 
 local Plugin = {}
 
@@ -30,7 +31,7 @@ end
 
 local function updateScaleOS()
 	local scale = Screenshot.calculateScaleOS()
-	Photo.State.mutate(function(state)
+	State.mutate(function(state)
 		state.temporary.scaleOS = scale
 	end)
 
@@ -57,7 +58,7 @@ function Plugin.build(plugin: Plugin)
 		updateScaleOS()
 	end)
 
-	Photo.State.setup(plugin)
+	State.setup(plugin)
 
 	local toolbar = plugin:CreateToolbar("Photobooth")
 

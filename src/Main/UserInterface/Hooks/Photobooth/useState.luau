@@ -2,7 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
-local State = require(pluginRoot.Main.Photo.State)
+local State = require(pluginRoot.Main.State)
 
 local function useState()
 	local value, setValue = React.useState(false)

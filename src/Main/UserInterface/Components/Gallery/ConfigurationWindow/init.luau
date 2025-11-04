@@ -10,6 +10,7 @@ local Constants = require(pluginRoot.Constants)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Captures = require(pluginRoot.Main.Photo.Captures)
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
@@ -28,8 +29,8 @@ export type Props = {
 
 type GroupsProps = {
 	RootProps: Props,
-	State: Photo.State,
-	MutateState: ((Photo.State) -> ()) -> (),
+	State: State.State,
+	MutateState: ((State.State) -> ()) -> (),
 	LayoutOrder: number,
 }
 
@@ -237,7 +238,7 @@ local function ConfigurationWindow(props: Props)
 	local isLocalPlugin = Hooks.useIsLocalPlugin()
 
 	local state = Hooks.useState()
-	local mutateState = React.useCallback(Photo.State.mutate, {})
+	local mutateState = React.useCallback(State.mutate, {})
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,

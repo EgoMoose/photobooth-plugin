@@ -8,16 +8,15 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local State = require(pluginRoot.Main.State)
+
 local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
-local State = require(script.State)
 
 local Background = require(script.Tools.Background)
 local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
-
-export type State = State.State
 
 local Photo = {}
 local viewportApp: LayerCollector?
@@ -143,8 +142,6 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 end
 
 -- Public
-
-Photo.State = State
 
 function Photo.setViewportApp(app: LayerCollector?)
 	viewportApp = app
