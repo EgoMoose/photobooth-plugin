@@ -39,7 +39,7 @@ end
 local function initState(saved: SaveVersions.Saved?)
 	if not (saved and saved.version and saved.serialized) then
 		saved = {
-			version = SaveVersions.Current.version,
+			version = SaveVersions.latest.version,
 			serialized = {},
 		}
 	end
