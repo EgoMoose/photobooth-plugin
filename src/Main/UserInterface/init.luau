@@ -156,7 +156,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			return function()
 				trove:Destroy()
 			end
-		end, {})
+		end, { isEnabled })
 
 		React.useEffect(function()
 			local connection = focusAction.Triggered:Connect(function()

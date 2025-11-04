@@ -19,9 +19,11 @@ local stateChanged = Signal.new()
 
 local function defaultTemporary()
 	return {
-		isCapturing = false,
 		scaleOS = Vector2.one,
+
+		isCapturing = false,
 		isFullscreen = false,
+
 		uiCaptureType = "NoBackground" :: Types.UICaptureTypes,
 		viewportCaptureType = "NoSkybox" :: Types.ViewportCaptureTypes,
 	}
