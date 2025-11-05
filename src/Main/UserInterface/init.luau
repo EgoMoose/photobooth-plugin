@@ -243,7 +243,8 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 		Constants.DockWidgetSize.Y -- Minimum height of the floating window
 	)
 
-	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothViewer", info)
+	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothGallery", info)
+	dock.Name = "PhotoboothGallery"
 	dock.Title = "Photobooth"
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
