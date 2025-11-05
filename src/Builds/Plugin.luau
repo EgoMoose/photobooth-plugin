@@ -52,13 +52,13 @@ function Plugin.build(plugin: Plugin)
 		return
 	end
 
+	State.setup(plugin)
+
 	task.spawn(function()
 		-- the viewport size must remain unchanged for X seconds
 		waitForViewportSettled(1)
 		updateScaleOS()
 	end)
-
-	State.setup(plugin)
 
 	local toolbar = plugin:CreateToolbar("Photobooth")
 

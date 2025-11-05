@@ -63,10 +63,13 @@ export type State = {
 }
 
 function State.read()
+	assert(currentState, "State has not been initialized.")
 	return currentStateReadOnly
 end
 
 function State.mutate(callback: (state: State) -> ())
+	assert(currentState, "State has not been initialized.")
+
 	local tmpMutatedKeys = {}
 	local tmpClone = table.clone(currentState.temporary)
 	local tmpProxy = setmetatable({}, {
@@ -117,10 +120,14 @@ function State.onChanged(callback: (path: { string }, new: any, prev: any) -> ()
 end
 
 function State.setup(plugin: Plugin)
-	local _success, _err = pcall(function()
+	local success, _err = pcall(function()
 		local saved = plugin:GetSetting(PLUGIN_SAVED_KEY)
 		initState(saved)
 	end)
+
+	if not success then
+		initState(nil)
+	end
 
 	plugin.Unloading:Connect(function()
 		local saved = SaveVersions.save(currentState.saved)
@@ -128,5 +135,8 @@ function State.setup(plugin: Plugin)
 	end)
 end
 
-initState(nil)
+function State.storybook()
+	initState(nil)
+end
+
 return State
