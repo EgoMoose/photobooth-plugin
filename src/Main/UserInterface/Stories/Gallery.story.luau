@@ -66,7 +66,7 @@ local function story()
 			}),
 		},
 		["Large"] = {
-			LayoutOrder = 2,
+			LayoutOrder = 3,
 			Content = React.createElement(Widget, {
 				Size = UDim2.new(1, -30, 1, -30),
 			}),
@@ -75,5 +75,5 @@ local function story()
 end
 
 return {
-	story = CreateStory.split(story),
+	story = CreateStory.flipbook(story),
 }
