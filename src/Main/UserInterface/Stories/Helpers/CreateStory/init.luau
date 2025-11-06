@@ -31,6 +31,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 
+local IsStoryContext = require(script.IsStoryContext)
 local GetStoryPlugin = require(script.GetStoryPlugin)
 
 local themes = settings().Studio:GetAvailableThemes()
@@ -114,18 +115,22 @@ local function createSplitThemeStory(component: React.FC<any>)
 			end
 		end
 
-		return React.createElement(StudioComponents.PluginProvider, {
-			Plugin = GetStoryPlugin(),
+		return React.createElement(IsStoryContext.Provider, {
+			value = true,
 		}, {
-			Container = React.createElement("Frame", {
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, -1, 1, 0),
+			PluginProvider = React.createElement(StudioComponents.PluginProvider, {
+				Plugin = GetStoryPlugin(),
 			}, {
-				Layout = React.createElement("UIListLayout", {
-					SortOrder = Enum.SortOrder.LayoutOrder,
-					FillDirection = Enum.FillDirection.Horizontal,
-				}),
-			}, items),
+				Container = React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, -1, 1, 0),
+				}, {
+					Layout = React.createElement("UIListLayout", {
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						FillDirection = Enum.FillDirection.Horizontal,
+					}),
+				}, items),
+			}),
 		})
 	end
 end
@@ -155,17 +160,21 @@ local function createFlipbookStory(component: React.FC<any>)
 			end
 		end, {})
 
-		return React.createElement(StudioComponents.PluginProvider, {
-			Plugin = GetStoryPlugin(),
+		return React.createElement(IsStoryContext.Provider, {
+			value = true,
 		}, {
-			Provider = React.createElement(StudioComponents.ThemeContext.Provider, {
-				value = theme,
+			PluginProvider = React.createElement(StudioComponents.PluginProvider, {
+				Plugin = GetStoryPlugin(),
 			}, {
-				Container = React.createElement("Frame", {
-					BackgroundTransparency = 1,
-					Size = UDim2.fromScale(1, 1),
+				ThemeProvider = React.createElement(StudioComponents.ThemeContext.Provider, {
+					value = theme,
 				}, {
-					Component = React.createElement(component, props),
+					Container = React.createElement("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+					}, {
+						Component = React.createElement(component, props),
+					}),
 				}),
 			}),
 		})

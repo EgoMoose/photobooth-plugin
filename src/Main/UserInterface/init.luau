@@ -18,7 +18,7 @@ local Wally = require(pluginRoot.Wally)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
-local Image = require(pluginRoot.Utilities.Image)
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Hooks = require(script.Hooks)
@@ -72,8 +72,8 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 	end)
 
 	local clickConnection = captureButton.Click:Connect(function()
-		if selection and not Photo.Flags.get("isCapturing") then
-			local captures = Photo.captureUI(selection, Photo.Configuration.get().UserInterfaceCaptureType)
+		if selection and not State.read().temporary.isCapturing then
+			local captures = Photo.captureUI(selection, State.read().temporary.uiCaptureType)
 			local exported = Photo.export(captures, StarterGui)
 			SelectionService:Set(exported :: any)
 		end
@@ -121,33 +121,31 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 
 	local function ViewportApp(): React.ReactNode?
 		local isEnabled, setIsEnabled = React.useState(false)
-		local isCapturing = Hooks.usePhotoFlag("isCapturing")
-		local configuration = Hooks.usePhotoConfiguration()
+
+		local isCapturing = Hooks.useStatePath(function(state)
+			return state.temporary.isCapturing
+		end)
+
+		local isFullscreen = Hooks.useStatePath(function(state)
+			return state.temporary.isFullscreen
+		end)
 
 		local initialLenseSizeRef = React.useRef(UDim2.fromScale(0.5, 0.5))
 		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
 		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
-		local onFullscreenCallbackKey = if configuration.IsFullscreen then "OnMinimize" else "OnMaximize"
+		local onFullscreenCallbackKey = if isFullscreen then "OnMinimize" else "OnMaximize"
 
 		local updateInitialLenseSizeRef = React.useCallback(function()
 			local focusLenseSize = focusLenseSizeRef.current
-			if not configuration.IsFullscreen and focusLenseSize then
+			if not State.read().temporary.isFullscreen and focusLenseSize then
 				initialLenseSizeRef.current = UDim2.fromOffset(focusLenseSize.X, focusLenseSize.Y)
 			end
-		end, { configuration })
+		end, {})
 
 		React.useEffect(function()
 			Photo.setViewportApp(screenGuiRef.current)
 		end, { isEnabled })
-
-		React.useEffect(function()
-			return Photo.Configuration.onChanged(function()
-				if configuration.IsFullscreen ~= Photo.Configuration.get().IsFullscreen then
-					updateInitialLenseSizeRef()
-				end
-			end)
-		end, { configuration })
 
 		React.useEffect(function()
 			local trove = Trove.new()
@@ -159,7 +157,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			return function()
 				trove:Destroy()
 			end
-		end)
+		end, { isEnabled })
 
 		React.useEffect(function()
 			local connection = focusAction.Triggered:Connect(function()
@@ -186,15 +184,15 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ref = screenGuiRef,
 		}, {
-			Content = React.createElement(if configuration.IsFullscreen then FullViewport else CroppedViewport, {
+			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
 				[onFullscreenCallbackKey] = Screenshot.isFullscreenAllowed() and Constants.ShowFullscreenActionBarButton and function()
 					updateInitialLenseSizeRef()
-					local config = table.clone(Photo.Configuration.get())
-					config.IsFullscreen = not config.IsFullscreen
-					Photo.Configuration.set(config)
+					State.mutate(function(state)
+						state.temporary.isFullscreen = not state.temporary.isFullscreen
+					end)
 				end,
 				OnCapture = function(rect)
-					local captures, err = Photo.captureViewport(rect, Photo.Configuration.get().ViewportCaptureType)
+					local captures, err = Photo.captureViewport(rect, State.read().temporary.viewportCaptureType)
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 					return not err, err
@@ -245,14 +243,21 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 		Constants.DockWidgetSize.Y -- Minimum height of the floating window
 	)
 
-	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothViewer", info)
+	local dock = plugin:CreateDockWidgetPluginGui("PhotoboothGallery", info)
+	dock.Name = "PhotoboothGallery"
 	dock.Title = "Photobooth"
 	dock.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local function GalleryApp(): React.ReactNode
 		local isEnabled, setIsEnabled = React.useState(dock.Enabled)
-		local isCapturing = Hooks.usePhotoFlag("isCapturing")
-		local configuration = Hooks.usePhotoConfiguration()
+
+		local isCapturing = Hooks.useStatePath(function(state)
+			return state.temporary.isCapturing
+		end)
+
+		local galleryListExpanded = Hooks.useStatePath(function(state)
+			return state.saved.galleryListExpanded
+		end)
 
 		local backgroundType, setBackgroundType = React.useState("Checkerboard")
 
@@ -276,11 +281,11 @@ function UserInterface.mountGallery(plugin: Plugin, toolbar: PluginToolbar)
 
 		return isEnabled
 			and React.createElement(Gallery, {
-				IsExpanded = configuration.GalleryListExpanded,
+				IsExpanded = galleryListExpanded,
 				SetIsExpanded = function()
-					local config = table.clone(Photo.Configuration.get())
-					config.GalleryListExpanded = not config.GalleryListExpanded
-					Photo.Configuration.set(config)
+					State.mutate(function(state)
+						state.saved.galleryListExpanded = not state.saved.galleryListExpanded
+					end)
 				end,
 
 				BackgroundType = backgroundType,

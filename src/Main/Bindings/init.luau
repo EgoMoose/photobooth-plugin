@@ -5,6 +5,7 @@ local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local Bindings = {}
@@ -76,9 +77,9 @@ end
 -- Public
 
 function Bindings.setup(plugin: Plugin)
-	setEnabled(Photo.Configuration.get().BindingsEnabled)
-	local disconnect = Photo.Configuration.onChanged(function()
-		setEnabled(Photo.Configuration.get().BindingsEnabled)
+	setEnabled(State.read().saved.bindingsEnabled)
+	local disconnect = State.onChanged(function()
+		setEnabled(State.read().saved.bindingsEnabled)
 	end)
 
 	plugin.Unloading:Connect(function()

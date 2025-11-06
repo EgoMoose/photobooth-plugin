@@ -8,6 +8,7 @@ local SceneControl = require(pluginRoot.Main.Photo.SceneControl)
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local Camera = require(pluginRoot.Utilities.Camera)
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local captureTypeLiterals = Sift.Array.map(Captures.Viewport.Order, function(value)
@@ -21,7 +22,7 @@ local typechecker = gt.fn(
 )
 
 local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
-	local scaleOS = Photo.Configuration.get().ScaleOS
+	local scaleOS = State.read().temporary.scaleOS
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize

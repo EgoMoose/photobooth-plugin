@@ -3,7 +3,7 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local gt = require(pluginRoot.Packages.GreenTea)
 
-local Photo = require(pluginRoot.Main.Photo)
+local State = require(pluginRoot.Main.State)
 
 -- stylua: ignore
 local typechecker = gt.fn(
@@ -12,7 +12,7 @@ local typechecker = gt.fn(
 )
 
 local function callback()
-	return Photo.Configuration.get().ScaleOS
+	return State.read().temporary.scaleOS
 end
 
 return {

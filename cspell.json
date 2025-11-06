@@ -4,6 +4,7 @@
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": [
+        "__newindex",
         "Archivable",
         "cacheless",
         "cachelessly",
@@ -40,6 +41,7 @@
         "setmetatable",
         "skyboxes",
         "Titlebar",
+        "toboolean",
         "tonemapper",
         "Topbar",
         "udim",

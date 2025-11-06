@@ -5,8 +5,8 @@ local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
+local State = require(pluginRoot.Main.State)
 
-local Configuration = require(script.Parent.Configuration)
 local Composers = require(script.Composers)
 
 -- Private
@@ -20,7 +20,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 
 	local function wrapped(...: T...)
 		local results = { callback(...) }
-		if Configuration.get().AlphaBleedingEnabled then
+		if State.read().saved.alphaBleedingEnabled then
 			for i, img in results do
 				results[i] = Composers.alphaBleed(img)
 				--results[i] = Composers.fullyOpaque(results[i])
@@ -52,8 +52,8 @@ local captureTypes = {
 		AlphaMask = wrap(require(script.CaptureTypes.UserInterface.AlphaMask)),
 	},
 	Viewport = {
-		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
 		NoSkybox = wrap(require(script.CaptureTypes.Viewport.NoSkybox)),
+		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
 	},
 }
 

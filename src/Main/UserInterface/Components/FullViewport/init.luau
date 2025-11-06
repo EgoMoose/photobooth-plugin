@@ -32,7 +32,9 @@ local function ActionBar(props: ActionBarProps)
 	local minimizeIcon = assert(Lucide.GetAsset("minimize", 16))
 
 	local theme = StudioComponents.useTheme()
-	local scaleOS = Hooks.usePhotoConfiguration().ScaleOS
+	local scaleOS = Hooks.useStatePath(function(state)
+		return state.temporary.scaleOS
+	end)
 
 	local underFrameRef = React.useRef(nil)
 	local underFrameAbsPosition = Hooks.useRefProperty(underFrameRef, "AbsolutePosition", Vector2.zero)

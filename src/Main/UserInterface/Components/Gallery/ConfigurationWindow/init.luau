@@ -10,6 +10,7 @@ local Constants = require(pluginRoot.Constants)
 
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Captures = require(pluginRoot.Main.Photo.Captures)
+local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
@@ -28,8 +29,8 @@ export type Props = {
 
 type GroupsProps = {
 	RootProps: Props,
-	Configuration: Photo.Configuration,
-	SetConfiguration: (Photo.Configuration) -> (),
+	State: State.State,
+	MutateState: ((State.State) -> ()) -> (),
 	LayoutOrder: number,
 }
 
@@ -66,9 +67,9 @@ local function GeneralGroup(props: GroupsProps)
 					[React.Event.Activated] = function()
 						if not isRefreshing then
 							setIsRefreshing(true)
-							local config = table.clone(props.Configuration)
-							config.ScaleOS = Screenshot.calculateScaleOS()
-							props.SetConfiguration(config)
+							props.MutateState(function(state)
+								state.temporary.scaleOS = Screenshot.calculateScaleOS()
+							end)
 							setIsRefreshing(false)
 						end
 					end,
@@ -86,7 +87,7 @@ local function GeneralGroup(props: GroupsProps)
 						TextXAlignment = Enum.TextXAlignment.Left,
 						Text = if isRefreshing
 							then "..."
-							else `{props.Configuration.ScaleOS.X}, {props.Configuration.ScaleOS.Y}`,
+							else `{props.State.temporary.scaleOS.X}, {props.State.temporary.scaleOS.Y}`,
 					}),
 					Refresh = React.createElement("ImageLabel", {
 						AnchorPoint = Vector2.new(1, 0.5),
@@ -117,11 +118,11 @@ local function GeneralGroup(props: GroupsProps)
 					Checkbox = React.createElement(StudioComponents.Checkbox, {
 						Disabled = props.RootProps.Disabled,
 						Size = UDim2.fromScale(1, 1),
-						Value = props.Configuration.AlphaBleedingEnabled,
+						Value = props.State.saved.alphaBleedingEnabled,
 						OnChanged = function()
-							local config = table.clone(props.Configuration)
-							config.AlphaBleedingEnabled = not config.AlphaBleedingEnabled
-							props.SetConfiguration(config)
+							props.MutateState(function(state)
+								state.saved.alphaBleedingEnabled = not state.saved.alphaBleedingEnabled
+							end)
 						end,
 					}),
 				}),
@@ -138,11 +139,11 @@ local function GeneralGroup(props: GroupsProps)
 					Checkbox = React.createElement(StudioComponents.Checkbox, {
 						Disabled = props.RootProps.Disabled,
 						Size = UDim2.fromScale(1, 1),
-						Value = props.Configuration.BindingsEnabled,
+						Value = props.State.saved.bindingsEnabled,
 						OnChanged = function()
-							local config = table.clone(props.Configuration)
-							config.BindingsEnabled = not config.BindingsEnabled
-							props.SetConfiguration(config)
+							props.MutateState(function(state)
+								state.saved.bindingsEnabled = not state.saved.bindingsEnabled
+							end)
 						end,
 					}),
 				}),
@@ -170,11 +171,11 @@ local function ViewportGroup(props: GroupsProps)
 					Checkbox = React.createElement(StudioComponents.Checkbox, {
 						Disabled = props.RootProps.Disabled,
 						Size = UDim2.fromScale(1, 1),
-						Value = props.Configuration.IsFullscreen,
+						Value = props.State.temporary.isFullscreen,
 						OnChanged = function()
-							local config = table.clone(props.Configuration)
-							config.IsFullscreen = not config.IsFullscreen
-							props.SetConfiguration(config)
+							props.MutateState(function(state)
+								state.temporary.isFullscreen = not state.temporary.isFullscreen
+							end)
 						end,
 					}),
 				}),
@@ -187,12 +188,12 @@ local function ViewportGroup(props: GroupsProps)
 						Size = UDim2.new(1, -1, 1, 0),
 						Position = UDim2.fromOffset(1, 0),
 						Items = Captures.Viewport.Order,
-						SelectedItem = props.Configuration.ViewportCaptureType :: string,
+						SelectedItem = props.State.temporary.viewportCaptureType :: string,
 						OnItemSelected = function(item: string?)
 							if item then
-								local config = table.clone(props.Configuration)
-								config.ViewportCaptureType = item :: Captures.ViewportCaptureTypes
-								props.SetConfiguration(config)
+								props.MutateState(function(state)
+									state.temporary.viewportCaptureType = item :: Captures.ViewportCaptureTypes
+								end)
 							end
 						end,
 					}),
@@ -217,12 +218,12 @@ local function UserInterfaceGroup(props: GroupsProps)
 						Size = UDim2.new(1, -1, 1, 0),
 						Position = UDim2.fromOffset(1, 0),
 						Items = Captures.UserInterface.Order,
-						SelectedItem = props.Configuration.UserInterfaceCaptureType :: string,
+						SelectedItem = props.State.temporary.uiCaptureType :: string,
 						OnItemSelected = function(item: string?)
 							if item then
-								local config = table.clone(props.Configuration)
-								config.UserInterfaceCaptureType = item :: Captures.UICaptureTypes
-								props.SetConfiguration(config)
+								props.MutateState(function(state)
+									state.temporary.uiCaptureType = item :: Captures.UICaptureTypes
+								end)
 							end
 						end,
 					}),
@@ -235,7 +236,9 @@ end
 local function ConfigurationWindow(props: Props)
 	local theme = StudioComponents.useTheme()
 	local isLocalPlugin = Hooks.useIsLocalPlugin()
-	local configuration, setConfiguration = Hooks.usePhotoConfiguration()
+
+	local state = Hooks.useState()
+	local mutateState = React.useCallback(State.mutate, {})
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -293,20 +296,20 @@ local function ConfigurationWindow(props: Props)
 				Content = React.createElement(React.Fragment, nil, {
 					General = React.createElement(GeneralGroup, {
 						RootProps = props,
-						Configuration = configuration,
-						SetConfiguration = setConfiguration,
+						State = state,
+						MutateState = mutateState,
 						LayoutOrder = 1,
 					}),
 					Viewport = React.createElement(ViewportGroup, {
 						RootProps = props,
-						Configuration = configuration,
-						SetConfiguration = setConfiguration,
+						State = state,
+						MutateState = mutateState,
 						LayoutOrder = 2,
 					}),
 					UserInterface = React.createElement(UserInterfaceGroup, {
 						RootProps = props,
-						Configuration = configuration,
-						SetConfiguration = setConfiguration,
+						State = state,
+						MutateState = mutateState,
 						LayoutOrder = 3,
 					}),
 				}),
