@@ -34,9 +34,10 @@ export type Props = {
 local function ToggleScrollList(props: Props)
 	local theme = StudioComponents.useTheme()
 	local hasCreateAssetPermission = Hooks.useHasCreateAssetPermission()
+	local isStory = Hooks.useIsStory()
 
 	local nSelected = #props.EditableImageInfos
-	local uploadHeight = if hasCreateAssetPermission then 36 else 0
+	local uploadHeight = if isStory or hasCreateAssetPermission then 36 else 0
 
 	local lines: { [string]: React.Node } = {}
 	for i, info in props.EditableImageInfos do
