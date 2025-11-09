@@ -27,8 +27,7 @@ Results are output as editable images stored as a mesh part's texture.
 Photobooth has a couple of limitations specific to the skybox removal preset. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before purchase.
 
 General:
-- No capture can be larger than 1024 x 1024 since that's the limit of editable images.
-  - As of v0.3.0 there are no longer size limits, but there are some stipulations. Please read the "Full Viewport Captures" section for more details.
+- The plugin can capture any resolution desired, but there are some stipulations. Please read the “Full Viewport Captures” section for more details.
 - Photobooth can only be used during edit mode in studio. It cannot be used to capture anything during a studio play session.
 - The built-in upload feature is currently disabled. You can still upload, but you have to write code to do it yourself. Read more about this further down the post.
 - Using the emulator + photobooth only works correctly when on "actual resolution"
