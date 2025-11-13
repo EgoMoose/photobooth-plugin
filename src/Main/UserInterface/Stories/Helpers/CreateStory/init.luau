@@ -181,7 +181,31 @@ local function createFlipbookStory(component: React.FC<any>)
 	end
 end
 
+local function createThemeStory(theme: "dark" | "light", component: React.FC<any>)
+	return function(props: any)
+		return React.createElement(IsStoryContext.Provider, {
+			value = true,
+		}, {
+			PluginProvider = React.createElement(StudioComponents.PluginProvider, {
+				Plugin = GetStoryPlugin(),
+			}, {
+				ThemeProvider = React.createElement(StudioComponents.ThemeContext.Provider, {
+					value = if theme == "dark" then themes[1] else themes[2],
+				}, {
+					Container = React.createElement("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+					}, {
+						Component = React.createElement(component, props),
+					}),
+				}),
+			}),
+		})
+	end
+end
+
 return {
 	split = createSplitThemeStory,
 	flipbook = createFlipbookStory,
+	theme = createThemeStory,
 }

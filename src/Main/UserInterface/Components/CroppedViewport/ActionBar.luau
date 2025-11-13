@@ -235,15 +235,23 @@ local function ActionBar(props: Props)
 			}),
 		}),
 
-		ErrorLabel = errorOffset.Z < 1 and React.createElement(StudioComponents.Label, {
+		ErrorLabel = errorOffset.Z < 1 and React.createElement("TextLabel", {
 			BackgroundTransparency = 1,
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 8, 0, 0),
 			Size = UDim2.fromScale(1, 1),
+			FontFace = Font.fromName("SourceSans", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 			Text = "Error: Check the output.",
+			TextSize = 14,
 			TextTransparency = errorOffset.Z ^ 20,
-			TextColorStyle = Enum.StudioStyleGuideColor.ErrorText,
+			TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ErrorText),
 			TextXAlignment = if useUnderFrame then Enum.TextXAlignment.Center else Enum.TextXAlignment.Left,
 			TextYAlignment = if useUnderFrame then Enum.TextYAlignment.Top else Enum.TextYAlignment.Center,
+		}, {
+			UIStroke = React.createElement("UIStroke", {
+				Thickness = 1,
+				Transparency = errorOffset.Z ^ 20,
+				Color = Color3.new(0, 0, 0),
+			}),
 		}),
 		UnderFrame = React.createElement("Frame", {
 			BackgroundTransparency = 1,
