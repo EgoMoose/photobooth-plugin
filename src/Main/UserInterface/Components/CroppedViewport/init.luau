@@ -15,6 +15,7 @@ local Blinder = require(script.Blinder)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
+local OUTLINE_STROKE_SIZE = 2
 local MAX_CAPTURE_RECT_SIZE = Vector2.new(Constants.MaxCaptureRectSize.X, Constants.MaxCaptureRectSize.Y)
 
 local GRABBERS = {
@@ -156,13 +157,21 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 				Size = UDim2.fromScale(1, 1),
 				BackgroundTransparency = 1,
 			}, {
-				UIStroke = React.createElement("UIStroke", {
-					Thickness = 2,
-					Transparency = 0,
-					Color = theme:GetColor(
-						Enum.StudioStyleGuideColor.InputFieldBorder,
-						Enum.StudioStyleGuideModifier.Selected
-					),
+				Inner = React.createElement("Frame", {
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Position = UDim2.fromScale(0.5, 0.5),
+					Size = UDim2.new(1, OUTLINE_STROKE_SIZE * 2, 1, OUTLINE_STROKE_SIZE * 2),
+					BackgroundTransparency = 1,
+				}, {
+					UIStroke = React.createElement("UIStroke", {
+						Thickness = OUTLINE_STROKE_SIZE,
+						Transparency = 0,
+						BorderStrokePosition = Enum.BorderStrokePosition.Inner,
+						Color = theme:GetColor(
+							Enum.StudioStyleGuideColor.InputFieldBorder,
+							Enum.StudioStyleGuideModifier.Selected
+						),
+					}),
 				}),
 			}),
 			Grabbers = React.createElement(Grabbers, {
