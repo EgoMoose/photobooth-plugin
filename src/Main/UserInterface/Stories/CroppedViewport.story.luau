@@ -16,7 +16,7 @@ local function story()
 	local focusLenseSizeRef = React.useRef(Vector2.zero)
 
 	return React.createElement(CroppedViewport, {
-		OnMaximize = if Constants.ShowFullscreenActionBarButton
+		OnMaximize = if Constants.AllowFullscreen
 			then function()
 				print("Maximize")
 			end

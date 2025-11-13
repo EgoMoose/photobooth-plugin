@@ -16,7 +16,6 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Constants = require(pluginRoot.Constants)
 local Wally = require(pluginRoot.Wally)
 
-local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Camera = require(pluginRoot.Utilities.Camera)
 local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
@@ -185,7 +184,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ref = screenGuiRef,
 		}, {
 			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
-				[onFullscreenCallbackKey] = Screenshot.isFullscreenAllowed() and Constants.ShowFullscreenActionBarButton and function()
+				[onFullscreenCallbackKey] = Constants.AllowFullscreen and function()
 					updateInitialLenseSizeRef()
 					State.mutate(function(state)
 						state.temporary.isFullscreen = not state.temporary.isFullscreen

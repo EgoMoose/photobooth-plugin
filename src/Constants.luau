@@ -4,7 +4,7 @@
 -- so do not use roblox data types
 
 return {
-	ShowFullscreenActionBarButton = true,
+	AllowFullscreen = true,
 
 	TileHighResImagesEnabled = true,
 	TileHighResImagesSize = { X = 1024, Y = 1024 },

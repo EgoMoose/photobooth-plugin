@@ -11,8 +11,6 @@ local State = require(pluginRoot.Main.State)
 
 local Screenshot = {}
 
-local ALLOW_FULLSCREEN = true
-
 -- Private
 
 local function captureEditableImage()
@@ -60,16 +58,12 @@ function Screenshot.calculateScaleOS()
 	return scale
 end
 
-function Screenshot.isFullscreenAllowed()
-	return ALLOW_FULLSCREEN
-end
-
 function Screenshot.isUnitScaleOS(scaleOS: Vector2)
 	return scaleOS.X == 1 and scaleOS.Y == 1
 end
 
 function Screenshot.isFullscreenRect(rect: Rect)
-	if not Screenshot.isFullscreenAllowed() then
+	if not Constants.AllowFullscreen then
 		return false
 	end
 
