@@ -11,7 +11,6 @@ local Constants = require(pluginRoot.Constants)
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local State = require(pluginRoot.Main.State)
-local Photo = require(pluginRoot.Main.Photo)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
@@ -161,7 +160,7 @@ local function ViewportGroup(props: GroupsProps)
 		List = {
 			{
 				Name = "Fullscreen",
-				Node = Screenshot.isFullscreenAllowed() and React.createElement(React.Fragment, {}, {
+				Node = Constants.AllowFullscreen and React.createElement(React.Fragment, {}, {
 					Padding = React.createElement("UIPadding", {
 						PaddingLeft = UDim.new(0, 5),
 						PaddingRight = UDim.new(0, 5),

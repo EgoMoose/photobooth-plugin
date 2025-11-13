@@ -22,7 +22,7 @@ local function story()
 		BackgroundTransparency = 1,
 	}, {
 		FullViewport = React.createElement(FullViewport, {
-			OnMinimize = if Constants.ShowFullscreenActionBarButton
+			OnMinimize = if Constants.AllowFullscreen
 				then function()
 					print("Minimize")
 				end
