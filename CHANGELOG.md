@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changes
 - Replaces the checkerboard image asset in the gallery
 - Refactors the state management system (this will reset existing settings)
+- Adds a stroke and bolds the error text in the cropped and fullscreen capture mode for better contrasts
 - Removes additional dead code
 
 ## [0.8.5]
