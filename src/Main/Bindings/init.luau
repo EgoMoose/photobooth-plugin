@@ -6,7 +6,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
 local State = require(pluginRoot.Main.State)
-local Photo = require(pluginRoot.Main.Photo)
 
 local Bindings = {}
 local trove = Trove.new()
