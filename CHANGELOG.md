@@ -2,8 +2,12 @@
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.0]
 ### Changes
 - Replaces the checkerboard image asset in the gallery
+- Refactors the state management system (this will reset existing settings)
+- Removes additional dead code
 
 ## [0.8.5]
 ### Changes
