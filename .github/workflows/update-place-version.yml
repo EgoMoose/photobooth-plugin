@@ -1,0 +1,27 @@
+name: Update Place Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Update Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
+
+      - name: "Setup rokit"
+        uses: CompeyDev/setup-rokit@v0.1.2
+
+      - name: "Run lune update script"
+        run: |
+          lune run update-place-version ${{ secrets.PHOTOBOOTH_PLACE_UPDATE_API_KEY }}
