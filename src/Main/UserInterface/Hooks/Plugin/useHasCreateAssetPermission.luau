@@ -29,7 +29,7 @@ local function useHasCreateAssetPermission()
 		return function()
 			connection:Disconnect()
 		end
-	end)
+	end, {})
 
 	return hasPermission
 end
