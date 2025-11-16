@@ -234,10 +234,16 @@ end
 
 local function ConfigurationWindow(props: Props)
 	local theme = StudioComponents.useTheme()
+	local latestVersion = Hooks.useLatestVersion()
 	local isLocalPlugin = Hooks.useIsLocalPlugin()
 
 	local state = Hooks.useState()
 	local mutateState = React.useCallback(State.mutate, {})
+
+	local versionText = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`
+	if latestVersion ~= Wally.package.version then
+		versionText = "update available*\n" .. versionText
+	end
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -318,11 +324,12 @@ local function ConfigurationWindow(props: Props)
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.fromScale(0, 1),
 			Size = UDim2.fromOffset(80, 28),
-			Text = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`,
+			Text = versionText,
 			TextSize = 6,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Bottom,
 			Disabled = true,
+			ZIndex = -1,
 		}, {
 			Padding = React.createElement("UIPadding", {
 				PaddingLeft = UDim.new(0, 2),

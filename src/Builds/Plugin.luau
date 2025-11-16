@@ -6,7 +6,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 local UserInterface = require(pluginRoot.Main.UserInterface)
 local Bindings = require(pluginRoot.Main.Bindings)
-local Photo = require(pluginRoot.Main.Photo)
 local State = require(pluginRoot.Main.State)
 
 local Plugin = {}
