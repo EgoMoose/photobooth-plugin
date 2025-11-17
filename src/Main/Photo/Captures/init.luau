@@ -5,9 +5,6 @@ local Image = require(pluginRoot.Utilities.Image)
 local Sift = require(pluginRoot.Packages.Sift)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
-local State = require(pluginRoot.Main.State)
-
-local Composers = require(script.Composers)
 
 -- Private
 
@@ -19,14 +16,7 @@ local function wrap<T...>(callback: (T...) -> ...Image.Image)
 	local myTicket = ticket
 
 	local function wrapped(...: T...)
-		local results = { callback(...) }
-		if State.read().saved.alphaBleedingEnabled then
-			for i, img in results do
-				results[i] = Composers.alphaBleed(img)
-				--results[i] = Composers.fullyOpaque(results[i])
-			end
-		end
-		return results
+		return { callback(...) }
 	end
 
 	ticketLookup[wrapped] = myTicket

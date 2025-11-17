@@ -72,7 +72,12 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 
 	local clickConnection = captureButton.Click:Connect(function()
 		if selection and not State.read().temporary.isCapturing then
-			local captures = Photo.captureUI(selection, State.read().temporary.uiCaptureType)
+			local captures = Photo.captureUI({
+				subject = selection,
+				type = State.read().temporary.uiCaptureType,
+				alphaBleed = State.read().saved.alphaBleedingEnabled,
+			})
+
 			local exported = Photo.export(captures, StarterGui)
 			SelectionService:Set(exported :: any)
 		end
@@ -191,7 +196,12 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					end)
 				end,
 				OnCapture = function(rect)
-					local captures, err = Photo.captureViewport(rect, State.read().temporary.viewportCaptureType)
+					local captures, err = Photo.captureViewport({
+						rect = rect,
+						type = State.read().temporary.viewportCaptureType,
+						alphaBleed = State.read().saved.alphaBleedingEnabled,
+					})
+
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
 					return not err, err

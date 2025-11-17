@@ -3,12 +3,22 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Types = require(pluginRoot.Main.Bindings.Interface.Types)
+
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
-local Background = require(photoRoot.Tools.Background)
 
-local function operation(rect: Rect, _background: Background.Background, _trove: Trove.Trove)
-	return Screenshot.rect(rect)
+local capturesRoot = script:FindFirstAncestor("Captures")
+local Composers = require(capturesRoot.Composers)
+
+local function operation(options: Types.CaptureViewportOptions, _trove: Trove.Trove)
+	local capture = Screenshot.rect(options.rect)
+
+	if options.alphaBleed then
+		capture = Composers.alphaBleed(capture)
+	end
+
+	return capture
 end
 
 return operation
