@@ -75,7 +75,6 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 			local captures = Photo.captureUI({
 				subject = selection,
 				type = State.read().temporary.uiCaptureType,
-				alphaBleed = State.read().saved.alphaBleedingEnabled,
 			})
 
 			local exported = Photo.export(captures, StarterGui)
@@ -199,7 +198,6 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					local captures, err = Photo.captureViewport({
 						rect = rect,
 						type = State.read().temporary.viewportCaptureType,
-						alphaBleed = State.read().saved.alphaBleedingEnabled,
 					})
 
 					local selection = Photo.export(captures, StarterGui)

@@ -6,6 +6,7 @@ local AssetService = game:GetService("AssetService") :: AssetService
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
+local Sift = require(pluginRoot.Packages.Sift)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 local State = require(pluginRoot.Main.State)
@@ -45,6 +46,11 @@ function Photo.setViewportApp(app: LayerCollector?)
 end
 
 function Photo.captureUI(options: Types.CaptureUIOptions)
+	options = Sift.Dictionary.merge({
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
+		delay = 0,
+	}, options)
+
 	local processor = Captures.UserInterface.Processors[options.type]
 
 	local results: { Image.Image }
@@ -82,13 +88,18 @@ function Photo.captureUI(options: Types.CaptureUIOptions)
 end
 
 function Photo.captureViewport(options: Types.CaptureViewportOptions)
-	local scaleOS = State.read().temporary.scaleOS
+	options = Sift.Dictionary.merge({
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
+		delay = 0,
+	}, options)
+
 	local processor = Captures.Viewport.Processors[options.type]
 
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
 	local exclusions = {}
+	local scaleOS = State.read().temporary.scaleOS
 	if viewportApp and not Screenshot.isFullscreenRect(options.rect) and Screenshot.isUnitScaleOS(scaleOS) then
 		table.insert(exclusions, viewportApp)
 	end

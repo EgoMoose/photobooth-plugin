@@ -26,7 +26,12 @@ local function capture()
 	local outputFolder = Instance.new("Folder")
 	for _, child in folder:GetChildren() do
 		if child:IsA("GuiObject") and child.Visible then
-			local result = Photobooth.captureUI(child, "NoBackground", CAPTURE_DELAY)
+			local result = Photobooth.captureUI({
+				subject = child,
+				type = "NoBackground",
+				delay = CAPTURE_DELAY,
+			})
+
 			result.Name = child.Name
 			result.Parent = outputFolder
 		end

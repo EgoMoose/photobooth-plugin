@@ -3,7 +3,7 @@
 --[[
 	Instructions:
 		1. Copy this template to the StarterGui.
-		2. Create a folder in the workspace named "StaticFrame_Targets" and put all the models you want to capture in it.
+		2. Create a folder in the workspace named "StaticFrameTargets" and put all the models you want to capture in it.
 		3. Hide everything that is not in the target folder so that it is not visible in the workspace.
 		4. Resize the "CaptureFrame" to your desired dimensions.
 		5. Adjust your camera and move any target models so that they're in the bounds of the capture frame.
@@ -23,7 +23,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local frame = script.Parent.CaptureFrame
-local folder = workspace:FindFirstChild("StaticFrame_Targets") :: Folder
+local folder = workspace:FindFirstChild("StaticFrameTargets") :: Folder
 
 -- Helpers
 
@@ -67,12 +67,13 @@ local function capture()
 
 		-- let the camera render since we just changed our scene
 		Photobooth.yieldUntilNextFrame()
-		if CAPTURE_DELAY > 0 then
-			task.wait(CAPTURE_DELAY)
-		end
 
 		-- use photobooth to capture
-		local result = Photobooth.captureViewport(rect, "NoSkybox")
+		local result = Photobooth.captureViewport({
+			rect = rect,
+			type = "NoSkybox",
+			delay = CAPTURE_DELAY,
+		})
 		result.Name = child.Name
 		result.Parent = outputFolder
 

@@ -70,7 +70,10 @@ local function callback(options: typeof(gtOptions))
 
 	local exported
 	local success, err = pcall(function()
-		local result = Photo.captureViewport(scaledRect, options.type)
+		local result = Photo.captureViewport(Sift.Dictionary.merge(options, {
+			rect = scaledRect,
+		}))
+
 		exported = Photo.export(result, nil)
 	end)
 

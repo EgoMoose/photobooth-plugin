@@ -25,7 +25,7 @@ local typechecker = gt.fn(
 )
 
 local function callback(options: typeof(gtOptions))
-	local result = Photo.captureUI(options.subject, options.type, options.delay)
+	local result = Photo.captureUI(options)
 	local exported = Photo.export(result, nil)
 	return exported[1]
 end
