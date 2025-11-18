@@ -25,7 +25,7 @@ local function defaultTemporary()
 		isFullscreen = false,
 
 		uiCaptureType = "NoBackground" :: Types.UICaptureTypes,
-		viewportCaptureType = "NoSkybox" :: Types.ViewportCaptureTypes,
+		viewportCaptureType = "NoSkybox2_Alpha" :: Types.ViewportCaptureTypes,
 	}
 end
 

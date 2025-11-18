@@ -43,6 +43,7 @@ local captureTypes = {
 	},
 	Viewport = {
 		NoSkybox = wrap(require(script.CaptureTypes.Viewport.NoSkybox)),
+		NoSkybox2_Alpha = wrap(require(script.CaptureTypes.Viewport.NoSkybox2_Alpha)),
 		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
 	},
 }
