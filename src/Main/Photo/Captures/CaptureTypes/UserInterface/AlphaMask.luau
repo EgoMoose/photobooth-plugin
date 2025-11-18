@@ -19,7 +19,10 @@ local Composers = require(capturesRoot.Composers)
 
 local function operation(options: Types.CaptureUIOptions, trove: Trove.Trove)
 	local uiBounds = UIBounds.new(CoreGui, options.subject, State.read().temporary.scaleOS)
-	local uiHider = UIHider.new({ uiBounds.surfaceGui })
+	local uiHider = UIHider.new({
+		hiddenClasses = { "LayerCollector" },
+		exclusions = { uiBounds.surfaceGui },
+	})
 
 	trove:Add(function()
 		uiBounds:Destroy()

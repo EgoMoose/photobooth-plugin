@@ -21,55 +21,50 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
 	end
 
-	local background = Background.new(workspace)
-	trove:Add(function()
-		background:Destroy()
-	end)
+	trove:Add(SceneControl.hideScreenUI(options.rect))
+	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
 
-	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
-	trove:Add(colorCorrection)
+	local gradedOnBlack: Image.Image?
+	if SceneControl.isGradedCaptureRequired() then
+		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
 
-	local redoColorCorrection = SceneControl.Lighting.removeColorCorrection()
-	trove:Add(redoColorCorrection)
+		-- capture on neon black
+		local neonBackground = Background.neon(workspace)
+		neonBackground:SetColor(Color3.new(0, 0, 0))
+		neonBackground:SetEnabled(true)
 
-	local redoCloudsAndFog = SceneControl.Lighting.removeCloudsAndFog()
-	trove:Add(redoCloudsAndFog)
+		local undoNeonBackground = trove:Add(SceneControl.once(function()
+			neonBackground:Destroy()
+		end))
 
-	background:SetEnabled(true)
-	background:SetColor(Color3.new(0, 0, 0))
-
-	local isRetroTonemapper = SceneControl.Lighting.getTonemapperPreset() == Enum.TonemapperPreset.Retro
-
-	local exposureCompensation = Lighting.ExposureCompensation
-	local redoExposureCompensation = trove:Add(SceneControl.Utils.oneTimeCallback(function()
-		Lighting.ExposureCompensation = exposureCompensation
-	end))
-
-	local onBlack: Image.Image?
-	if not (isRetroTonemapper and exposureCompensation == 0) then
 		SceneControl.yieldUntilNextFrame()
-		onBlack = Screenshot.rect(options.rect)
+		gradedOnBlack = Screenshot.rect(options.rect)
+
+		undoGradedLighting()
+		undoNeonBackground()
 	end
 
-	Lighting.ExposureCompensation = 0
+	-- prepare for retro scene capturing
+	trove:Add(SceneControl.applyRetroLighting())
 
-	local undoRetroGrading = SceneControl.Lighting.applyRetroColorGrading()
-	trove:Add(undoRetroGrading)
+	local fogBackground = Background.new(workspace)
+	fogBackground:SetColor(Color3.new(0, 0, 0))
+	fogBackground:SetEnabled(true)
 
+	trove:Add(SceneControl.once(function()
+		fogBackground:Destroy()
+	end))
+
+	-- capture on retro black
 	SceneControl.yieldUntilNextFrame()
 	local onBlackRetro = Screenshot.rect(options.rect)
 
-	background:SetColor(Color3.new(1, 1, 1))
+	-- capture on retro white
+	fogBackground:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
 	local onWhiteRetro = Screenshot.rect(options.rect)
 
-	background:SetEnabled(false)
-	redoExposureCompensation()
-	redoCloudsAndFog()
-	undoRetroGrading()
-	redoColorCorrection()
-
-	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
 		capture = Composers.alphaBleed(capture)
 	end

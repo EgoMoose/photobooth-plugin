@@ -20,6 +20,8 @@ local Camera = require(pluginRoot.Utilities.Camera)
 local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
+local UIHider = require(pluginRoot.Main.Photo.Tools.UIHider)
+
 local Hooks = require(script.Hooks)
 local Icons = require(script.Icons)
 
@@ -147,7 +149,7 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		end, {})
 
 		React.useEffect(function()
-			Photo.setViewportApp(screenGuiRef.current)
+			UIHider.ViewportApp = screenGuiRef.current
 		end, { isEnabled })
 
 		React.useEffect(function()

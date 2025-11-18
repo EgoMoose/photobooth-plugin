@@ -7,13 +7,15 @@ local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
+local SceneControl = require(photoRoot.SceneControl)
 
 local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
-local function operation(options: Types.CaptureViewportOptions, _trove: Trove.Trove)
-	local capture = Screenshot.rect(options.rect)
+local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove)
+	trove:Add(SceneControl.hideScreenUI(options.rect))
 
+	local capture = Screenshot.rect(options.rect)
 	if options.alphaBleed then
 		capture = Composers.alphaBleed(capture)
 	end
