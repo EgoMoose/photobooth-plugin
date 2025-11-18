@@ -31,7 +31,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	-- capture on graded black
 	local preRetroYieldCount = 1
 	local gradedOnBlack: Image.Image?
-	if SceneControl.isGradedCaptureRequired() then
+	if SceneControl.isGradedLightingRequired() then
 		if Lighting:FindFirstChildWhichIsA("Atmosphere") then
 			trove:Add(SceneControl.hideAtmosphere())
 			preRetroYieldCount = 100

@@ -24,29 +24,6 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	trove:Add(SceneControl.hideScreenUI(options.rect))
 	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
 
-	local gradedOnBlack: Image.Image?
-	if SceneControl.isGradedCaptureRequired() then
-		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
-
-		-- capture on neon black
-		local neonBackground = Background.neon(workspace)
-		neonBackground:SetColor(Color3.new(0, 0, 0))
-		neonBackground:SetEnabled(true)
-
-		local undoNeonBackground = trove:Add(SceneControl.once(function()
-			neonBackground:Destroy()
-		end))
-
-		SceneControl.yieldUntilNextFrame()
-		gradedOnBlack = Screenshot.rect(options.rect)
-
-		undoGradedLighting()
-		undoNeonBackground()
-	end
-
-	-- prepare for retro scene capturing
-	trove:Add(SceneControl.applyRetroLighting())
-
 	local fogBackground = Background.new(workspace)
 	fogBackground:SetColor(Color3.new(0, 0, 0))
 	fogBackground:SetEnabled(true)
@@ -54,6 +31,19 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	trove:Add(SceneControl.once(function()
 		fogBackground:Destroy()
 	end))
+
+	local gradedOnBlack: Image.Image?
+	if SceneControl.isGradedLightingRequired() then
+		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
+
+		SceneControl.yieldUntilNextFrame()
+		gradedOnBlack = Screenshot.rect(options.rect)
+
+		undoGradedLighting()
+	end
+
+	-- prepare for retro scene capturing
+	trove:Add(SceneControl.applyRetroLighting())
 
 	-- capture on retro black
 	SceneControl.yieldUntilNextFrame()

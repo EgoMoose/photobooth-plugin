@@ -169,7 +169,7 @@ function SceneControl.hideAtmosphere()
 	end)
 end
 
-function SceneControl.isGradedCaptureRequired()
+function SceneControl.isGradedLightingRequired()
 	if not Lighting:FindFirstChildWhichIsA("Atmosphere") then
 		local children = Lighting:GetChildren()
 		for i = #children, 1, -1 do
