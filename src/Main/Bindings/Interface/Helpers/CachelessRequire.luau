@@ -60,7 +60,7 @@ function CachelessRequire.execute(root: LuaSourceContainer, env: { [string]: any
 		return table.unpack(packed, 1, packed.n)
 	end
 
-	return getExecutionCallback(root, params)(root, import, table.unpack(args, 1, nEnv))
+	return import(root :: ModuleScript)
 end
 
 --

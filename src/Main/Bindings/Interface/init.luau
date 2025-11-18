@@ -8,8 +8,11 @@ local CachelessRequire = require(script.Helpers.CachelessRequire)
 local Bindings = {}
 local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
 
-export type ViewportCaptureTypes = Types.ViewportCaptureTypes
 export type UICaptureTypes = Types.UICaptureTypes
+export type ViewportCaptureTypes = Types.ViewportCaptureTypes
+
+export type CaptureViewportOptions = Types.CaptureViewportOptions
+export type CaptureUIOptions = Types.CaptureUIOptions
 
 local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	local results = table.pack(binding:Invoke(identifier, ...))
@@ -37,16 +40,16 @@ function Bindings.getOSScale(): Vector2
 	return invokeBinding("getOSScale")
 end
 
-function Bindings.captureViewport(rect: Rect, captureType: ViewportCaptureTypes): MeshPart
-	return invokeBinding("captureViewport", rect, captureType)
-end
-
-function Bindings.captureUI(subject: GuiObject, captureType: UICaptureTypes, captureDelay: number?): MeshPart
-	return invokeBinding("captureUI", subject, captureType, captureDelay)
-end
-
 function Bindings.yieldUntilNextFrame(): ()
 	return invokeBinding("yieldUntilNextFrame")
+end
+
+function Bindings.captureViewport(options: CaptureViewportOptions): MeshPart
+	return invokeBinding("captureViewport", options)
+end
+
+function Bindings.captureUI(options: CaptureUIOptions): MeshPart
+	return invokeBinding("captureUI", options)
 end
 
 return Bindings

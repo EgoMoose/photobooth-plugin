@@ -15,13 +15,20 @@ local captureTypeLiterals = Sift.Array.map(Captures.Viewport.Order, function(val
 	return gt.literal(value)
 end)
 
+local gtOptions = gt.table({
+	type = gt.union(unpack(captureTypeLiterals)),
+	rect = gt.Rect(),
+	delay = gt.opt(gt.number()),
+	alphaBleed = gt.opt(gt.bool()),
+})
+
 -- stylua: ignore
 local typechecker = gt.fn(
-	gt.args(gt.Rect(), gt.union(unpack(captureTypeLiterals))),
+	gt.args(gtOptions),
 	gt.returns(gt.IsA("MeshPart"))
 )
 
-local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
+local function callback(options: typeof(gtOptions))
 	local scaleOS = State.read().temporary.scaleOS
 
 	local camera = workspace.CurrentCamera
@@ -32,7 +39,7 @@ local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 	camera.CameraType = Enum.CameraType.Scriptable
 
 	local scaledRect: Rect
-	if rect.Min == Vector2.zero and rect.Max == viewportSize then
+	if options.rect.Min == Vector2.zero and options.rect.Max == viewportSize then
 		-- stylua: ignore
 		local scaledViewportSize = Vector2.new(
 			math.round(viewportSize.X * scaleOS.X),
@@ -42,8 +49,8 @@ local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
 	else
 		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
-		local scaledRectAbsPosition = (rect.Min + corner)
-		local scaledRectAbsSize = (rect.Max + corner) - scaledRectAbsPosition
+		local scaledRectAbsPosition = (options.rect.Min + corner)
+		local scaledRectAbsSize = (options.rect.Max + corner) - scaledRectAbsPosition
 		scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
 
 		if not (scaleOS.X == 1 and scaleOS.Y == 1) then
@@ -63,7 +70,10 @@ local function callback(rect: Rect, captureType: Captures.ViewportCaptureTypes)
 
 	local exported
 	local success, err = pcall(function()
-		local result = Photo.captureViewport(scaledRect, captureType)
+		local result = Photo.captureViewport(Sift.Dictionary.merge(options, {
+			rect = scaledRect,
+		}))
+
 		exported = Photo.export(result, nil)
 	end)
 

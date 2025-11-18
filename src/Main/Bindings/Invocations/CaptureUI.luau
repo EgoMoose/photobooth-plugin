@@ -11,14 +11,21 @@ local captureTypeLiterals = Sift.Array.map(Captures.UserInterface.Order, functio
 	return gt.literal(value)
 end)
 
+local gtOptions = gt.table({
+	type = gt.union(unpack(captureTypeLiterals)),
+	subject = gt.IsA.GuiObject(),
+	delay = gt.opt(gt.number()),
+	alphaBleed = gt.opt(gt.bool()),
+})
+
 -- stylua: ignore
 local typechecker = gt.fn(
-	gt.args(gt.IsA("GuiObject"), gt.union(unpack(captureTypeLiterals)), gt.opt(gt.number())),
+	gt.args(gtOptions),
 	gt.returns(gt.IsA("MeshPart"))
 )
 
-local function callback(subject: GuiObject, captureType: Captures.UICaptureTypes, captureDelay: number?)
-	local result = Photo.captureUI(subject, captureType, captureDelay)
+local function callback(options: typeof(gtOptions))
+	local result = Photo.captureUI(options)
 	local exported = Photo.export(result, nil)
 	return exported[1]
 end

@@ -1,21 +1,20 @@
 --!strict
 
-local CoreGui = game:GetService("CoreGui") :: CoreGui
-local AssetService = game:GetService("AssetService") :: AssetService
 local StudioService = game:GetService("StudioService") :: StudioService
+local AssetService = game:GetService("AssetService") :: AssetService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
+local Sift = require(pluginRoot.Packages.Sift)
 
+local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 local State = require(pluginRoot.Main.State)
 
 local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
 
-local Background = require(script.Tools.Background)
-local UIBounds = require(script.Tools.UIBounds)
 local UIHider = require(script.Tools.UIHider)
 
 local Photo = {}
@@ -40,21 +39,22 @@ local function createIsCapturingTrove()
 	return trove
 end
 
-local function captureUI(
-	subject: GuiObject,
-	processor: (UIBounds.UIBounds, Trove.Trove) -> { Image.Image },
-	captureDelay: number
-)
+-- Public
+
+function Photo.setViewportApp(app: LayerCollector?)
+	viewportApp = app
+end
+
+function Photo.captureUI(options: Types.CaptureUIOptions)
+	options = Sift.Dictionary.merge({
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
+		delay = 0,
+	}, options)
+
+	local processor = Captures.UserInterface.Processors[options.type]
+
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
-
-	local uiBounds = UIBounds.new(CoreGui, subject, State.read().temporary.scaleOS)
-	local uiHider = UIHider.new({ uiBounds.surfaceGui })
-
-	trove:Add(function()
-		uiBounds:Destroy()
-		uiHider:Destroy()
-	end)
 
 	local success, err = SceneControl.apply({
 		hideMouse = true,
@@ -63,10 +63,10 @@ local function captureUI(
 		freezeEmitters = false,
 
 		callback = function()
-			if captureDelay > 0 then
-				task.wait(captureDelay)
+			if options.delay and options.delay > 0 then
+				task.wait(options.delay)
 			end
-			results = processor(uiBounds, trove)
+			results = processor(options, trove)
 		end,
 	})
 
@@ -87,16 +87,20 @@ local function captureUI(
 	return results, err
 end
 
-local function captureViewport(rect: Rect, processor: (Rect, Background.Background, Trove.Trove) -> { Image.Image })
+function Photo.captureViewport(options: Types.CaptureViewportOptions)
+	options = Sift.Dictionary.merge({
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
+		delay = 0,
+	}, options)
+
+	local processor = Captures.Viewport.Processors[options.type]
+
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 
 	local exclusions = {}
-	if
-		viewportApp
-		and not Screenshot.isFullscreenRect(rect)
-		and Screenshot.isUnitScaleOS(State.read().temporary.scaleOS)
-	then
+	local scaleOS = State.read().temporary.scaleOS
+	if viewportApp and not Screenshot.isFullscreenRect(options.rect) and Screenshot.isUnitScaleOS(scaleOS) then
 		table.insert(exclusions, viewportApp)
 	end
 
@@ -115,12 +119,10 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 		freezeEmitters = true,
 
 		callback = function()
-			local background = Background.new(workspace)
-			trove:Add(function()
-				background:Destroy()
-			end)
-
-			results = processor(rect, background, trove)
+			if options.delay and options.delay > 0 then
+				task.wait(options.delay)
+			end
+			results = processor(options, trove)
 		end,
 	})
 
@@ -139,20 +141,6 @@ local function captureViewport(rect: Rect, processor: (Rect, Background.Backgrou
 	end
 
 	return results, err
-end
-
--- Public
-
-function Photo.setViewportApp(app: LayerCollector?)
-	viewportApp = app
-end
-
-function Photo.captureUI(subject: GuiObject, captureType: Captures.UICaptureTypes, captureDelay: number?)
-	return captureUI(subject, Captures.UserInterface.Processors[captureType], captureDelay or 0)
-end
-
-function Photo.captureViewport(rect: Rect, captureType: Captures.ViewportCaptureTypes)
-	return captureViewport(rect, Captures.Viewport.Processors[captureType])
 end
 
 function Photo.export(imgs: { Image.Image }, parent: Instance?)

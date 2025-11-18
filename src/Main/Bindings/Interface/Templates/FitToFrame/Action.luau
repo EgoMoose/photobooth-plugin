@@ -3,7 +3,7 @@
 --[[
 	Instructions:
 		1. Copy this template to the StarterGui.
-		2. Create a folder in the workspace named "FitToFrame_Targets" and put all the models you want to capture in it.
+		2. Create a folder in the workspace named "FitToFrameTargets" and put all the models you want to capture in it.
 		3. Hide everything that is not in the target folder so that it is not visible in the workspace.
 		4. Resize the "CaptureFrame" to your desired dimensions.
 		5. Make any rotational adjustments to the targets as the camera will have identity rotation when taking the captures.
@@ -28,7 +28,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local Photobooth = require(ServerStorage.PhotoboothBindings)
 
 local frame = script.Parent.CaptureFrame
-local folder = workspace:FindFirstChild("FitToFrame_Targets") :: Folder
+local folder = workspace:FindFirstChild("FitToFrameTargets") :: Folder
 
 -- Helpers
 
@@ -107,12 +107,13 @@ local function capture()
 
 		-- let the camera render since we just changed our scene
 		Photobooth.yieldUntilNextFrame()
-		if CAPTURE_DELAY > 0 then
-			task.wait(CAPTURE_DELAY)
-		end
 
 		-- use photobooth to capture
-		local result = Photobooth.captureViewport(rect, "NoSkybox")
+		local result = Photobooth.captureViewport({
+			rect = rect,
+			type = "NoSkybox",
+			delay = CAPTURE_DELAY,
+		})
 		result.Name = child.Name
 		result.Parent = outputFolder
 

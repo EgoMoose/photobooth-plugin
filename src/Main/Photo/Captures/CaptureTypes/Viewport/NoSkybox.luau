@@ -6,6 +6,8 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
+local Types = require(pluginRoot.Main.Bindings.Interface.Types)
+
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
@@ -14,12 +16,15 @@ local SceneControl = require(photoRoot.SceneControl)
 local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
-type Background = Background.Background
-
-local function operation(rect: Rect, background: Background, trove: Trove.Trove): ...Image.Image
+local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove): ...Image.Image
 	if Lighting:FindFirstChildWhichIsA("Atmosphere") then
 		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
 	end
+
+	local background = Background.new(workspace)
+	trove:Add(function()
+		background:Destroy()
+	end)
 
 	local colorCorrection = SceneControl.Lighting.getAppliedColorCorrectionCopy()
 	trove:Add(colorCorrection)
@@ -43,7 +48,7 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	local onBlack: Image.Image?
 	if not (isRetroTonemapper and exposureCompensation == 0) then
 		SceneControl.yieldUntilNextFrame()
-		onBlack = Screenshot.rect(rect)
+		onBlack = Screenshot.rect(options.rect)
 	end
 
 	Lighting.ExposureCompensation = 0
@@ -52,11 +57,11 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	trove:Add(undoRetroGrading)
 
 	SceneControl.yieldUntilNextFrame()
-	local onBlackRetro = Screenshot.rect(rect)
+	local onBlackRetro = Screenshot.rect(options.rect)
 
 	background:SetColor(Color3.new(1, 1, 1))
 	SceneControl.yieldUntilNextFrame()
-	local onWhiteRetro = Screenshot.rect(rect)
+	local onWhiteRetro = Screenshot.rect(options.rect)
 
 	background:SetEnabled(false)
 	redoExposureCompensation()
@@ -64,7 +69,12 @@ local function operation(rect: Rect, background: Background, trove: Trove.Trove)
 	undoRetroGrading()
 	redoColorCorrection()
 
-	return Composers.reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, onBlack, colorCorrection)
+	if options.alphaBleed then
+		capture = Composers.alphaBleed(capture)
+	end
+
+	return capture
 end
 
 return operation
