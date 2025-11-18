@@ -1,7 +1,7 @@
 --!strict
 
 export type UICaptureTypes = "NoBackground" | "AlphaMask"
-export type ViewportCaptureTypes = "Unmodified" | "NoSkybox" | "NoSkybox2_Alpha"
+export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
 
 export type CaptureViewportOptions = {
 	rect: Rect,
