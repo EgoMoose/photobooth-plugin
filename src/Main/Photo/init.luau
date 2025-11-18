@@ -18,7 +18,6 @@ local Captures = require(script.Captures)
 local UIHider = require(script.Tools.UIHider)
 
 local Photo = {}
-local viewportApp: LayerCollector?
 
 -- Private
 
@@ -40,10 +39,6 @@ local function createIsCapturingTrove()
 end
 
 -- Public
-
-function Photo.setViewportApp(app: LayerCollector?)
-	viewportApp = app
-end
 
 function Photo.captureUI(options: Types.CaptureUIOptions)
 	options = Sift.Dictionary.merge({
@@ -97,20 +92,6 @@ function Photo.captureViewport(options: Types.CaptureViewportOptions)
 
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
-
-	local exclusions = {}
-	local scaleOS = State.read().temporary.scaleOS
-	if viewportApp and not Screenshot.isFullscreenRect(options.rect) and Screenshot.isUnitScaleOS(scaleOS) then
-		table.insert(exclusions, viewportApp)
-	end
-
-	local uiHider = UIHider.new(exclusions, function(layerCollector)
-		return layerCollector:IsA("ScreenGui")
-	end)
-
-	trove:Add(function()
-		uiHider:Destroy()
-	end)
 
 	local success, err = SceneControl.apply({
 		hideMouse = true,

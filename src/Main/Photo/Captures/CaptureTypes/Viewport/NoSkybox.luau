@@ -5,6 +5,7 @@ local Lighting = game:GetService("Lighting") :: Lighting
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
+local State = require(pluginRoot.Main.State)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 
@@ -12,14 +13,35 @@ local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
 local Background = require(photoRoot.Tools.Background)
 local SceneControl = require(photoRoot.SceneControl)
+local UIHider = require(photoRoot.Tools.UIHider)
 
 local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
+
+local function hideUI(options: Types.CaptureViewportOptions, trove: Trove.Trove)
+	local scaleOS = State.read().temporary.scaleOS
+
+	local exclusions = {}
+	if UIHider.ViewportApp and not Screenshot.isFullscreenRect(options.rect) and Screenshot.isUnitScaleOS(scaleOS) then
+		table.insert(exclusions, UIHider.ViewportApp)
+	end
+
+	local uiHider = UIHider.new({
+		exclusions = exclusions,
+		hiddenClasses = { "ScreenGui" },
+	})
+
+	trove:Add(function()
+		uiHider:Destroy()
+	end)
+end
 
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove): ...Image.Image
 	if Lighting:FindFirstChildWhichIsA("Atmosphere") then
 		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
 	end
+
+	hideUI(options, trove)
 
 	local background = Background.new(workspace)
 	trove:Add(function()

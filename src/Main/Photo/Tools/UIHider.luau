@@ -14,6 +14,10 @@ pcall(function()
 	PLAYER_GUI = Players.LocalPlayer and Players.LocalPlayer.PlayerGui
 end)
 
+local UIHiderStatic = {}
+
+UIHiderStatic.ViewportApp = nil :: LayerCollector?
+
 local UIHiderClass = {}
 UIHiderClass.__index = UIHiderClass
 UIHiderClass.ClassName = "UIHider"
@@ -22,9 +26,10 @@ export type UIHider = typeof(setmetatable(
 	{} :: {
 		ticket: number,
 		trove: Trove.Trove,
-		isValidLayerCollector: (LayerCollector) -> boolean,
-		exclusionList: { LayerCollector },
 		watchTroves: { [LayerCollector]: Trove.Trove },
+
+		hiddenClasses: { string },
+		exclusions: { LayerCollector },
 	},
 	UIHiderClass
 ))
@@ -35,25 +40,27 @@ local globalExclusions: { [LayerCollector]: { [number]: boolean } } = {}
 
 -- Constructor
 
-function UIHiderClass.new(
-	exclusionsList: { LayerCollector },
-	isValidLayerCollector: ((LayerCollector) -> boolean)?
-): UIHider
+function UIHiderStatic.new(options: {
+	hiddenClasses: { string },
+	exclusions: { LayerCollector? },
+})
 	local self = setmetatable({}, UIHiderClass) :: UIHider
 
 	globalTicket = globalTicket + 1
 
 	self.ticket = globalTicket
 	self.trove = Trove.new()
+	self.watchTroves = {}
 
-	self.isValidLayerCollector = isValidLayerCollector or function()
-		return true
+	self.hiddenClasses = table.clone(options.hiddenClasses)
+	self.exclusions = {}
+	for _, exclusion in options.exclusions do
+		if exclusion then
+			table.insert(self.exclusions, exclusion)
+		end
 	end
 
-	self.watchTroves = {}
-	self.exclusionList = table.clone(exclusionsList)
-
-	for _, exclusion in exclusionsList do
+	for _, exclusion in self.exclusions do
 		if not globalExclusions[exclusion] then
 			globalExclusions[exclusion] = {}
 		end
@@ -69,7 +76,7 @@ function UIHiderClass.new(
 		end)
 	end
 
-	if #exclusionsList > 0 then
+	if #self.exclusions > 0 then
 		globalExclusionsChanged:Fire()
 	end
 
@@ -106,6 +113,15 @@ end
 
 local function isExcluded(layerCollector: LayerCollector): boolean
 	return not not next(globalExclusions[layerCollector] or {})
+end
+
+function UIHiderClass._isValidLayerCollector(self: UIHider, layerCollector: LayerCollector)
+	for _, className in self.hiddenClasses do
+		if layerCollector:IsA(className) then
+			return true
+		end
+	end
+	return false
 end
 
 function UIHiderClass._watch(self: UIHider, layerCollector: LayerCollector)
@@ -148,7 +164,7 @@ function UIHiderClass._stopWatching(self: UIHider, layerCollector: LayerCollecto
 end
 
 function UIHiderClass._attemptWatch(self: UIHider, child: Instance)
-	if child:IsA("LayerCollector") and self.isValidLayerCollector(child) and not self.watchTroves[child] then
+	if child:IsA("LayerCollector") and self:_isValidLayerCollector(child) and not self.watchTroves[child] then
 		self:_watch(child)
 	end
 end
@@ -170,4 +186,4 @@ end
 
 --
 
-return UIHiderClass
+return UIHiderStatic
