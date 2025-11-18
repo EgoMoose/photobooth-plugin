@@ -8,6 +8,7 @@ local AssetService = game:GetService("AssetService") :: AssetService
 local ScriptEditorService = game:GetService("ScriptEditorService") :: ScriptEditorService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
@@ -20,6 +21,7 @@ local Camera = require(pluginRoot.Utilities.Camera)
 local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
+local Captures = require(pluginRoot.Main.Photo.Captures)
 local UIHider = require(pluginRoot.Main.Photo.Tools.UIHider)
 
 local Hooks = require(script.Hooks)
@@ -74,9 +76,12 @@ function UserInterface.mountCaptureUI(plugin: Plugin, toolbar: PluginToolbar)
 
 	local clickConnection = captureButton.Click:Connect(function()
 		if selection and not State.read().temporary.isCapturing then
+			local captureTypeIndex = State.read().temporary.uiCaptureTypeIndex
+			local captureType = assert(Captures.UserInterface.Order[captureTypeIndex], "No capture type found")
+
 			local captures = Photo.captureUI({
 				subject = selection,
-				type = State.read().temporary.uiCaptureType,
+				type = captureType :: Captures.UICaptureTypes,
 			})
 
 			local exported = Photo.export(captures, StarterGui)
@@ -197,9 +202,12 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					end)
 				end,
 				OnCapture = function(rect)
+					local captureTypeIndex = State.read().temporary.viewportCaptureTypeIndex
+					local captureType = assert(Captures.Viewport.Order[captureTypeIndex], "No capture type found")
+
 					local captures, err = Photo.captureViewport({
 						rect = rect,
-						type = State.read().temporary.viewportCaptureType,
+						type = captureType :: Captures.ViewportCaptureTypes,
 					})
 
 					local selection = Photo.export(captures, StarterGui)
