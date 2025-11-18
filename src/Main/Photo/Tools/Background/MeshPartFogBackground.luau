@@ -33,7 +33,16 @@ function MeshPartFogBackgroundClass.new(parent: Instance): MeshPartFogBackground
 	self.fogTrove = Trove.new()
 
 	self:SetEnabled(false)
-	self:Update()
+	self:_update()
+
+	return self
+end
+
+function MeshPartFogBackgroundClass.neon(parent: Instance): MeshPartFogBackground
+	local self = MeshPartFogBackgroundClass.new(parent)
+
+	self.fogDistance = math.huge
+	self.part.Material = Enum.Material.Neon
 
 	return self
 end
@@ -87,7 +96,7 @@ local function getBoundsIntersection(cameraCF: CFrame)
 	return cameraPos + lookVector * (radius + MARGIN_OF_ERROR_DISTANCE * 2)
 end
 
-function MeshPartFogBackgroundClass._createInstances(self: MeshPartFogBackground)
+function MeshPartFogBackgroundClass._createInstances(_self: MeshPartFogBackground)
 	local part = Instance.new("Part")
 	part.Material = Enum.Material.SmoothPlastic
 	part.CFrame = CFrame.identity
@@ -109,18 +118,18 @@ function MeshPartFogBackgroundClass._createInstances(self: MeshPartFogBackground
 	return part, mesh
 end
 
--- Public
-
-function MeshPartFogBackgroundClass.Update(self: MeshPartFogBackground)
+function MeshPartFogBackgroundClass._update(self: MeshPartFogBackground)
 	local cameraCF = workspace.CurrentCamera.CFrame
 	local intersection = getBoundsIntersection(cameraCF)
 	self.part.CFrame = CFrame.new(intersection) * cameraCF.Rotation
 	self.fogDistance = -cameraCF:PointToObjectSpace(intersection).Z - MARGIN_OF_ERROR_DISTANCE
 end
 
+-- Public
+
 function MeshPartFogBackgroundClass.SetEnabled(self: MeshPartFogBackground, enabled: boolean)
 	self.part.Transparency = if enabled then 0 else 1
-	if enabled then
+	if enabled and self.fogDistance > 0 then
 		local color = Lighting.FogColor
 		local fogStart = Lighting.FogStart
 		local fogEnd = Lighting.FogEnd

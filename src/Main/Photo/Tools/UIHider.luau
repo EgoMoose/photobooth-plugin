@@ -42,7 +42,7 @@ local globalExclusions: { [LayerCollector]: { [number]: boolean } } = {}
 
 function UIHiderStatic.new(options: {
 	hiddenClasses: { string },
-	exclusions: { LayerCollector? },
+	exclusions: { LayerCollector },
 })
 	local self = setmetatable({}, UIHiderClass) :: UIHider
 
@@ -53,12 +53,7 @@ function UIHiderStatic.new(options: {
 	self.watchTroves = {}
 
 	self.hiddenClasses = table.clone(options.hiddenClasses)
-	self.exclusions = {}
-	for _, exclusion in options.exclusions do
-		if exclusion then
-			table.insert(self.exclusions, exclusion)
-		end
-	end
+	self.exclusions = table.clone(options.exclusions)
 
 	for _, exclusion in self.exclusions do
 		if not globalExclusions[exclusion] then

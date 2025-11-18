@@ -11,11 +11,8 @@ local Sift = require(pluginRoot.Packages.Sift)
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 local State = require(pluginRoot.Main.State)
 
-local Screenshot = require(script.Captures.Screenshot)
 local SceneControl = require(script.SceneControl)
 local Captures = require(script.Captures)
-
-local UIHider = require(script.Tools.UIHider)
 
 local Photo = {}
 
@@ -50,20 +47,12 @@ function Photo.captureUI(options: Types.CaptureUIOptions)
 
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
-
-	local success, err = SceneControl.apply({
-		hideMouse = true,
-
-		freezeCamera = true,
-		freezeEmitters = false,
-
-		callback = function()
-			if options.delay and options.delay > 0 then
-				task.wait(options.delay)
-			end
-			results = processor(options, trove)
-		end,
-	})
+	local success, err = SceneControl.freeze(false, function()
+		if options.delay and options.delay > 0 then
+			task.wait(options.delay)
+		end
+		results = processor(options, trove)
+	end)
 
 	trove:Destroy()
 
@@ -92,20 +81,12 @@ function Photo.captureViewport(options: Types.CaptureViewportOptions)
 
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
-
-	local success, err = SceneControl.apply({
-		hideMouse = true,
-
-		freezeCamera = true,
-		freezeEmitters = true,
-
-		callback = function()
-			if options.delay and options.delay > 0 then
-				task.wait(options.delay)
-			end
-			results = processor(options, trove)
-		end,
-	})
+	local success, err = SceneControl.freeze(true, function()
+		if options.delay and options.delay > 0 then
+			task.wait(options.delay)
+		end
+		results = processor(options, trove)
+	end)
 
 	trove:Destroy()
 
