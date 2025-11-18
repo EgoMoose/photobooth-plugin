@@ -3,8 +3,6 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Signal = require(pluginRoot.Packages.Signal)
 
-local Types = require(pluginRoot.Main.Bindings.Interface.Types)
-
 local SaveVersions = require(script.SaveVersions)
 
 local PLUGIN_SAVED_KEY = "egomoose_photobooth_save"
@@ -24,8 +22,8 @@ local function defaultTemporary()
 		isCapturing = false,
 		isFullscreen = false,
 
-		uiCaptureType = "NoBackground" :: Types.UICaptureTypes,
-		viewportCaptureType = "NoSkybox" :: Types.ViewportCaptureTypes,
+		uiCaptureTypeIndex = 1,
+		viewportCaptureTypeIndex = 1,
 	}
 end
 

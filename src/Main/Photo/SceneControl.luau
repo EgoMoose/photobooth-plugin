@@ -153,7 +153,23 @@ function SceneControl.getAppliedColorCorrectionCopy()
 	return Instance.new("ColorCorrectionEffect")
 end
 
-function SceneControl.isGradedCaptureRequired()
+function SceneControl.hideAtmosphere()
+	local atmospheres = {}
+	for _, child in Lighting:GetChildren() do
+		if child:IsA("Atmosphere") then
+			child.Parent = nil
+			table.insert(atmospheres, child)
+		end
+	end
+
+	return SceneControl.once(function()
+		for _, atmosphere in atmospheres do
+			atmosphere.Parent = Lighting
+		end
+	end)
+end
+
+function SceneControl.isGradedLightingRequired()
 	if not Lighting:FindFirstChildWhichIsA("Atmosphere") then
 		local children = Lighting:GetChildren()
 		for i = #children, 1, -1 do
@@ -184,17 +200,10 @@ end
 
 function SceneControl.applyRetroLighting()
 	local undoGradedLighting = SceneControl.applyGradedLighting()
+	local undoHideAtmosphere = SceneControl.hideAtmosphere()
 
 	local exposureCompensation = Lighting.ExposureCompensation
 	Lighting.ExposureCompensation = 0
-
-	local atmospheres = {}
-	for _, child in Lighting:GetChildren() do
-		if child:IsA("Atmosphere") then
-			child.Parent = nil
-			table.insert(atmospheres, child)
-		end
-	end
 
 	local effects = {}
 	for _, child in Lighting:GetChildren() do
@@ -211,11 +220,8 @@ function SceneControl.applyRetroLighting()
 
 	return SceneControl.once(function()
 		undoGradedLighting()
+		undoHideAtmosphere()
 		Lighting.ExposureCompensation = exposureCompensation
-
-		for _, atmosphere in atmospheres do
-			atmosphere.Parent = Lighting
-		end
 
 		retroGrading:Destroy()
 		for _, effect in effects do

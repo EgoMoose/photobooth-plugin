@@ -33,6 +33,11 @@ type GroupsProps = {
 	LayoutOrder: number,
 }
 
+type DropdownItemDetail = {
+	Id: string,
+	Text: string,
+}
+
 local function GeneralGroup(props: GroupsProps)
 	local theme = StudioComponents.useTheme()
 
@@ -152,6 +157,18 @@ local function GeneralGroup(props: GroupsProps)
 end
 
 local function ViewportGroup(props: GroupsProps)
+	local captureTypeIndex = props.State.temporary.viewportCaptureTypeIndex
+	local dropdownItems = React.useMemo(function()
+		local items: { DropdownItemDetail } = {}
+		for i, captureType in Captures.Viewport.Order do
+			table.insert(items, {
+				Id = tostring(i),
+				Text = captureType,
+			})
+		end
+		return items
+	end, {})
+
 	return React.createElement(SettingsGroup, {
 		Disabled = props.RootProps.Disabled,
 		LayoutOrder = props.LayoutOrder,
@@ -186,12 +203,13 @@ local function ViewportGroup(props: GroupsProps)
 						Disabled = props.RootProps.Disabled,
 						Size = UDim2.new(1, -1, 1, 0),
 						Position = UDim2.fromOffset(1, 0),
-						Items = Captures.Viewport.Order,
-						SelectedItem = props.State.temporary.viewportCaptureType :: string,
-						OnItemSelected = function(item: string?)
-							if item then
+						Items = dropdownItems :: { any },
+						SelectedItem = tostring(captureTypeIndex),
+						OnItemSelected = function(id: string?)
+							local index = tonumber(id)
+							if index then
 								props.MutateState(function(state)
-									state.temporary.viewportCaptureType = item :: Captures.ViewportCaptureTypes
+									state.temporary.viewportCaptureTypeIndex = index
 								end)
 							end
 						end,
@@ -203,6 +221,18 @@ local function ViewportGroup(props: GroupsProps)
 end
 
 local function UserInterfaceGroup(props: GroupsProps)
+	local captureTypeIndex = props.State.temporary.uiCaptureTypeIndex
+	local dropdownItems = React.useMemo(function()
+		local items: { DropdownItemDetail } = {}
+		for i, captureType in Captures.UserInterface.Order do
+			table.insert(items, {
+				Id = tostring(i),
+				Text = captureType,
+			})
+		end
+		return items
+	end, {})
+
 	return React.createElement(SettingsGroup, {
 		Disabled = props.RootProps.Disabled,
 		LayoutOrder = props.LayoutOrder,
@@ -216,12 +246,13 @@ local function UserInterfaceGroup(props: GroupsProps)
 						Disabled = props.RootProps.Disabled,
 						Size = UDim2.new(1, -1, 1, 0),
 						Position = UDim2.fromOffset(1, 0),
-						Items = Captures.UserInterface.Order,
-						SelectedItem = props.State.temporary.uiCaptureType :: string,
-						OnItemSelected = function(item: string?)
-							if item then
+						Items = dropdownItems :: { any },
+						SelectedItem = tostring(captureTypeIndex),
+						OnItemSelected = function(id: string?)
+							local index = tonumber(id)
+							if index then
 								props.MutateState(function(state)
-									state.temporary.uiCaptureType = item :: Captures.UICaptureTypes
+									state.temporary.uiCaptureTypeIndex = index
 								end)
 							end
 						end,

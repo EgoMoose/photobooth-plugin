@@ -17,10 +17,6 @@ local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove): ...Image.Image
-	if Lighting:FindFirstChildWhichIsA("Atmosphere") then
-		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
-	end
-
 	trove:Add(SceneControl.hideScreenUI(options.rect))
 	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
 
@@ -32,8 +28,15 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 		fogBackground:Destroy()
 	end))
 
+	-- capture on graded black
+	local preRetroYieldCount = 1
 	local gradedOnBlack: Image.Image?
 	if SceneControl.isGradedLightingRequired() then
+		if Lighting:FindFirstChildWhichIsA("Atmosphere") then
+			trove:Add(SceneControl.hideAtmosphere())
+			preRetroYieldCount = 100
+		end
+
 		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
 
 		SceneControl.yieldUntilNextFrame()
@@ -46,7 +49,9 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	trove:Add(SceneControl.applyRetroLighting())
 
 	-- capture on retro black
-	SceneControl.yieldUntilNextFrame()
+	for _i = 1, preRetroYieldCount do
+		SceneControl.yieldUntilNextFrame()
+	end
 	local onBlackRetro = Screenshot.rect(options.rect)
 
 	-- capture on retro white
@@ -54,6 +59,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	SceneControl.yieldUntilNextFrame()
 	local onWhiteRetro = Screenshot.rect(options.rect)
 
+	-- remove background & alpha bleed
 	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
 		capture = Composers.alphaBleed(capture)
