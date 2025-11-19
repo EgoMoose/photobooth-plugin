@@ -11,7 +11,7 @@
 	"[json]": {
 		"editor.formatOnSave": false,
 	},
-	"luau-lsp.sourcemap.rojoProjectFile": "develop.project.json",
+	"luau-lsp.sourcemap.rojoProjectFile": "analysis.project.json",
 	"stylua.targetReleaseVersion": "latest",
 	"luau-lsp.types.definitionFiles": [
 		".vscode/definitions.d.luau"
