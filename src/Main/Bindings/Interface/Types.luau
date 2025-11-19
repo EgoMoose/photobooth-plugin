@@ -8,8 +8,8 @@ export type CaptureViewportOptions = {
 	type: ViewportCaptureTypes,
 
 	delay: number?,
+	scaleOS: Vector2?,
 	alphaBleed: boolean?,
-	disableOSScaleCameraFix: boolean?,
 }
 
 export type CaptureUIOptions = {

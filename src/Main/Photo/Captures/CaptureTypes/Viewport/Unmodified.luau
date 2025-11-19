@@ -15,6 +15,7 @@ local Composers = require(capturesRoot.Composers)
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove)
 	trove:Add(SceneControl.hideScreenUI(options.rect))
 
+	SceneControl.yieldUntilNextFrame()
 	local capture = Screenshot.rect(options.rect)
 	if options.alphaBleed then
 		capture = Composers.alphaBleed(capture)

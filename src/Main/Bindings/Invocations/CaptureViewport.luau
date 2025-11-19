@@ -19,8 +19,8 @@ local gtOptions = gt.table({
 	type = gt.union(unpack(captureTypeLiterals)),
 	rect = gt.Rect(),
 	delay = gt.opt(gt.number()),
+	scale = gt.opt(gt.Vector2()),
 	alphaBleed = gt.opt(gt.bool()),
-	disableOSScaleCameraFix = gt.opt(gt.bool()),
 })
 
 -- stylua: ignore
@@ -31,7 +31,7 @@ local typechecker = gt.fn(
 
 local function callback(options: typeof(gtOptions))
 	local scaleOS = State.read().temporary.scaleOS
-	local disableCameraFix = not not options.disableOSScaleCameraFix
+	local captureScale = options.scale or Vector2.new(1, 1)
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
@@ -42,38 +42,31 @@ local function callback(options: typeof(gtOptions))
 
 	local scaledRect: Rect
 	if options.rect.Min == Vector2.zero and options.rect.Max == viewportSize then
-		-- stylua: ignore
-		local scaledViewportSize = Vector2.new(
-			math.round(viewportSize.X * scaleOS.X),
-			math.round(viewportSize.Y * scaleOS.Y)
-		)
-
-		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
-	elseif disableCameraFix then
-		-- stylua: ignore
-		scaledRect = RenderRect.fromRect(Rect.new(
-			options.rect.Min * scaleOS,
-			options.rect.Max * scaleOS
-		))
+		local scaledViewportX = math.round(viewportSize.X * scaleOS.X)
+		local scaledViewportY = math.round(viewportSize.Y * scaleOS.Y)
+		scaledRect = Rect.new(Vector2.new(0, 0), Vector2.new(scaledViewportX, scaledViewportY))
 	else
-		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
-		local scaledRectAbsPosition = (options.rect.Min + corner)
-		local scaledRectAbsSize = (options.rect.Max + corner) - scaledRectAbsPosition
-		scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
+		local viewportDelta = (viewportSize * scaleOS) - viewportSize
+		local absPosition = options.rect.Min + viewportDelta / 2
+		local absSize = options.rect.Max - options.rect.Min
 
-		if not (scaleOS.X == 1 and scaleOS.Y == 1) then
-			-- stylua: ignore
-			camera.CFrame = prevCameraCF * Camera.distort(camera, {
-				anchor = Vector2.new(0.5, 0.5),
-				position = Vector2.new(0.5, 0.5),
-				size = 1 / scaleOS,
-				zoom = 1,
-				nearZ = 0,
-				rotation = 0,
-			})
+		local center = absPosition + absSize / 2
+		local offset = (absSize / 2) * captureScale
+		scaledRect = RenderRect.fromRect(Rect.new(center - offset, center + offset))
 
-			SceneControl.yieldUntilNextFrame()
-		end
+		print("scaling camera", captureScale / scaleOS)
+
+		-- stylua: ignore
+		camera.CFrame = prevCameraCF * Camera.distort(camera, {
+			anchor = Vector2.new(0.5, 0.5),
+			position = Vector2.new(0.5, 0.5),
+			size = Vector2.new(0.5, 0.5),
+			zoom = 1,
+			nearZ = 0,
+			rotation = 0,
+		})
+
+		task.wait(5)
 	end
 
 	local exported
