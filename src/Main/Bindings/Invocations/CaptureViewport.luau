@@ -20,6 +20,7 @@ local gtOptions = gt.table({
 	rect = gt.Rect(),
 	delay = gt.opt(gt.number()),
 	alphaBleed = gt.opt(gt.bool()),
+	disableOSScaleCameraFix = gt.opt(gt.bool()),
 })
 
 -- stylua: ignore
@@ -30,6 +31,7 @@ local typechecker = gt.fn(
 
 local function callback(options: typeof(gtOptions))
 	local scaleOS = State.read().temporary.scaleOS
+	local disableCameraFix = not not options.disableOSScaleCameraFix
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
@@ -47,6 +49,12 @@ local function callback(options: typeof(gtOptions))
 		)
 
 		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
+	elseif disableCameraFix then
+		-- stylua: ignore
+		scaledRect = RenderRect.fromRect(Rect.new(
+			options.rect.Min * scaleOS,
+			options.rect.Max * scaleOS
+		))
 	else
 		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
 		local scaledRectAbsPosition = (options.rect.Min + corner)
