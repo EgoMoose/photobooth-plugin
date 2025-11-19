@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local Semver = require(pluginRoot.Packages.Semver)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 local Wally = require(pluginRoot.Wally)
@@ -272,7 +273,7 @@ local function ConfigurationWindow(props: Props)
 	local mutateState = React.useCallback(State.mutate, {})
 
 	local versionText = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`
-	if latestVersion ~= Wally.package.version then
+	if Semver.validateVersion(Wally.package.version) and Semver.cmp(latestVersion, ">", Wally.package.version) then
 		versionText = "update available*\n" .. versionText
 	end
 
