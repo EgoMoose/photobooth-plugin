@@ -15,6 +15,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - The bindings module now have the following optional params for the capture functions. If not provided the plugin will default to the user settings.
   - `alphaBleed` can be used to override the user's alpha bleed setting. (`captureViewport`, `captureUI`)
   - `scale` can be used to better control how the camera adjusts for a capture when using a non-unit os scale. (`captureViewport`)
+- Add new "Experimental_NSB_A1" viewport capture type. This is an experimental method for capturing scenes with atmosphere in them.
+  - This capture type may be removed in he future and the stability is not guaranteed.
 
 ## [0.9.0]
 ### Changes
