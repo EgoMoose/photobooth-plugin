@@ -3,6 +3,10 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Signal = require(pluginRoot.Packages.Signal)
 local Trove = require(pluginRoot.Packages.Trove)
+local State = require(pluginRoot.Main.State)
+
+local photoRoot = script:FindFirstAncestor("Photo")
+local Screenshot = require(photoRoot.Captures.Screenshot)
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
@@ -16,64 +20,30 @@ end)
 
 local UIHiderStatic = {}
 
-UIHiderStatic.ViewportApp = nil :: LayerCollector?
-
 local UIHiderClass = {}
 UIHiderClass.__index = UIHiderClass
 UIHiderClass.ClassName = "UIHider"
 
 export type UIHider = typeof(setmetatable(
 	{} :: {
-		ticket: number,
 		trove: Trove.Trove,
 		watchTroves: { [LayerCollector]: Trove.Trove },
-
 		hiddenClasses: { string },
-		exclusions: { LayerCollector },
 	},
 	UIHiderClass
 ))
 
-local globalTicket = 0
+local globalExclusionsSet = {}
 local globalExclusionsChanged = Signal.new()
-local globalExclusions: { [LayerCollector]: { [number]: boolean } } = {}
 
 -- Constructor
 
-function UIHiderStatic.new(options: {
-	hiddenClasses: { string },
-	exclusions: { LayerCollector },
-})
+function UIHiderStatic.new(hiddenClasses: { string })
 	local self = setmetatable({}, UIHiderClass) :: UIHider
 
-	globalTicket = globalTicket + 1
-
-	self.ticket = globalTicket
 	self.trove = Trove.new()
 	self.watchTroves = {}
-
-	self.hiddenClasses = table.clone(options.hiddenClasses)
-	self.exclusions = table.clone(options.exclusions)
-
-	for _, exclusion in self.exclusions do
-		if not globalExclusions[exclusion] then
-			globalExclusions[exclusion] = {}
-		end
-
-		globalExclusions[exclusion][self.ticket] = true
-
-		self.trove:Add(function()
-			globalExclusions[exclusion][self.ticket] = nil
-
-			if not next(globalExclusions[exclusion]) then
-				globalExclusions[exclusion] = nil
-			end
-		end)
-	end
-
-	if #self.exclusions > 0 then
-		globalExclusionsChanged:Fire()
-	end
+	self.hiddenClasses = table.clone(hiddenClasses)
 
 	for _, uiSource in { CoreGui, StarterGui, PLAYER_GUI } do
 		self.trove:Add(uiSource.DescendantAdded:Connect(function(child)
@@ -104,10 +74,31 @@ function UIHiderStatic.new(options: {
 	return self
 end
 
+-- Static
+
+function UIHiderStatic.isViewportAppExcluded(rect: Rect)
+	local scaleOS = State.read().temporary.scaleOS
+	return not Screenshot.isFullscreenRect(rect) and Screenshot.isUnitScaleOS(scaleOS)
+end
+
+function UIHiderStatic.addExclusion(exclusion: LayerCollector)
+	globalExclusionsSet[exclusion] = true
+	globalExclusionsChanged:Fire()
+
+	local hasCalled = false
+	return function()
+		if not hasCalled then
+			hasCalled = true
+			globalExclusionsSet[exclusion] = nil
+			globalExclusionsChanged:Fire()
+		end
+	end
+end
+
 -- Private
 
 local function isExcluded(layerCollector: LayerCollector): boolean
-	return not not next(globalExclusions[layerCollector] or {})
+	return not not globalExclusionsSet[layerCollector]
 end
 
 function UIHiderClass._isValidLayerCollector(self: UIHider, layerCollector: LayerCollector)

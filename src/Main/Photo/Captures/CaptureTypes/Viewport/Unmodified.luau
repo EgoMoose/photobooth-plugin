@@ -13,7 +13,7 @@ local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove)
-	trove:Add(SceneControl.hideScreenUI(options.rect))
+	trove:Add(SceneControl.hideScreenUI())
 
 	SceneControl.yieldUntilNextFrame()
 	local capture = Screenshot.rect(options.rect)

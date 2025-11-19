@@ -154,10 +154,6 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		end, {})
 
 		React.useEffect(function()
-			UIHider.ViewportApp = screenGuiRef.current
-		end, { isEnabled })
-
-		React.useEffect(function()
 			local trove = Trove.new()
 			trove:Add(openButton.Click:Connect(function()
 				updateInitialLenseSizeRef()
@@ -205,10 +201,17 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 					local captureTypeIndex = State.read().temporary.viewportCaptureTypeIndex
 					local captureType = assert(Captures.Viewport.Order[captureTypeIndex], "No capture type found")
 
+					local trove = Trove.new()
+					if screenGuiRef.current and UIHider.isViewportAppExcluded(rect) then
+						trove:Add(UIHider.addExclusion(screenGuiRef.current))
+					end
+
 					local captures, err = Photo.captureViewport({
 						rect = rect,
 						type = captureType :: Captures.ViewportCaptureTypes,
 					})
+
+					trove:Destroy()
 
 					local selection = Photo.export(captures, StarterGui)
 					SelectionService:Set(selection :: any)
