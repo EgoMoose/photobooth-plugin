@@ -61,10 +61,11 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 				Haze = 10,
 				Glare = 0,
 				Color = Color3.new(0, 0, 0),
+				Decay = Color3.new(0, 0, 0),
 			}))
 		end
 
-		--SceneControl.yieldUntilNextFrame()
+		-- SceneControl.yieldUntilNextFrame()
 		gradedOnBlack = Screenshot.rect(options.rect)
 
 		undoGradedLighting()
