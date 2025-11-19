@@ -42,6 +42,7 @@ local captureTypes = {
 		AlphaMask = wrap(require(script.CaptureTypes.UserInterface.AlphaMask)),
 	},
 	Viewport = {
+		Experimental_NSB_A1 = wrap(require(script.CaptureTypes.Viewport.Experimental_NSB_A1)),
 		NoSkybox = wrap(require(script.CaptureTypes.Viewport.NoSkybox)),
 		Unmodified = wrap(require(script.CaptureTypes.Viewport.Unmodified)),
 	},
