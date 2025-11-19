@@ -8,7 +8,7 @@ export type CaptureViewportOptions = {
 	type: ViewportCaptureTypes,
 
 	delay: number?,
-	scaleOS: Vector2?,
+	scale: Vector2?,
 	alphaBleed: boolean?,
 }
 

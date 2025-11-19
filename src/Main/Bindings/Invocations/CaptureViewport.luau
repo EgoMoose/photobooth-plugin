@@ -4,7 +4,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local gt = require(pluginRoot.Packages.GreenTea)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local SceneControl = require(pluginRoot.Main.Photo.SceneControl)
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local Camera = require(pluginRoot.Utilities.Camera)
@@ -54,19 +53,18 @@ local function callback(options: typeof(gtOptions))
 		local offset = (absSize / 2) * captureScale
 		scaledRect = RenderRect.fromRect(Rect.new(center - offset, center + offset))
 
-		print("scaling camera", captureScale / scaleOS)
+		local cameraScale = captureScale / scaleOS
+		if not (cameraScale.X == 1 and cameraScale.Y == 1) then
+			local distortion = Camera.distort(camera, {
+				anchor = Vector2.new(0.5, 0.5),
+				position = Vector2.new(0.5, 0.5),
+				size = cameraScale,
+				zoom = 1,
+				rotation = 0,
+			})
 
-		-- stylua: ignore
-		camera.CFrame = prevCameraCF * Camera.distort(camera, {
-			anchor = Vector2.new(0.5, 0.5),
-			position = Vector2.new(0.5, 0.5),
-			size = Vector2.new(0.5, 0.5),
-			zoom = 1,
-			nearZ = 0,
-			rotation = 0,
-		})
-
-		task.wait(5)
+			camera.CFrame = prevCameraCF * distortion
+		end
 	end
 
 	local exported
@@ -90,5 +88,5 @@ end
 
 return {
 	identifier = "captureViewport",
-	callback = gt.wrapFn(typechecker, callback),
+	callback = gt.wrapFnArgs(typechecker, callback),
 }
