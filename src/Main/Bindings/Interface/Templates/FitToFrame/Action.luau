@@ -7,7 +7,7 @@
 		3. Hide everything that is not in the target folder so that it is not visible in the workspace.
 		4. Resize the "CaptureFrame" to your desired dimensions.
 		5. Make any rotational adjustments to the targets as the camera will have identity rotation when taking the captures.
-		6. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.FitToFrame.Action)` in the command bar.
+		6. Run `require(game.ServerStorage.Photobooth.Bindings).execute(game.StarterGui.FitToFrame.Action)` in the command bar.
 		7. After completion your captures will be in a timestamped folder under the StarterGui.
 
 	UNIFORM_SCALE
@@ -25,7 +25,7 @@ local CAPTURE_DELAY = 0
 local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
 
-local Photobooth = require(ServerStorage.PhotoboothBindings)
+local Photobooth = require(ServerStorage.Photobooth.Bindings)
 
 local frame = script.Parent.CaptureFrame
 local folder = workspace:FindFirstChild("FitToFrameTargets") :: Folder
@@ -109,11 +109,15 @@ local function capture()
 		Photobooth.yieldUntilNextFrame()
 
 		-- use photobooth to capture
-		local result = Photobooth.captureViewport({
-			rect = rect,
-			type = "NoSkybox",
-			delay = CAPTURE_DELAY,
-		})
+		local result = assert(
+			Photobooth.captureViewport({
+				rect = rect,
+				type = "NoSkybox",
+				delay = CAPTURE_DELAY,
+			}),
+			"Capture failed!"
+		)
+
 		result.Name = child.Name
 		result.Parent = outputFolder
 
