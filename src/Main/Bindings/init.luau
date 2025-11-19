@@ -32,7 +32,7 @@ end
 local function createBindings()
 	local interface = script.Interface:Clone()
 	local binding = interface.Binding
-	interface.Name = "PhotoboothBindings"
+	interface.Name = "Bindings"
 
 	local descendants = interface:GetDescendants()
 	table.insert(descendants, interface)
@@ -57,7 +57,13 @@ local function createBindings()
 		return false, err
 	end
 
-	return interface
+	local camera = Instance.new("Camera")
+	camera.Name = "Photobooth"
+	camera.Archivable = false
+	trove:Add(camera)
+
+	interface.Parent = camera
+	return camera
 end
 
 local isEnabled = false

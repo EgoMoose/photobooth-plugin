@@ -21,7 +21,7 @@ local gtOptions = gt.table({
 -- stylua: ignore
 local typechecker = gt.fn(
 	gt.args(gtOptions),
-	gt.returns(gt.IsA("MeshPart"))
+	gt.returns(gt.opt(gt.IsA("MeshPart")))
 )
 
 local function callback(options: typeof(gtOptions))
@@ -32,5 +32,5 @@ end
 
 return {
 	identifier = "captureUI",
-	callback = gt.wrapFnArgs(typechecker, callback),
+	callback = gt.wrapFn(typechecker, callback),
 }

@@ -10,8 +10,11 @@
 		},
 		"ServerStorage": {
 			"$className": "ServerStorage",
-			"PhotoboothBindings": {
-				"$path": "src/Main/Bindings/Interface"
+			"Photobooth": {
+				"$className": "Camera",
+				"Bindings": {
+					"$path": "src/Main/Bindings/Interface"
+				}
 			}
 		}
 	}

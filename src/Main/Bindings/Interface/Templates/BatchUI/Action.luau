@@ -4,7 +4,7 @@
 	Instructions:
 		1. Copy this template to the StarterGui.
 		2. Place all the UI elements you'd like to capture in the CaptureFolder.
-		3. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.BatchUI.Action)` in the command bar.
+		3. Run `require(game.ServerStorage.Photobooth.Bindings).execute(game.StarterGui.BatchUI.Action)` in the command bar.
 		4. After completion your captures will be in a timestamped folder under the StarterGui.
 	
 	CAPTURE_DELAY
@@ -17,7 +17,7 @@ local CAPTURE_DELAY = 0
 local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
 
-local Photobooth = require(ServerStorage.PhotoboothBindings)
+local Photobooth = require(ServerStorage.Photobooth.Bindings)
 
 local screen = script.Parent
 local folder = screen.CaptureFolder
@@ -26,11 +26,14 @@ local function capture()
 	local outputFolder = Instance.new("Folder")
 	for _, child in folder:GetChildren() do
 		if child:IsA("GuiObject") and child.Visible then
-			local result = Photobooth.captureUI({
-				subject = child,
-				type = "NoBackground",
-				delay = CAPTURE_DELAY,
-			})
+			local result = assert(
+				Photobooth.captureUI({
+					subject = child,
+					type = "NoBackground",
+					delay = CAPTURE_DELAY,
+				}),
+				"Capture failed!"
+			)
 
 			result.Name = child.Name
 			result.Parent = outputFolder
