@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Outdated versions of photobooth now notify (in a non-intrusive way) that an update is available in the settings window.
 - Significant capture type code cleanup allows for more flexible capture types in the future
 - Breaking changes for the bindings module:
+  - The module is now parent under a camera instance. This avoids replicating the bindings in a team create setting.
   - `captureViewport` and `captureUI` now return `nil` upon failure without throwing an unhelpful warn in the output window
   - `captureViewport` and `captureUI` now use an options table which allows for much more granularity over capture results.
 
