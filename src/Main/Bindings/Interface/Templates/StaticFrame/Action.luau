@@ -7,7 +7,7 @@
 		3. Hide everything that is not in the target folder so that it is not visible in the workspace.
 		4. Resize the "CaptureFrame" to your desired dimensions.
 		5. Adjust your camera and move any target models so that they're in the bounds of the capture frame.
-		5. Run `require(game.ServerStorage.PhotoboothBindings).execute(game.StarterGui.StaticFrame.Action)` in the command bar.
+		5. Run `require(game.ServerStorage.Photobooth.Bindings).execute(game.StarterGui.StaticFrame.Action)` in the command bar.
 		6. After completion your captures will be in a timestamped folder under the StarterGui.
 
 	CAPTURE_DELAY
@@ -20,7 +20,7 @@ local CAPTURE_DELAY = 0
 local StarterGui = game:GetService("StarterGui")
 local ServerStorage = game:GetService("ServerStorage")
 
-local Photobooth = require(ServerStorage.PhotoboothBindings)
+local Photobooth = require(ServerStorage.Photobooth.Bindings)
 
 local frame = script.Parent.CaptureFrame
 local folder = workspace:FindFirstChild("StaticFrameTargets") :: Folder
@@ -69,11 +69,15 @@ local function capture()
 		Photobooth.yieldUntilNextFrame()
 
 		-- use photobooth to capture
-		local result = Photobooth.captureViewport({
-			rect = rect,
-			type = "NoSkybox",
-			delay = CAPTURE_DELAY,
-		})
+		local result = assert(
+			Photobooth.captureViewport({
+				rect = rect,
+				type = "NoSkybox",
+				delay = CAPTURE_DELAY,
+			}),
+			"Capture failed!"
+		)
+
 		result.Name = child.Name
 		result.Parent = outputFolder
 
