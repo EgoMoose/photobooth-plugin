@@ -3,6 +3,19 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.0.0]
+### Changes
+- Outdated versions of photobooth now notify (in a non-intrusive way) that an update is available in the settings window.
+- Significant capture type code cleanup allows for more flexible capture types in the future
+- Breaking changes for the bindings module:
+  - `captureViewport` and `captureUI` now return `nil` upon failure without throwing an unhelpful warn in the output window
+  - `captureViewport` and `captureUI` now use an options table which allows for much more granularity over capture results.
+
+### Added
+- The bindings module now have the following optional params for the capture functions. If not provided the plugin will default to the user settings.
+  - `alphaBleed` can be used to override the user's alpha bleed setting. (`captureViewport`, `captureUI`)
+  - `scale` can be used to better control how the camera adjusts for a capture when using a non-unit os scale. (`captureViewport`)
+
 ## [0.9.0]
 ### Changes
 - Replaces the checkerboard image asset in the gallery
