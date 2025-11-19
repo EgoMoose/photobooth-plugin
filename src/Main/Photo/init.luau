@@ -79,12 +79,13 @@ function Photo.captureViewport(options: Types.CaptureViewportOptions)
 
 	local processor = Captures.Viewport.Processors[options.type]
 
+	if options.delay and options.delay > 0 then
+		task.wait(options.delay)
+	end
+
 	local results: { Image.Image }
 	local trove = createIsCapturingTrove()
 	local success, err = SceneControl.freeze(true, function()
-		if options.delay and options.delay > 0 then
-			task.wait(options.delay)
-		end
 		results = processor(options, trove)
 	end)
 
