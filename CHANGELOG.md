@@ -3,6 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.0.1]
+### Fixed
+- Fix an issue with delaying with a viewport binding capture
+
 ## [1.0.0]
 ### Changes
 - Outdated versions of photobooth now notify (in a non-intrusive way) that an update is available in the settings window.
