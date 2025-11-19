@@ -3,19 +3,21 @@
 local MarketplaceService = game:GetService("MarketplaceService") :: MarketplaceService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Semver = require(pluginRoot.Packages.Semver)
 local Signal = require(pluginRoot.Packages.Signal)
 local React = require(pluginRoot.Packages.React)
-local Wally = require(pluginRoot.Wally)
 
 local finished = Signal.new()
-local resultVersion = Wally.package.version
+local resultVersion = "0.0.0"
 
 task.spawn(function()
 	local success, result =
 		pcall(MarketplaceService.GetProductInfo, MarketplaceService, 87864471469006, Enum.InfoType.Asset)
 	if success then
-		resultVersion = result.Description
-		finished:Fire()
+		if Semver.validateVersion(result.Description) then
+			resultVersion = result.Description
+			finished:Fire()
+		end
 	end
 end)
 
