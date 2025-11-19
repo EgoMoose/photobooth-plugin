@@ -44,11 +44,11 @@ function Bindings.yieldUntilNextFrame(): ()
 	return invokeBinding("yieldUntilNextFrame")
 end
 
-function Bindings.captureViewport(options: CaptureViewportOptions): MeshPart
+function Bindings.captureViewport(options: CaptureViewportOptions): MeshPart?
 	return invokeBinding("captureViewport", options)
 end
 
-function Bindings.captureUI(options: CaptureUIOptions): MeshPart
+function Bindings.captureUI(options: CaptureUIOptions): MeshPart?
 	return invokeBinding("captureUI", options)
 end
 
