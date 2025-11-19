@@ -6,15 +6,18 @@ export type ViewportCaptureTypes = "Unmodified" | "NoSkybox"
 export type CaptureViewportOptions = {
 	rect: Rect,
 	type: ViewportCaptureTypes,
-	alphaBleed: boolean?,
+
 	delay: number?,
+	scale: Vector2?,
+	alphaBleed: boolean?,
 }
 
 export type CaptureUIOptions = {
 	subject: GuiObject,
 	type: UICaptureTypes,
-	alphaBleed: boolean?,
+
 	delay: number?,
+	alphaBleed: boolean?,
 }
 
 return {}

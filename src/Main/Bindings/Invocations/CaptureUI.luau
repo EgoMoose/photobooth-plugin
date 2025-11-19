@@ -32,5 +32,5 @@ end
 
 return {
 	identifier = "captureUI",
-	callback = gt.wrapFn(typechecker, callback),
+	callback = gt.wrapFnArgs(typechecker, callback),
 }

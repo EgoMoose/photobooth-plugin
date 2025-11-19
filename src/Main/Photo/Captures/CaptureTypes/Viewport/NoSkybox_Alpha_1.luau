@@ -17,7 +17,7 @@ local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove): ...Image.Image
-	trove:Add(SceneControl.hideScreenUI(options.rect))
+	trove:Add(SceneControl.hideScreenUI())
 	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
 
 	-- capture on graded black

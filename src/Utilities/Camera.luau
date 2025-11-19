@@ -7,7 +7,7 @@ type Distortion = {
 	position: Vector2,
 	size: Vector2,
 	zoom: number,
-	nearZ: number,
+	nearZ: number?,
 	rotation: number,
 }
 
@@ -26,18 +26,19 @@ function Camera.distort(camera: Camera, distortion: Distortion)
 	local dz = distortion.zoom
 
 	local m = math.max(math.abs(w), math.abs(h), math.abs(dx), math.abs(dy), math.abs(dz))
-	local nz = ((camera.NearPlaneZ + distortion.nearZ) / camera.NearPlaneZ) * (dz / m)
+
+	local nearZ = CFrame.identity
+	if distortion.nearZ then
+		local nz = ((camera.NearPlaneZ + distortion.nearZ) / camera.NearPlaneZ) * (dz / m)
+		nearZ = CFrame.new(0, 0, 0, 1 / nz, 0, 0, 0, 1 / nz, 0, 0, 0, 1 / nz)
+	end
 
 	-- stylua: ignore
 	return CFrame.fromEulerAnglesXYZ(0, 0, distortion.rotation) * CFrame.new(0, 0, 0,
 		w / m, 0, 0,
 		0, h / m, 0,
 		dx / m, dy / m, dz / m
-	) * CFrame.new(0, 0, 0,
-		1 / nz, 0, 0,
-		0, 1 / nz, 0,
-		0, 0, 1 / nz
-	)
+	) * nearZ
 end
 
 function Camera.focus(camera: Camera, selection: { Instance }, viewportSize: Vector2)

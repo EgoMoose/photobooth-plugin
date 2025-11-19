@@ -21,7 +21,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 		error("WARN: Skybox cannot be removed when Atmosphere is present.", 0)
 	end
 
-	trove:Add(SceneControl.hideScreenUI(options.rect))
+	trove:Add(SceneControl.hideScreenUI())
 	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
 
 	local fogBackground = Background.new(workspace)

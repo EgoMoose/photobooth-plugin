@@ -4,7 +4,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local gt = require(pluginRoot.Packages.GreenTea)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local SceneControl = require(pluginRoot.Main.Photo.SceneControl)
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local Camera = require(pluginRoot.Utilities.Camera)
@@ -19,6 +18,7 @@ local gtOptions = gt.table({
 	type = gt.union(unpack(captureTypeLiterals)),
 	rect = gt.Rect(),
 	delay = gt.opt(gt.number()),
+	scale = gt.opt(gt.Vector2()),
 	alphaBleed = gt.opt(gt.bool()),
 })
 
@@ -30,6 +30,7 @@ local typechecker = gt.fn(
 
 local function callback(options: typeof(gtOptions))
 	local scaleOS = State.read().temporary.scaleOS
+	local captureScale = options.scale or Vector2.new(1, 1)
 
 	local camera = workspace.CurrentCamera
 	local viewportSize = camera.ViewportSize
@@ -40,31 +41,29 @@ local function callback(options: typeof(gtOptions))
 
 	local scaledRect: Rect
 	if options.rect.Min == Vector2.zero and options.rect.Max == viewportSize then
-		-- stylua: ignore
-		local scaledViewportSize = Vector2.new(
-			math.round(viewportSize.X * scaleOS.X),
-			math.round(viewportSize.Y * scaleOS.Y)
-		)
-
-		scaledRect = Rect.new(Vector2.zero, scaledViewportSize)
+		local scaledViewportX = math.round(viewportSize.X * scaleOS.X)
+		local scaledViewportY = math.round(viewportSize.Y * scaleOS.Y)
+		scaledRect = Rect.new(Vector2.new(0, 0), Vector2.new(scaledViewportX, scaledViewportY))
 	else
-		local corner = ((viewportSize * scaleOS) - viewportSize) / 2
-		local scaledRectAbsPosition = (options.rect.Min + corner)
-		local scaledRectAbsSize = (options.rect.Max + corner) - scaledRectAbsPosition
-		scaledRect = RenderRect.fromAbs(scaledRectAbsPosition, scaledRectAbsSize)
+		local viewportDelta = (viewportSize * scaleOS) - viewportSize
+		local absPosition = options.rect.Min + viewportDelta / 2
+		local absSize = options.rect.Max - options.rect.Min
 
-		if not (scaleOS.X == 1 and scaleOS.Y == 1) then
-			-- stylua: ignore
-			camera.CFrame = prevCameraCF * Camera.distort(camera, {
+		local center = absPosition + absSize / 2
+		local offset = (absSize / 2) * captureScale
+		scaledRect = RenderRect.fromRect(Rect.new(center - offset, center + offset))
+
+		local cameraScale = captureScale / scaleOS
+		if not (cameraScale.X == 1 and cameraScale.Y == 1) then
+			local distortion = Camera.distort(camera, {
 				anchor = Vector2.new(0.5, 0.5),
 				position = Vector2.new(0.5, 0.5),
-				size = 1 / scaleOS,
+				size = cameraScale,
 				zoom = 1,
-				nearZ = 0,
 				rotation = 0,
 			})
 
-			SceneControl.yieldUntilNextFrame()
+			camera.CFrame = prevCameraCF * distortion
 		end
 	end
 
@@ -89,5 +88,5 @@ end
 
 return {
 	identifier = "captureViewport",
-	callback = gt.wrapFn(typechecker, callback),
+	callback = gt.wrapFnArgs(typechecker, callback),
 }

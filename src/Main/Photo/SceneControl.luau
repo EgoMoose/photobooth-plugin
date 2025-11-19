@@ -3,10 +3,8 @@ local Lighting = game:GetService("Lighting")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
-local State = require(pluginRoot.Main.State)
 
 local photoRoot = script:FindFirstAncestor("Photo")
-local Screenshot = require(photoRoot.Captures.Screenshot)
 local UIHider = require(photoRoot.Tools.UIHider)
 
 local RunService = game:GetService("RunService") :: RunService
@@ -118,19 +116,8 @@ function SceneControl.freeze(isViewport: boolean, callback: () -> ())
 	return success, err
 end
 
-function SceneControl.hideScreenUI(rect: Rect)
-	local scaleOS = State.read().temporary.scaleOS
-
-	local exclusions = {}
-	if UIHider.ViewportApp and not Screenshot.isFullscreenRect(rect) and Screenshot.isUnitScaleOS(scaleOS) then
-		table.insert(exclusions, UIHider.ViewportApp)
-	end
-
-	local uiHider = UIHider.new({
-		exclusions = exclusions,
-		hiddenClasses = { "ScreenGui" },
-	})
-
+function SceneControl.hideScreenUI()
+	local uiHider = UIHider.new({ "ScreenGui" })
 	return SceneControl.once(function()
 		uiHider:Destroy()
 	end)
