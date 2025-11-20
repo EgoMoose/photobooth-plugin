@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ## [1.0.1]
+### Changes
+- Internally use `:QueryDescendants()` over `:GetDescendants()`
+
+### Fixed
+- Fixes an issue where the camera could be moved during UI captures
+
+## [1.0.1]
 ### Fixed
 - Fix an issue with delaying with a viewport binding capture
 
