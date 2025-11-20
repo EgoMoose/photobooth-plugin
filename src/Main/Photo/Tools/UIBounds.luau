@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local State = require(pluginRoot.Main.State)
 
 local ALWAYS_CLIPPED = true
 local ALWAYS_CLIP_TEXT = true
@@ -77,7 +78,7 @@ function UIBoundsClass._createSurface(self: UIBounds, parent: Instance)
 	surfaceGui.Name = "UIBounds"
 	surfaceGui.ZIndexBehavior = zIndexBehavior
 	surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
-	surfaceGui.CanvasSize = viewportSize * self.scale
+	surfaceGui.CanvasSize = viewportSize * (State.read().temporary.scaleOS / self.scale)
 	surfaceGui.Adornee = surfacePart
 
 	surfaceGui.Parent = surfacePart
@@ -265,7 +266,7 @@ end
 -- Public
 
 function UIBoundsClass.GetRect(self: UIBounds)
-	return RenderRect.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize)
+	return RenderRect.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize * self.scale)
 end
 
 function UIBoundsClass.SetColor(self: UIBounds, color: Color3)
