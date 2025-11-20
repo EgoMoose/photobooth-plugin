@@ -106,8 +106,8 @@ function SceneControl.freeze(isViewport: boolean, callback: () -> ())
 	local trove = Trove.new()
 
 	trove:Add(hideMouse())
+	trove:Add(freezeCamera())
 	if isViewport then
-		trove:Add(freezeCamera())
 		trove:Add(freezeEmitters())
 	end
 
