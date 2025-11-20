@@ -4,6 +4,7 @@ local StudioService = game:GetService("StudioService") :: StudioService
 local AssetService = game:GetService("AssetService") :: AssetService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Future = require(pluginRoot.Packages.Future)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 local Sift = require(pluginRoot.Packages.Sift)
@@ -33,6 +34,29 @@ local function createIsCapturingTrove()
 	end)
 
 	return trove
+end
+
+local quadFuture: Future.Future<MeshPart>
+local function getQuadMeshPart()
+	if not quadFuture then
+		local editMesh = AssetService:CreateEditableMesh({ FixedSize = false })
+
+		local v0 = editMesh:AddVertex(Vector3.new(-0.5, 0.5, 0))
+		local v1 = editMesh:AddVertex(Vector3.new(0.5, 0.5, 0))
+		local v2 = editMesh:AddVertex(Vector3.new(0.5, -0.5, 0))
+		local v3 = editMesh:AddVertex(Vector3.new(-0.5, -0.5, 0))
+
+		editMesh:AddTriangle(v0, v1, v3)
+		editMesh:AddTriangle(v0, v2, v3)
+
+		local fixedMesh = AssetService:CreateEditableMeshAsync(Content.fromObject(editMesh), { FixedSize = true })
+		editMesh:Destroy()
+
+		local meshPart = AssetService:CreateMeshPartAsync(Content.fromObject(fixedMesh))
+		quadFuture = Future.completed(meshPart)
+	end
+
+	return quadFuture:expect()
 end
 
 -- Public
@@ -111,7 +135,8 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 
 	for i, img in imgs do
 		local name = `{DateTime.now():ToIsoDate()}_{i}`
-		local meshPart = Instance.new("MeshPart")
+		local meshPart =
+			AssetService:CreateMeshPartAsync(Content.fromUri("rbxasset://avatar/compositing/CompositQuad.mesh"))
 		meshPart.Locked = true
 		meshPart.Archivable = false
 		meshPart.Anchored = true
@@ -119,7 +144,7 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 		meshPart.CanTouch = false
 		meshPart.Transparency = 0 -- cannot be transparent
 		meshPart.Name = name
-		meshPart.Size = Vector3.new(1, 1, 1)
+		meshPart.Size = Vector3.new(1, 1, 0)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent
 
@@ -136,7 +161,7 @@ function Photo.importFiles(parent: Instance?)
 		local content = Content.fromUri(file:GetTemporaryId())
 		local editImage = AssetService:CreateEditableImageAsync(content)
 
-		local meshPart = Instance.new("MeshPart")
+		local meshPart = getQuadMeshPart():Clone()
 		meshPart.Locked = true
 		meshPart.Archivable = false
 		meshPart.Anchored = true
