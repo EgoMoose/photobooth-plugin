@@ -54,7 +54,7 @@ function UIHiderStatic.new(hiddenClasses: { string })
 			self:_attemptStopWatch(child)
 		end))
 
-		for _, child in uiSource:GetDescendants() do
+		for _, child in uiSource:QueryDescendants("LayerCollector") do
 			self:_attemptWatch(child)
 		end
 	end
@@ -67,7 +67,7 @@ function UIHiderStatic.new(hiddenClasses: { string })
 		self:_attemptStopWatch(child)
 	end))
 
-	for _, child in workspace:GetDescendants() do
+	for _, child in workspace:QueryDescendants("LayerCollector") do
 		self:_attemptWatch(child)
 	end
 

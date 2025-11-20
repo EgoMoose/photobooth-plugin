@@ -222,7 +222,7 @@ end
 
 local function getMinZIndex(subject: GuiObject): number
 	local minZIndex = subject.ZIndex
-	for _, descendant in subject:GetDescendants() do
+	for _, descendant in subject:QueryDescendants("GuiObject") do
 		if descendant:IsA("GuiObject") then
 			minZIndex = math.min(minZIndex, descendant.ZIndex)
 		end
