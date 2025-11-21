@@ -70,7 +70,7 @@ local function reverseBlendSerial(
 			local color = Color3.new(rgba[1], rgba[2], rgba[3])
 			local hue, _saturation, value = color:ToHSV()
 			local grayColor = Color3.fromHSV(hue, 0, value)
-			local gray = grayColor.R
+			local gray = math.max(grayColor.R, grayColor.G, grayColor.B)
 
 			for i = 1, 3 do
 				local component = rgba[i]
