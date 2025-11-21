@@ -70,7 +70,11 @@ local function workerAction(
 
 			-- apply color correction
 			local rgba = { onBlack:GetRGBA(pixelIndex) }
-			local gray = rgba[1] * 0.299 + rgba[2] * 0.587 + rgba[3] * 0.114
+
+			local color = Color3.new(rgba[1], rgba[2], rgba[3])
+			local hue, _saturation, value = color:ToHSV()
+			local grayColor = Color3.fromHSV(hue, 0, value)
+			local gray = math.max(grayColor.R, grayColor.G, grayColor.B)
 
 			for i = 1, 3 do
 				local component = rgba[i]
