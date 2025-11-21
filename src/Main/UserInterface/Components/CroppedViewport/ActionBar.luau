@@ -64,7 +64,7 @@ local function Dimensions(props: DimensionProps)
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
 
-				FontFace = Font.fromEnum(Enum.Font.SourceSans),
+				FontFace = Font.fromName("SourceSansPro"),
 				TextColor3 = Color3.fromRGB(102, 102, 102),
 				TextXAlignment = Enum.TextXAlignment.Center,
 				TextYAlignment = Enum.TextYAlignment.Center,
@@ -78,7 +78,7 @@ local function Dimensions(props: DimensionProps)
 			BackgroundTransparency = 1,
 			LayoutOrder = 1,
 
-			FontFace = Font.fromEnum(Enum.Font.SourceSans),
+			FontFace = Font.fromName("SourceSansPro"),
 			TextColor3 = Color3.fromRGB(102, 102, 102),
 			TextXAlignment = Enum.TextXAlignment.Right,
 			TextYAlignment = Enum.TextYAlignment.Center,
@@ -100,7 +100,7 @@ local function Dimensions(props: DimensionProps)
 			BackgroundTransparency = 1,
 			LayoutOrder = 3,
 
-			FontFace = Font.fromEnum(Enum.Font.SourceSans),
+			FontFace = Font.fromName("SourceSansPro"),
 			TextColor3 = Color3.fromRGB(102, 102, 102),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Center,
@@ -239,7 +239,7 @@ local function ActionBar(props: Props)
 			BackgroundTransparency = 1,
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 8, 0, 0),
 			Size = UDim2.fromScale(1, 1),
-			FontFace = Font.fromName("SourceSans", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+			FontFace = Font.fromName("SourceSansPro", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 			Text = "Error: Check the output.",
 			TextSize = 14,
 			TextTransparency = errorOffset.Z ^ 20,
