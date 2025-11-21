@@ -53,7 +53,7 @@ local function freezeCamera()
 end
 
 local function freezeEmitters()
-	local map: { [string]: { [string]: any } } = {
+	local propertiesMap: { [string]: { [string]: any } } = {
 		["Beam"] = { TextureSpeed = 0 },
 
 		["Fire"] = { TimeScale = 0 },
@@ -64,28 +64,40 @@ local function freezeEmitters()
 		["Terrain"] = { WaterWaveSpeed = 0 },
 	}
 
-	local undoCallbacks = {}
-	for _, descendant in workspace:GetDescendants() do
-		for className, properties in map do
-			if descendant:IsA(className) then
-				local prevProperties = {}
-				for property, value in properties do
-					prevProperties[property] = descendant[property]
-					descendant[property] = value
-				end
+	local queries = {}
+	for className, _ in propertiesMap do
+		-- check the classname directly as opposed to IsA because we want specific instance type matching
+		table.insert(queries, `[ClassName = "{className}"]`)
+	end
+	local selector = table.concat(queries, " ,")
 
-				table.insert(undoCallbacks, function()
-					for property, value in prevProperties do
-						descendant[property] = value
-					end
-				end)
-			end
+	local undoCallbacks = {}
+	for _, descendant in workspace:QueryDescendants(selector) do
+		local properties = propertiesMap[descendant.ClassName]
+		if properties then
+			table.insert(undoCallbacks, SceneControl.setProperties(descendant, properties))
 		end
 	end
 
 	return SceneControl.once(function()
 		for _, undo in undoCallbacks do
 			undo()
+		end
+	end)
+end
+
+local function hideColorCorrections()
+	local effects = {}
+	for _, child in Lighting:GetChildren() do
+		if child:IsA("ColorCorrectionEffect") then
+			table.insert(effects, child)
+			child.Parent = nil
+		end
+	end
+
+	return SceneControl.once(function()
+		for _, effect in effects do
+			effect.Parent = Lighting
 		end
 	end)
 end
@@ -102,12 +114,28 @@ function SceneControl.once<T..., U...>(callback: (T...) -> U...)
 	end
 end
 
+function SceneControl.setProperties(instance: Instance, properties: { [string]: any })
+	local instanceAny = instance :: any
+
+	local prevProperties = {}
+	for property, value in properties do
+		prevProperties[property] = instanceAny[property]
+		instanceAny[property] = value
+	end
+
+	return SceneControl.once(function()
+		for property, value in prevProperties do
+			instanceAny[property] = value
+		end
+	end)
+end
+
 function SceneControl.freeze(isViewport: boolean, callback: () -> ())
 	local trove = Trove.new()
 
 	trove:Add(hideMouse())
+	trove:Add(freezeCamera())
 	if isViewport then
-		trove:Add(freezeCamera())
 		trove:Add(freezeEmitters())
 	end
 
@@ -170,6 +198,8 @@ function SceneControl.isGradedLightingRequired()
 end
 
 function SceneControl.applyGradedLighting()
+	local undoHideColorCorrections = hideColorCorrections()
+
 	local clouds = {}
 	for _, child in workspace.Terrain:GetChildren() do
 		if child:IsA("Clouds") then
@@ -179,6 +209,7 @@ function SceneControl.applyGradedLighting()
 	end
 
 	return SceneControl.once(function()
+		undoHideColorCorrections()
 		for _, cloud in clouds do
 			cloud.Parent = workspace.Terrain
 		end
@@ -188,6 +219,7 @@ end
 function SceneControl.applyRetroLighting()
 	local undoGradedLighting = SceneControl.applyGradedLighting()
 	local undoHideAtmosphere = SceneControl.hideAtmosphere()
+	local undoHideColorCorrections = hideColorCorrections()
 
 	local exposureCompensation = Lighting.ExposureCompensation
 	Lighting.ExposureCompensation = 0
@@ -208,6 +240,7 @@ function SceneControl.applyRetroLighting()
 	return SceneControl.once(function()
 		undoGradedLighting()
 		undoHideAtmosphere()
+		undoHideColorCorrections()
 		Lighting.ExposureCompensation = exposureCompensation
 
 		retroGrading:Destroy()

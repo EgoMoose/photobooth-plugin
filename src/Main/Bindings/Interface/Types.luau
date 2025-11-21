@@ -17,6 +17,7 @@ export type CaptureUIOptions = {
 	type: UICaptureTypes,
 
 	delay: number?,
+	scale: Vector2?,
 	alphaBleed: boolean?,
 }
 

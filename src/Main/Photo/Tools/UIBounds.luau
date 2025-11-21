@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local State = require(pluginRoot.Main.State)
 
 local ALWAYS_CLIPPED = true
 local ALWAYS_CLIP_TEXT = true
@@ -20,6 +21,7 @@ export type UIBounds = typeof(setmetatable(
 		surfaceGui: SurfaceGui,
 		surfacePart: BasePart,
 
+		backgroundFrame: Frame,
 		aabbFrame: Frame,
 	},
 	UIBoundsClass
@@ -34,8 +36,8 @@ function UIBoundsClass.new(parent: Instance, subject: GuiObject, scale: Vector2)
 	self.subject = subject
 
 	self.surfaceGui, self.surfacePart = self:_createSurface(parent)
-	self.aabbFrame = self:_createAABBFrame(subject)
-	self.aabbFrame.Parent = self.surfaceGui
+	self.backgroundFrame, self.aabbFrame = self:_createBackgroundFrame(subject)
+	self.backgroundFrame.Parent = self.surfaceGui
 
 	self:SetColor(Color3.new(1, 1, 1))
 
@@ -71,13 +73,16 @@ function UIBoundsClass._createSurface(self: UIBounds, parent: Instance)
 	local layerCollector = self.subject:FindFirstAncestorWhichIsA("LayerCollector")
 	local zIndexBehavior = if layerCollector then layerCollector.ZIndexBehavior else Enum.ZIndexBehavior.Sibling
 
+	local canvasScale = State.read().temporary.scaleOS / self.scale
+	local canvasSize = viewportSize * canvasScale
+
 	local surfaceGui = Instance.new("SurfaceGui")
 	surfaceGui.AlwaysOnTop = true
 	surfaceGui.Face = Enum.NormalId.Back
 	surfaceGui.Name = "UIBounds"
 	surfaceGui.ZIndexBehavior = zIndexBehavior
 	surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
-	surfaceGui.CanvasSize = viewportSize * self.scale
+	surfaceGui.CanvasSize = canvasSize
 	surfaceGui.Adornee = surfacePart
 
 	surfaceGui.Parent = surfacePart
@@ -222,7 +227,7 @@ end
 
 local function getMinZIndex(subject: GuiObject): number
 	local minZIndex = subject.ZIndex
-	for _, descendant in subject:GetDescendants() do
+	for _, descendant in subject:QueryDescendants("GuiObject") do
 		if descendant:IsA("GuiObject") then
 			minZIndex = math.min(minZIndex, descendant.ZIndex)
 		end
@@ -230,14 +235,22 @@ local function getMinZIndex(subject: GuiObject): number
 	return minZIndex
 end
 
-function UIBoundsClass._createAABBFrame(self: UIBounds, subject: GuiObject)
+function UIBoundsClass._createBackgroundFrame(self: UIBounds, subject: GuiObject)
 	local qualified = getQualified(subject)
 	local aabbRect = getBoundingRect(qualified)
+	local minSubjectZIndex = getMinZIndex(subject)
+
+	local backgroundFrame = Instance.new("Frame")
+	backgroundFrame.ZIndex = minSubjectZIndex - 1
+	backgroundFrame.Size = UDim2.fromOffset(aabbRect.Width + 1, aabbRect.Height + 1)
+	backgroundFrame.BorderSizePixel = 0
 
 	local boundingFrame = Instance.new("Frame")
-	boundingFrame.ZIndex = getMinZIndex(subject) - 1
+	boundingFrame.ZIndex = minSubjectZIndex - 1
 	boundingFrame.Size = UDim2.fromOffset(aabbRect.Width, aabbRect.Height)
 	boundingFrame.BorderSizePixel = 0
+	boundingFrame.BackgroundTransparency = 1
+	boundingFrame.Parent = backgroundFrame
 
 	local subjectAbsSize = subject.AbsoluteSize
 	local subjectAbsPosition = subject.AbsolutePosition
@@ -259,17 +272,17 @@ function UIBoundsClass._createAABBFrame(self: UIBounds, subject: GuiObject)
 	subjectCopy.Position = UDim2.fromOffset(subjectRect.Min.X - aabbRect.Min.X, subjectRect.Min.Y - aabbRect.Min.Y)
 	subjectCopy.Parent = folder
 
-	return boundingFrame
+	return backgroundFrame, boundingFrame
 end
 
 -- Public
 
 function UIBoundsClass.GetRect(self: UIBounds)
-	return RenderRect.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize)
+	return RenderRect.fromAbs(self.aabbFrame.AbsolutePosition, self.aabbFrame.AbsoluteSize * self.scale)
 end
 
 function UIBoundsClass.SetColor(self: UIBounds, color: Color3)
-	self.aabbFrame.BackgroundColor3 = color
+	self.backgroundFrame.BackgroundColor3 = color
 end
 
 function UIBoundsClass.Destroy(self: UIBounds)

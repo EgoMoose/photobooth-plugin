@@ -3,6 +3,30 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.2]
+### Fixed
+- Fixed captures not correctly handling color correction effects
+
+## [1.1.1]
+### Fixed
+- Flipped the normals on the quad mesh so they’re now facing the right way
+
+## [1.1.0]
+### Added
+- The exported mesh parts are now quads (as opposed to empty meshes) this allows the ability to export in glTF format
+- Added support for `scale` field in the `Bindings.captureUI` options to achieve parity with `captureViewport` 
+
+## [1.0.2]
+### Changes
+- Internally use `:QueryDescendants()` over `:GetDescendants()`
+
+### Fixed
+- Fixes an issue where the camera could be moved during UI captures
+
+## [1.0.1]
+### Fixed
+- Fix an issue with delaying with a viewport binding capture
+
 ## [1.0.0]
 ### Changes
 - Outdated versions of photobooth now notify (in a non-intrusive way) that an update is available in the settings window.
