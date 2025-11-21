@@ -3,6 +3,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.1.2]
+### Fixed
+- Fixed captures not correctly handling color correction effects
+
 ## [1.1.1]
 ### Fixed
 - Flipped the normals on the quad mesh so they’re now facing the right way
