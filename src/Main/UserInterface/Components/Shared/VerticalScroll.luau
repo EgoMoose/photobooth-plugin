@@ -11,6 +11,10 @@ export type Props = {
 	Position: UDim2,
 	Size: UDim2,
 
+	ScrollInset: UDim?,
+	ScrollBarThickness: number?,
+	ScrollBarTransparency: number?,
+
 	GradientHeight: number,
 	GradientColor: Color3,
 
@@ -27,6 +31,8 @@ local function VerticalScroll(props: Props)
 
 	local contentSize = Hooks.useRefProperty(contentRef, "AbsoluteSize", Vector2.zero)
 	local canvasPosition = Hooks.useRefProperty(scrollRef, "CanvasPosition", Vector2.zero)
+
+	local scrollInset = props.ScrollInset or UDim.new(0, 0)
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -66,14 +72,14 @@ local function VerticalScroll(props: Props)
 		ScrollingFrame = React.createElement("ScrollingFrame", {
 			BorderSizePixel = 0,
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
+			Size = UDim2.new(1 + scrollInset.Scale, scrollInset.Offset, 1, 0),
 			CanvasSize = UDim2.fromOffset(0, contentSize.Y),
 
 			ScrollingEnabled = not props.Disabled,
-			ScrollBarThickness = 4,
+			ScrollBarThickness = props.ScrollBarThickness or 4,
 			ScrollingDirection = Enum.ScrollingDirection.Y,
 			ScrollBarImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.DimmedText),
-			ScrollBarImageTransparency = 0,
+			ScrollBarImageTransparency = props.ScrollBarTransparency or 0,
 
 			TopImage = Icons.scroll["scroll-top"],
 			MidImage = Icons.scroll["scroll-middle"],
