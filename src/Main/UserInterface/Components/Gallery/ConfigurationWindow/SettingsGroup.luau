@@ -81,13 +81,14 @@ end
 local function SettingsGroup(props: Props)
 	local theme = StudioComponents.useTheme()
 	local expanded, setExpanded = React.useState(true)
+	local hovering, setHovering = React.useState(false)
 
 	local arrowIcon = if expanded
 		then assert(Lucide.GetAsset("chevron-down", 16))
 		else assert(Lucide.GetAsset("chevron-right", 16))
 
 	local filteredEntries = {}
-	for i, entry in props.List do
+	for _i, entry in props.List do
 		if entry.Node then
 			table.insert(filteredEntries, entry)
 		end
@@ -109,6 +110,16 @@ local function SettingsGroup(props: Props)
 					end
 				end
 			end,
+			[React.Event.MouseEnter] = function()
+				if CAN_TOGGLE_EXPANDS then
+					setHovering(true)
+				end
+			end,
+			[React.Event.MouseLeave] = function()
+				if CAN_TOGGLE_EXPANDS then
+					setHovering(false)
+				end
+			end,
 		}, {
 			Arrow = React.createElement("ImageLabel", {
 				Image = arrowIcon.Url,
@@ -119,14 +130,29 @@ local function SettingsGroup(props: Props)
 				Position = UDim2.new(0, 9, 0.5, 0),
 				Size = UDim2.fromOffset(arrowIcon.ImageRectSize.X, arrowIcon.ImageRectSize.Y),
 				BackgroundTransparency = 1,
-				ImageColor3 = theme:GetColor(Enum.StudioStyleGuideColor.TitlebarText),
+				ImageColor3 = theme:GetColor(
+					Enum.StudioStyleGuideColor.MainText,
+					if props.Disabled
+						then Enum.StudioStyleGuideModifier.Disabled
+						elseif hovering then Enum.StudioStyleGuideModifier.Hover
+						else Enum.StudioStyleGuideModifier.Default
+				),
 			}),
-			Label = React.createElement(StudioComponents.Label, {
+			Label = React.createElement("TextLabel", {
+				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(20, 0),
 				Size = UDim2.new(1, 0, 1, 0),
-				Text = `<b>{props.Title}</b>`,
-				RichText = true,
+				TextSize = 14,
+				Text = props.Title,
 				TextXAlignment = Enum.TextXAlignment.Left,
+				FontFace = Font.fromName("SourceSansPro", Enum.FontWeight.Bold),
+				TextColor3 = theme:GetColor(
+					Enum.StudioStyleGuideColor.MainText,
+					if props.Disabled
+						then Enum.StudioStyleGuideModifier.Disabled
+						elseif hovering then Enum.StudioStyleGuideModifier.Hover
+						else Enum.StudioStyleGuideModifier.Default
+				),
 			}),
 		}),
 		List = expanded and React.createElement("Frame", {

@@ -14,6 +14,7 @@ local Captures = require(pluginRoot.Main.Photo.Captures)
 local State = require(pluginRoot.Main.State)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
+local VerticalScroll = require(uiRoot.Components.Shared.VerticalScroll)
 local Hooks = require(uiRoot.Hooks)
 
 local SettingsGroup = require(script.SettingsGroup)
@@ -155,29 +156,6 @@ local function GeneralGroup(props: GroupsProps)
 					}),
 				}),
 			},
-			{
-				Name = if props.State.temporary.isExperimentalMode == props.State.saved.experimentalModeEnabled
-					then "Experimental"
-					else "Experimental*",
-				Node = Constants.AllowExperimentalMode and React.createElement(React.Fragment, {}, {
-					Padding = React.createElement("UIPadding", {
-						PaddingLeft = UDim.new(0, 5),
-						PaddingRight = UDim.new(0, 5),
-						PaddingTop = UDim.new(0, 4),
-						PaddingBottom = UDim.new(0, 4),
-					}),
-					Checkbox = React.createElement(StudioComponents.Checkbox, {
-						Disabled = props.RootProps.Disabled,
-						Size = UDim2.fromScale(1, 1),
-						Value = props.State.saved.experimentalModeEnabled,
-						OnChanged = function()
-							props.MutateState(function(state)
-								state.saved.experimentalModeEnabled = not state.saved.experimentalModeEnabled
-							end)
-						end,
-					}),
-				}),
-			},
 		},
 	})
 end
@@ -289,6 +267,47 @@ local function UserInterfaceGroup(props: GroupsProps)
 	})
 end
 
+local function DevGroup(props: GroupsProps)
+	return React.createElement(SettingsGroup, {
+		Disabled = props.RootProps.Disabled,
+		LayoutOrder = props.LayoutOrder,
+		HorizontalSplit = HORIZONTAL_SPLIT,
+		Title = "Developer",
+		List = {
+			{
+				Name = if props.State.temporary.isExperimentalMode == props.State.saved.experimentalModeEnabled
+					then "Experimental"
+					else "Experimental*",
+				Node = Constants.AllowExperimentalMode and React.createElement(React.Fragment, {}, {
+					Padding = React.createElement("UIPadding", {
+						PaddingLeft = UDim.new(0, 5),
+						PaddingRight = UDim.new(0, 5),
+						PaddingTop = UDim.new(0, 4),
+						PaddingBottom = UDim.new(0, 4),
+					}),
+					Checkbox = React.createElement(StudioComponents.Checkbox, {
+						Disabled = props.RootProps.Disabled,
+						Size = UDim2.fromScale(1, 1),
+						Value = props.State.saved.experimentalModeEnabled,
+						OnChanged = function()
+							props.MutateState(function(state)
+								state.saved.experimentalModeEnabled = not state.saved.experimentalModeEnabled
+							end)
+						end,
+					}),
+				}),
+			},
+		},
+	})
+end
+
+local function useScrollTransparency()
+	local transparencyTargetBinding, setTransparencyTarget = React.useBinding(1)
+	local transparencyBinding, _setTransparency = Hooks.useSpring(transparencyTargetBinding)
+	local transparency = Hooks.useBindingState(transparencyBinding)
+	return transparency, setTransparencyTarget
+end
+
 local function ConfigurationWindow(props: Props)
 	local theme = StudioComponents.useTheme()
 	local latestVersion = Hooks.useLatestVersion()
@@ -296,6 +315,8 @@ local function ConfigurationWindow(props: Props)
 
 	local state = Hooks.useState()
 	local mutateState = React.useCallback(State.mutate, {})
+
+	local scrollTransparency, setScrollTransparency = useScrollTransparency()
 
 	local versionText = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`
 	local needsRestart = state.temporary.isExperimentalMode ~= state.saved.experimentalModeEnabled
@@ -345,38 +366,62 @@ local function ConfigurationWindow(props: Props)
 			Size = UDim2.new(1, 0, 1, -56 - 2),
 			BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
 			BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+
+			[React.Event.MouseEnter] = function()
+				setScrollTransparency(0.6)
+			end,
+			[React.Event.MouseLeave] = function()
+				setScrollTransparency(1)
+			end,
 		}, {
-			Scroll = React.createElement(StudioComponents.ScrollFrame, {
-				Layout = {
-					ClassName = "UIListLayout",
-					Padding = UDim.new(0, 0),
+			Scroll = React.createElement(VerticalScroll, {
+				AnchorPoint = Vector2.zero,
+				Position = UDim2.fromScale(0, 0),
+				Size = UDim2.fromScale(1, 1),
+
+				ScrollBarThickness = 2,
+				ScrollBarTransparency = scrollTransparency,
+
+				GradientColor = theme:GetColor(Enum.StudioStyleGuideColor.MainBackground),
+				GradientHeight = 8,
+
+				Disabled = props.Disabled,
+			}, {
+				UILayout = React.createElement("UIListLayout", {
 					FillDirection = Enum.FillDirection.Vertical,
 					SortOrder = Enum.SortOrder.LayoutOrder,
-				},
-				PaddingLeft = UDim.new(0, 4),
-				PaddingRight = UDim.new(0, 4),
-				PaddingTop = UDim.new(0, 4),
-				PaddingBottom = UDim.new(0, 4),
-			}, {
-				Content = React.createElement(React.Fragment, nil, {
-					General = React.createElement(GeneralGroup, {
-						RootProps = props,
-						State = state,
-						MutateState = mutateState,
-						LayoutOrder = 1,
-					}),
-					Viewport = React.createElement(ViewportGroup, {
-						RootProps = props,
-						State = state,
-						MutateState = mutateState,
-						LayoutOrder = 2,
-					}),
-					UserInterface = React.createElement(UserInterfaceGroup, {
-						RootProps = props,
-						State = state,
-						MutateState = mutateState,
-						LayoutOrder = 3,
-					}),
+					Padding = UDim.new(0, 0),
+				}),
+				Padding = React.createElement("UIPadding", {
+					PaddingLeft = UDim.new(0, 4),
+					PaddingRight = UDim.new(0, 4),
+					PaddingTop = UDim.new(0, 4),
+					PaddingBottom = UDim.new(0, 4 + 8),
+				}),
+
+				General = React.createElement(GeneralGroup, {
+					RootProps = props,
+					State = state,
+					MutateState = mutateState,
+					LayoutOrder = 1,
+				}),
+				Viewport = React.createElement(ViewportGroup, {
+					RootProps = props,
+					State = state,
+					MutateState = mutateState,
+					LayoutOrder = 2,
+				}),
+				UserInterface = React.createElement(UserInterfaceGroup, {
+					RootProps = props,
+					State = state,
+					MutateState = mutateState,
+					LayoutOrder = 3,
+				}),
+				Dev = Constants.AllowExperimentalMode and React.createElement(DevGroup, {
+					RootProps = props,
+					State = state,
+					MutateState = mutateState,
+					LayoutOrder = 4,
 				}),
 			}),
 		}),
