@@ -417,7 +417,7 @@ local function ConfigurationWindow(props: Props)
 					MutateState = mutateState,
 					LayoutOrder = 3,
 				}),
-				Dev = true and React.createElement(DevGroup, {
+				Dev = Constants.AllowExperimentalMode and React.createElement(DevGroup, {
 					RootProps = props,
 					State = state,
 					MutateState = mutateState,
