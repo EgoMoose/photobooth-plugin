@@ -192,7 +192,7 @@ local function ActionBar(props: ActionBarProps)
 			BackgroundTransparency = 1,
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(0, 0, -1, -2),
 			Size = UDim2.fromScale(1, 1),
-			FontFace = Font.fromName("SourceSans", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+			FontFace = Font.fromName("SourceSansPro", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 			Text = "Error: Check the output.",
 			TextSize = 14,
 			TextTransparency = errorOffset.Z ^ 20,
