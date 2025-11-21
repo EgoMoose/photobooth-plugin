@@ -46,8 +46,23 @@ local function getQuadMeshPart()
 		local v2 = editMesh:AddVertex(Vector3.new(0.5, -0.5, 0))
 		local v3 = editMesh:AddVertex(Vector3.new(-0.5, -0.5, 0))
 
-		editMesh:AddTriangle(v0, v1, v3)
-		editMesh:AddTriangle(v0, v2, v3)
+		local n0 = editMesh:AddNormal(Vector3.new(0, 0, 1))
+		local n1 = editMesh:AddNormal(Vector3.new(0, 0, 1))
+		local n2 = editMesh:AddNormal(Vector3.new(0, 0, 1))
+		local n3 = editMesh:AddNormal(Vector3.new(0, 0, 1))
+
+		local uv0 = editMesh:AddUV(Vector2.new(0, 0))
+		local uv1 = editMesh:AddUV(Vector2.new(1, 0))
+		local uv2 = editMesh:AddUV(Vector2.new(1, 1))
+		local uv3 = editMesh:AddUV(Vector2.new(0, 1))
+
+		local f0 = editMesh:AddTriangle(v0, v1, v2)
+		local f1 = editMesh:AddTriangle(v0, v2, v3)
+
+		editMesh:SetFaceNormals(f0, { n0, n1, n2 })
+		editMesh:SetFaceUVs(f0, { uv0, uv1, uv2 })
+		editMesh:SetFaceNormals(f1, { n0, n2, n3 })
+		editMesh:SetFaceUVs(f1, { uv0, uv2, uv3 })
 
 		local fixedMesh = AssetService:CreateEditableMeshAsync(Content.fromObject(editMesh), { FixedSize = true })
 		editMesh:Destroy()
@@ -135,9 +150,7 @@ function Photo.export(imgs: { Image.Image }, parent: Instance?)
 
 	for i, img in imgs do
 		local name = `{DateTime.now():ToIsoDate()}_{i}`
-		local meshPart =
-			AssetService:CreateMeshPartAsync(Content.fromUri("rbxasset://avatar/compositing/CompositQuad.mesh"))
-		meshPart.Locked = true
+		local meshPart = getQuadMeshPart():Clone()
 		meshPart.Archivable = false
 		meshPart.Anchored = true
 		meshPart.CanCollide = false
@@ -162,7 +175,6 @@ function Photo.importFiles(parent: Instance?)
 		local editImage = AssetService:CreateEditableImageAsync(content)
 
 		local meshPart = getQuadMeshPart():Clone()
-		meshPart.Locked = true
 		meshPart.Archivable = false
 		meshPart.Anchored = true
 		meshPart.CanCollide = false
