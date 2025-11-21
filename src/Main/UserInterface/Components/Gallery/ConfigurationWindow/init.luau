@@ -18,6 +18,8 @@ local Hooks = require(uiRoot.Hooks)
 
 local SettingsGroup = require(script.SettingsGroup)
 
+local HORIZONTAL_SPLIT = 0.5
+
 export type Props = {
 	AnchorPoint: Vector2,
 	Position: UDim2,
@@ -49,7 +51,7 @@ local function GeneralGroup(props: GroupsProps)
 	return React.createElement(SettingsGroup, {
 		Disabled = props.RootProps.Disabled,
 		LayoutOrder = props.LayoutOrder,
-		HorizontalSplit = 0.5,
+		HorizontalSplit = HORIZONTAL_SPLIT,
 		Title = "General",
 		List = {
 			{
@@ -153,6 +155,29 @@ local function GeneralGroup(props: GroupsProps)
 					}),
 				}),
 			},
+			{
+				Name = if props.State.temporary.isExperimentalMode == props.State.saved.experimentalModeEnabled
+					then "Experimental"
+					else "Experimental*",
+				Node = Constants.AllowExperimentalMode and React.createElement(React.Fragment, {}, {
+					Padding = React.createElement("UIPadding", {
+						PaddingLeft = UDim.new(0, 5),
+						PaddingRight = UDim.new(0, 5),
+						PaddingTop = UDim.new(0, 4),
+						PaddingBottom = UDim.new(0, 4),
+					}),
+					Checkbox = React.createElement(StudioComponents.Checkbox, {
+						Disabled = props.RootProps.Disabled,
+						Size = UDim2.fromScale(1, 1),
+						Value = props.State.saved.experimentalModeEnabled,
+						OnChanged = function()
+							props.MutateState(function(state)
+								state.saved.experimentalModeEnabled = not state.saved.experimentalModeEnabled
+							end)
+						end,
+					}),
+				}),
+			},
 		},
 	})
 end
@@ -173,7 +198,7 @@ local function ViewportGroup(props: GroupsProps)
 	return React.createElement(SettingsGroup, {
 		Disabled = props.RootProps.Disabled,
 		LayoutOrder = props.LayoutOrder,
-		HorizontalSplit = 0.5,
+		HorizontalSplit = HORIZONTAL_SPLIT,
 		Title = "Viewport",
 		List = {
 			{
@@ -237,7 +262,7 @@ local function UserInterfaceGroup(props: GroupsProps)
 	return React.createElement(SettingsGroup, {
 		Disabled = props.RootProps.Disabled,
 		LayoutOrder = props.LayoutOrder,
-		HorizontalSplit = 0.5,
+		HorizontalSplit = HORIZONTAL_SPLIT,
 		Title = "User Interface",
 		List = {
 			{
@@ -273,7 +298,10 @@ local function ConfigurationWindow(props: Props)
 	local mutateState = React.useCallback(State.mutate, {})
 
 	local versionText = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`
-	if Semver.validateVersion(Wally.package.version) and Semver.cmp(latestVersion, ">", Wally.package.version) then
+	local needsRestart = state.temporary.isExperimentalMode ~= state.saved.experimentalModeEnabled
+	if needsRestart then
+		versionText = "requires restart*\n" .. versionText
+	elseif Semver.validateVersion(Wally.package.version) and Semver.cmp(latestVersion, ">", Wally.package.version) then
 		versionText = "update available*\n" .. versionText
 	end
 

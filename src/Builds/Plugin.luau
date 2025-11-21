@@ -3,9 +3,7 @@
 local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
-local UserInterface = require(pluginRoot.Main.UserInterface)
-local Bindings = require(pluginRoot.Main.Bindings)
+local Constants = require(pluginRoot.Constants)
 local State = require(pluginRoot.Main.State)
 
 local Plugin = {}
@@ -29,7 +27,9 @@ local function waitForViewportSettled(minTime: number)
 end
 
 local function updateScaleOS()
+	local Screenshot = require(pluginRoot.Main.Photo.Captures.Screenshot)
 	local scale = Screenshot.calculateScaleOS()
+
 	State.mutate(function(state)
 		state.temporary.scaleOS = scale
 	end)
@@ -52,6 +52,20 @@ function Plugin.build(plugin: Plugin)
 	end
 
 	State.setup(plugin)
+	State.mutate(function(state)
+		if Constants.AllowExperimentalMode then
+			-- we set this one time at session start so that it remains constant for the entire session
+			-- you can toggle this value in the settings, but then need to restart photobooth for changes to occur
+			state.temporary.isExperimentalMode = state.saved.experimentalModeEnabled
+		else
+			state.temporary.isExperimentalMode = false
+			state.saved.experimentalModeEnabled = false
+		end
+	end)
+
+	-- load the modules after the state has been setup
+	local UserInterface = require(pluginRoot.Main.UserInterface)
+	local Bindings = require(pluginRoot.Main.Bindings)
 
 	task.spawn(function()
 		-- the viewport size must remain unchanged for X seconds

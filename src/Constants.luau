@@ -5,6 +5,7 @@
 
 return {
 	AllowFullscreen = true,
+	AllowExperimentalMode = true,
 
 	TileHighResImagesEnabled = true,
 	TileHighResImagesSize = { X = 1024, Y = 1024 },
