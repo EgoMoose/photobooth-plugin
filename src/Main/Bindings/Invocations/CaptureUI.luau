@@ -15,6 +15,7 @@ local gtOptions = gt.table({
 	type = gt.union(unpack(captureTypeLiterals)),
 	subject = gt.IsA.GuiObject(),
 	delay = gt.opt(gt.number()),
+	scale = gt.opt(gt.Vector2()),
 	alphaBleed = gt.opt(gt.bool()),
 })
 

@@ -3,10 +3,8 @@
 local CoreGui = game:GetService("CoreGui") :: CoreGui
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Trove = require(pluginRoot.Packages.Trove)
-
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
-local State = require(pluginRoot.Main.State)
+local Trove = require(pluginRoot.Packages.Trove)
 
 local photoRoot = script:FindFirstAncestor("Photo")
 local Screenshot = require(photoRoot.Captures.Screenshot)
@@ -18,7 +16,7 @@ local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
 local function operation(options: Types.CaptureUIOptions, trove: Trove.Trove)
-	local uiBounds = UIBounds.new(CoreGui, options.subject, State.read().temporary.scaleOS)
+	local uiBounds = UIBounds.new(CoreGui, options.subject, (options.scale or Vector2.new(1, 1)))
 	local undoExclude = UIHider.addExclusion(uiBounds.surfaceGui)
 	local uiHider = UIHider.new({ "LayerCollector" })
 

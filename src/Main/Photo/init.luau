@@ -63,8 +63,8 @@ end
 
 function Photo.captureUI(options: Types.CaptureUIOptions)
 	options = Sift.Dictionary.merge({
-		alphaBleed = State.read().saved.alphaBleedingEnabled,
 		delay = 0,
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
 	}, options)
 
 	local processor = Captures.UserInterface.Processors[options.type]
@@ -97,8 +97,8 @@ end
 
 function Photo.captureViewport(options: Types.CaptureViewportOptions)
 	options = Sift.Dictionary.merge({
-		alphaBleed = State.read().saved.alphaBleedingEnabled,
 		delay = 0,
+		alphaBleed = State.read().saved.alphaBleedingEnabled,
 	}, options)
 
 	local processor = Captures.Viewport.Processors[options.type]
