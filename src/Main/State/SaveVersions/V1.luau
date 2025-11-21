@@ -9,12 +9,14 @@ export type Serialized = {
 	alphaBleedingEnabled: boolean,
 	bindingsEnabled: boolean,
 	galleryListExpanded: boolean,
+	experimentalModeEnabled: boolean,
 }
 
 export type Deserialized = {
 	alphaBleedingEnabled: boolean,
 	bindingsEnabled: boolean,
 	galleryListExpanded: boolean,
+	experimentalModeEnabled: boolean,
 }
 
 local function toboolean(bool: boolean)
@@ -28,6 +30,7 @@ function SaveFormatV1.default(): Deserialized
 		alphaBleedingEnabled = true,
 		bindingsEnabled = false,
 		galleryListExpanded = true,
+		experimentalModeEnabled = false,
 	}
 end
 
@@ -40,6 +43,7 @@ function SaveFormatV1.serialize(deserialized: Deserialized): Serialized
 		alphaBleedingEnabled = not not deserialized.alphaBleedingEnabled,
 		bindingsEnabled = not not deserialized.bindingsEnabled,
 		galleryListExpanded = not not deserialized.galleryListExpanded,
+		experimentalModeEnabled = not not deserialized.experimentalModeEnabled,
 	}
 end
 
@@ -48,6 +52,7 @@ function SaveFormatV1.deserialize(serialized: Serialized): Deserialized
 		alphaBleedingEnabled = toboolean(serialized.alphaBleedingEnabled),
 		bindingsEnabled = toboolean(serialized.bindingsEnabled),
 		galleryListExpanded = toboolean(serialized.galleryListExpanded),
+		experimentalModeEnabled = toboolean(serialized.experimentalModeEnabled),
 	})
 end
 

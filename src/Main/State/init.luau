@@ -21,6 +21,7 @@ local function defaultTemporary()
 
 		isCapturing = false,
 		isFullscreen = false,
+		isExperimentalMode = false,
 
 		uiCaptureTypeIndex = 1,
 		viewportCaptureTypeIndex = 1,
