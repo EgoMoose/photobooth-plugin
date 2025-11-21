@@ -16,22 +16,6 @@ local SceneControl = require(photoRoot.SceneControl)
 local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
-local function setTemporaryProps(instance: Instance, properties: { [string]: any })
-	local instanceAny = instance :: any
-
-	local prevProperties = {}
-	for property, value in properties do
-		prevProperties[property] = instanceAny[property]
-		instanceAny[property] = value
-	end
-
-	return SceneControl.once(function()
-		for property, value in prevProperties do
-			instanceAny[property] = value
-		end
-	end)
-end
-
 local function getAppliedAtmosphere(): Atmosphere?
 	local children = Lighting:GetChildren()
 	for i = #children, 1, -1 do
@@ -57,7 +41,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 		if atmosphere then
 			preRetroYieldCount = 100
 
-			trove:Add(setTemporaryProps(atmosphere, {
+			trove:Add(SceneControl.setProperties(atmosphere, {
 				Haze = 10,
 				Glare = 0,
 				Color = Color3.new(0, 0, 0),
