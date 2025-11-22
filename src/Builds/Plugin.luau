@@ -3,6 +3,7 @@
 local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local StudioMode = require(pluginRoot.Utilities.StudioMode)
 local Constants = require(pluginRoot.Constants)
 local State = require(pluginRoot.Main.State)
 
@@ -56,7 +57,11 @@ function Plugin.build(plugin: Plugin)
 		if Constants.AllowExperimentalMode then
 			-- we set this one time at session start so that it remains constant for the entire session
 			-- you can toggle this value in the settings, but then need to restart photobooth for changes to occur
-			state.temporary.isExperimentalMode = state.saved.experimentalModeEnabled
+			if StudioMode.isTeamCreate() then
+				state.temporary.isExperimentalMode = false
+			else
+				state.temporary.isExperimentalMode = state.saved.experimentalModeEnabled
+			end
 		else
 			state.temporary.isExperimentalMode = false
 			state.saved.experimentalModeEnabled = false

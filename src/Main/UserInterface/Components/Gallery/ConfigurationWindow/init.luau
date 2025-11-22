@@ -1,10 +1,13 @@
 --!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local Semver = require(pluginRoot.Packages.Semver)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
+
+local StudioMode = require(pluginRoot.Utilities.StudioMode)
 local Wally = require(pluginRoot.Wally)
 
 local Constants = require(pluginRoot.Constants)
@@ -20,6 +23,7 @@ local Hooks = require(uiRoot.Hooks)
 local SettingsGroup = require(script.SettingsGroup)
 
 local HORIZONTAL_SPLIT = 0.5
+local IS_TEAM_CREATE = StudioMode.isTeamCreate()
 
 export type Props = {
 	AnchorPoint: Vector2,
@@ -278,7 +282,7 @@ local function DevGroup(props: GroupsProps)
 				Name = if props.State.temporary.isExperimentalMode == props.State.saved.experimentalModeEnabled
 					then "Experimental"
 					else "Experimental*",
-				Node = Constants.AllowExperimentalMode and React.createElement(React.Fragment, {}, {
+				Node = React.createElement(React.Fragment, {}, {
 					Padding = React.createElement("UIPadding", {
 						PaddingLeft = UDim.new(0, 5),
 						PaddingRight = UDim.new(0, 5),
@@ -417,7 +421,7 @@ local function ConfigurationWindow(props: Props)
 					MutateState = mutateState,
 					LayoutOrder = 3,
 				}),
-				Dev = Constants.AllowExperimentalMode and React.createElement(DevGroup, {
+				Dev = Constants.AllowExperimentalMode and not IS_TEAM_CREATE and React.createElement(DevGroup, {
 					RootProps = props,
 					State = state,
 					MutateState = mutateState,
