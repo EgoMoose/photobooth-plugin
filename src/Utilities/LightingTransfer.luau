@@ -71,6 +71,21 @@ local function getLightingSaveFromCurrent(): LightingSave
 		table.insert(instances, poppedAtmosphere)
 	end
 
+	local skys = Lighting:QueryDescendants(">Sky")
+	local poppedSky = table.remove(skys)
+	if poppedSky and poppedSky:IsA("Sky") then
+		table.insert(instances, poppedSky)
+	end
+
+	local clouds = workspace.Terrain:QueryDescendants(">Clouds")
+	for i = #clouds, 1, -1 do
+		local cloud = clouds[i]
+		if cloud:IsA("Clouds") and cloud.Enabled then
+			table.insert(instances, cloud)
+			break
+		end
+	end
+
 	local lightingFolder = Instance.new("Folder")
 	lightingFolder.Name = "Lighting"
 	table.insert(instances, lightingFolder)
@@ -93,9 +108,14 @@ end
 local function setLightingFromSave(lightingSave: LightingSave)
 	-- clear the current lighting children
 	for _, child in Lighting:GetChildren() do
-		if child:IsA("PostEffect") or child:IsA("Atmosphere") then
+		if child:IsA("PostEffect") or child:IsA("Atmosphere") or child:IsA("Sky") then
 			child:Destroy()
 		end
+	end
+
+	-- clear clouds from terrain
+	for _, child in workspace.Terrain:QueryDescendants(">Clouds") do
+		child:Destroy()
 	end
 
 	-- reset lighting to it's original settings
@@ -120,6 +140,8 @@ local function setLightingFromSave(lightingSave: LightingSave)
 					(Lighting :: any)[attributeName] = value
 				end)
 			end
+		elseif instance:IsA("Clouds") then
+			instance.Parent = workspace.Terrain
 		else
 			(instance :: Instance).Parent = Lighting
 		end
