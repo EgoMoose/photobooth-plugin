@@ -3,6 +3,7 @@
 local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local LightingTransfer = require(pluginRoot.Utilities.LightingTransfer)
 local StudioMode = require(pluginRoot.Utilities.StudioMode)
 local Constants = require(pluginRoot.Constants)
 local State = require(pluginRoot.Main.State)
@@ -85,6 +86,10 @@ function Plugin.build(plugin: Plugin)
 	UserInterface.mountGallery(plugin, toolbar)
 
 	Bindings.setup(plugin)
+
+	local lightingTransferBinds = LightingTransfer.bindable(plugin)
+	_G.saveLighting = lightingTransferBinds.save
+	_G.loadLighting = lightingTransferBinds.load
 end
 
 return Plugin
