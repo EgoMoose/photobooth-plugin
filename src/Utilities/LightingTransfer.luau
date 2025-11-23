@@ -196,8 +196,6 @@ function LightingTransfer.bindable(plugin: Plugin)
 	}
 end
 
--- Bindable setup
-
 --
 
 return LightingTransfer
