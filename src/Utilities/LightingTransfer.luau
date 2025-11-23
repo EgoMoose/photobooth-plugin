@@ -6,7 +6,7 @@ local ReflectionService = game:GetService("ReflectionService") :: ReflectionServ
 local SerializationService = game:GetService("SerializationService") :: SerializationService
 
 local VERSION = 1
-local ROOT_KEY = "LightingTransfer"
+local SETTING_KEY = "Photobooth_LightingTransfer"
 
 local LightingTransfer = {}
 
@@ -22,7 +22,7 @@ type Content = {
 }
 
 local function read(plugin: Plugin)
-	local root = plugin:GetSetting(ROOT_KEY)
+	local root = plugin:GetSetting(SETTING_KEY)
 	local success = pcall(function()
 		assert(root.version >= VERSION)
 	end)
@@ -43,7 +43,7 @@ end
 local function mutate(plugin: Plugin, mutation: (Content) -> ())
 	local content = read(plugin).content
 	mutation(content)
-	return plugin:SetSetting(ROOT_KEY, {
+	return plugin:SetSetting(SETTING_KEY, {
 		version = VERSION,
 		content = content,
 	})
@@ -168,32 +168,7 @@ function LightingTransfer.load(plugin: Plugin, key: string?)
 	if lightingSave then
 		setLightingFromSave(lightingSave)
 	end
-end
-
-function LightingTransfer.bindable(plugin: Plugin)
-	-- this is a bit weird, but we have to interface through a bindable instance
-	-- to ensure we have access to the plugin instance which is needed for saving
-
-	local binding = Instance.new("BindableFunction")
-	binding.Name = "Binding"
-	binding.Parent = script
-
-	binding.OnInvoke = function(name: string, key: string?)
-		if name == "save" then
-			return LightingTransfer.save(plugin, key)
-		elseif name == "load" then
-			return LightingTransfer.load(plugin, key)
-		end
-	end
-
-	return {
-		save = function(key: string?)
-			binding:Invoke("save", key)
-		end,
-		load = function(key: string?)
-			binding:Invoke("load", key)
-		end,
-	}
+	return not not lightingSave
 end
 
 --

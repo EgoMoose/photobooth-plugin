@@ -17,6 +17,7 @@ local stateChanged = Signal.new()
 
 local function defaultTemporary()
 	return {
+		plugin = (nil :: any) :: Plugin,
 		scaleOS = Vector2.one,
 
 		isCapturing = false,
@@ -127,6 +128,8 @@ function State.setup(plugin: Plugin)
 	if not success then
 		initState(nil)
 	end
+
+	currentState.temporary.plugin = plugin
 
 	plugin.Unloading:Connect(function()
 		local saved = SaveVersions.save(currentState.saved)
