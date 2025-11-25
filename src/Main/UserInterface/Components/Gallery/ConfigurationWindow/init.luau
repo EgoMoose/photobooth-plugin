@@ -324,7 +324,7 @@ local function ConfigurationWindow(props: Props)
 
 	local versionText = `v{Wally.package.version}-{if isLocalPlugin then "local" else "cloud"}`
 	local needsRestart = state.temporary.isExperimentalMode ~= state.saved.experimentalModeEnabled
-	if needsRestart then
+	if needsRestart and Constants.AllowExperimentalMode and not IS_TEAM_CREATE then
 		versionText = "requires restart*\n" .. versionText
 	elseif Semver.validateVersion(Wally.package.version) and Semver.cmp(latestVersion, ">", Wally.package.version) then
 		versionText = "update available*\n" .. versionText
