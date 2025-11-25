@@ -16,6 +16,17 @@ local SceneControl = require(photoRoot.SceneControl)
 local capturesRoot = script:FindFirstAncestor("Captures")
 local Composers = require(capturesRoot.Composers)
 
+local function getAppliedAtmosphere(): Atmosphere?
+	local children = Lighting:GetChildren()
+	for i = #children, 1, -1 do
+		local child = children[i]
+		if child:IsA("Atmosphere") then
+			return child
+		end
+	end
+	return nil
+end
+
 local function operation(options: Types.CaptureViewportOptions, trove: Trove.Trove): ...Image.Image
 	trove:Add(SceneControl.hideScreenUI())
 	local colorCorrection = trove:Add(SceneControl.getAppliedColorCorrectionCopy())
@@ -26,24 +37,22 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	if SceneControl.isGradedLightingRequired() then
 		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
 
-		local neonBackground = Background.neon(workspace)
-		neonBackground:SetColor(Color3.new(0, 0, 0))
-		neonBackground:SetEnabled(true)
+		local atmosphere = getAppliedAtmosphere()
+		if atmosphere then
+			preRetroYieldCount = 100
 
-		local undoNeonBackground = trove:Add(SceneControl.once(function()
-			neonBackground:Destroy()
-		end))
+			trove:Add(SceneControl.setProperties(atmosphere, {
+				Haze = 10,
+				Glare = 0,
+				Color = Color3.new(0, 0, 0),
+				Decay = Color3.new(0, 0, 0),
+			}))
+		end
 
-		SceneControl.yieldUntilNextFrame()
+		-- SceneControl.yieldUntilNextFrame()
 		gradedOnBlack = Screenshot.rect(options.rect)
 
 		undoGradedLighting()
-		undoNeonBackground()
-
-		if Lighting:FindFirstChildWhichIsA("Atmosphere") then
-			trove:Add(SceneControl.hideAtmosphere())
-			preRetroYieldCount = 100
-		end
 	end
 
 	-- prepare for retro scene capturing
