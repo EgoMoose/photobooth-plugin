@@ -70,7 +70,14 @@ end
 function Reversible.wrap(callback: () -> ())
 	local selection = SelectionService:Get()
 	local revertCamera = createRevertCameraCallback()
-	local identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_bindings", "Photobooth"))
+
+	local identifier
+	if ChangeHistoryService:IsRecordingInProgress() then
+		-- stylua: ignore
+		warn("Unable to use Reversible.wrap since ChangeHistoryService is already recording. This may be due to the multi-line command bar.")
+	else
+		identifier = assert(ChangeHistoryService:TryBeginRecording("photobooth_bindings", "Photobooth"))
+	end
 
 	local callbackFuture = simpleFuture()
 	local callbackThread = task.spawn(function()
@@ -78,12 +85,15 @@ function Reversible.wrap(callback: () -> ())
 			callback()
 		end)
 
-		if success then
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
-		else
-			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+		if not success then
+			if identifier then
+				ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+			end
+
 			SelectionService:Set(selection)
 			revertCamera()
+		elseif identifier then
+			ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Commit)
 		end
 
 		callbackFuture.resolve({
@@ -105,7 +115,10 @@ function Reversible.wrap(callback: () -> ())
 				coroutine.close(callbackThread)
 
 				if not callbackFuture.isCompleted() then
-					ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+					if identifier then
+						ChangeHistoryService:FinishRecording(identifier, Enum.FinishRecordingOperation.Cancel)
+					end
+
 					SelectionService:Set(selection)
 					revertCamera()
 
