@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.1] - 2025/11/30
+- `Reversible.wrap` now warns when a recording is in progress as opposed to failing outright.
+
 ### [1.2.0] - 2025/11/24
 - Fix "SourceSans" warning showing up in the output
 - Add experimental mode (more details in the devforum post)
