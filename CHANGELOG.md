@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.2] - 2026/01/11
+- The background for viewport captures now spawns at a fixed distance from the camera.
+
 ### [1.2.1] - 2025/11/30
 - `Reversible.wrap` now warns when a recording is in progress as opposed to failing outright.
 
