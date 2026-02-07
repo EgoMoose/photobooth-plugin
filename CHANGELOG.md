@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.3] - 2026/02/07
+- Changed error message in cropped and viewport mode to give more detailed information on where to access the studio output window.
+
 ### [1.2.2] - 2026/01/11
 - The background for viewport captures now spawns at a fixed distance from the camera.
 
