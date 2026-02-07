@@ -14,6 +14,9 @@ type Props = {
 	Position: UDim2,
 	Size: UDim2,
 
+	ViewportSize: Vector2,
+	ViewportPosition: Vector2,
+
 	DisplayedAbsSize: Vector2,
 	OnDimensionInput: (Vector2) -> (),
 
@@ -128,7 +131,7 @@ local function ActionBar(props: Props)
 	local underFrameAbsPosition = Hooks.useRefProperty(underFrameRef, "AbsolutePosition", Vector2.zero)
 	local underFrameAbsSize = Hooks.useRefProperty(underFrameRef, "AbsoluteSize", Vector2.zero)
 	local underFrameBottomY = underFrameAbsPosition.Y + underFrameAbsSize.Y
-	local useUnderFrame = underFrameBottomY <= workspace.CurrentCamera.ViewportSize.Y
+	local useUnderFrame = underFrameBottomY <= (props.ViewportPosition.Y + props.ViewportSize.Y)
 
 	local shakeOffset, makeShake = Hooks.useShake()
 	local errorOffset, makeError = Hooks.useShake()
@@ -240,11 +243,12 @@ local function ActionBar(props: Props)
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(1, 8, 0, 0),
 			Size = UDim2.fromScale(1, 1),
 			FontFace = Font.fromName("SourceSansPro", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-			Text = "Error: Check the output.",
+			Text = "Error: Check the studio output (Window > Output)",
 			TextSize = 14,
 			TextTransparency = errorOffset.Z ^ 20,
 			TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ErrorText),
-			TextXAlignment = if useUnderFrame then Enum.TextXAlignment.Center else Enum.TextXAlignment.Left,
+			TextWrapped = true,
+			TextXAlignment = Enum.TextXAlignment.Center, --if useUnderFrame then Enum.TextXAlignment.Center else Enum.TextXAlignment.Left,
 			TextYAlignment = if useUnderFrame then Enum.TextYAlignment.Top else Enum.TextYAlignment.Center,
 		}, {
 			UIStroke = React.createElement("UIStroke", {

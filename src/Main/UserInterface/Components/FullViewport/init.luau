@@ -22,6 +22,7 @@ type ActionBarProps = {
 	OnMinimize: () -> ()?,
 	OnCapture: (Rect) -> (boolean, string?),
 	IsDragging: boolean,
+	ContainerPosition: Vector2,
 	ContainerSize: Vector2,
 	Disabled: boolean,
 }
@@ -40,7 +41,7 @@ local function ActionBar(props: ActionBarProps)
 	local underFrameAbsPosition = Hooks.useRefProperty(underFrameRef, "AbsolutePosition", Vector2.zero)
 	local underFrameAbsSize = Hooks.useRefProperty(underFrameRef, "AbsoluteSize", Vector2.zero)
 	local underFrameBottomY = underFrameAbsPosition.Y + underFrameAbsSize.Y
-	local useUnderFrame = underFrameBottomY <= workspace.CurrentCamera.ViewportSize.Y
+	local useUnderFrame = underFrameBottomY <= (props.ContainerPosition.Y + props.ContainerSize.Y)
 
 	local shakeOffset, makeShake = Hooks.useShake()
 	local errorOffset, makeError = Hooks.useShake()
@@ -193,10 +194,11 @@ local function ActionBar(props: ActionBarProps)
 			Position = if useUnderFrame then UDim2.new(0, 0, 1, 2) else UDim2.new(0, 0, -1, -2),
 			Size = UDim2.fromScale(1, 1),
 			FontFace = Font.fromName("SourceSansPro", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-			Text = "Error: Check the output.",
+			Text = "Error: Check the studio output (Window > Output)",
 			TextSize = 14,
 			TextTransparency = errorOffset.Z ^ 20,
 			TextColor3 = theme:GetColor(Enum.StudioStyleGuideColor.ErrorText),
+			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Center,
 			TextYAlignment = if useUnderFrame then Enum.TextYAlignment.Top else Enum.TextYAlignment.Bottom,
 		}, {
@@ -253,6 +255,7 @@ local function FullViewport(props: Props)
 	local isDragging, setIsDragging = React.useState(false)
 	local containerRef = React.useRef(nil :: GuiObject?)
 	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
+	local containerPosition = Hooks.useRefProperty(containerRef, "AbsolutePosition", Vector2.zero)
 
 	React.useEffect(function()
 		props.FocusLenseSizeRef.current = containerSize
@@ -291,6 +294,7 @@ local function FullViewport(props: Props)
 			}, {
 				ActionBar = React.createElement(ActionBar, {
 					IsDragging = isDragging,
+					ContainerPosition = containerPosition,
 					ContainerSize = containerSize,
 					OnMinimize = props.OnMinimize,
 					OnCapture = props.OnCapture,

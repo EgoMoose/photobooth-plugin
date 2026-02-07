@@ -68,7 +68,7 @@ local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2
 	return Vector2.new(clampedX, clampedY)
 end
 
-local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
+local function CroppedViewport(props: Props & { ViewportSize: Vector2, ViewportPosition: Vector2 })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.useStatePath(function(state)
 		return state.temporary.scaleOS
@@ -212,6 +212,9 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2 })
 				Position = UDim2.new(0.5, 0, 1, actionBarPadding),
 				Size = UDim2.fromOffset(actionBarWidth, ACTION_BAR.Height),
 
+				ViewportSize = props.ViewportSize,
+				ViewportPosition = props.ViewportPosition,
+
 				DisplayedAbsSize = scaledLenseRectSize,
 				OnDimensionInput = function(dimensions)
 					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1), grabberMin))
@@ -248,6 +251,7 @@ end
 return function(props: Props)
 	local containerRef = React.useRef(nil :: GuiObject?)
 	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
+	local containerPosition = Hooks.useRefProperty(containerRef, "AbsolutePosition", Vector2.zero)
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -256,6 +260,7 @@ return function(props: Props)
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportSize = containerSize,
+			ViewportPosition = containerPosition,
 			InitialSize = props.InitialSize,
 			FocusLenseSizeRef = props.FocusLenseSizeRef,
 			OnMaximize = props.OnMaximize,
