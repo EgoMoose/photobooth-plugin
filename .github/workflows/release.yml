@@ -12,7 +12,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create Release
         env:
@@ -39,7 +39,7 @@ jobs:
           gh release upload ${{ github.ref_name }} photobooth-${{ github.ref_name }}.rbxm
       
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: release
           path: photobooth-${{ github.ref_name }}.rbxm
