@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.4] - 2026/02/08
+- Fixes bug where non-zero exposure compensation values were not capturing correctly when using retro color grading.
+
 ### [1.2.3] - 2026/02/07
 - Changed error message in cropped and viewport mode to give more detailed information on where to access the studio output window.
 
