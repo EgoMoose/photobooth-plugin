@@ -33,7 +33,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	end))
 
 	local gradedOnBlack: Image.Image?
-	if SceneControl.isGradedLightingRequired() then
+	if SceneControl.isGradedLightingRequired() or Lighting.ExposureCompensation ~= 0 then
 		local undoGradedLighting = trove:Add(SceneControl.applyGradedLighting())
 
 		SceneControl.yieldUntilNextFrame()
