@@ -53,7 +53,7 @@ local function validate()
 end
 
 local function capture()
-	local camera = workspace.CurrentCamera
+	local camera = workspace.CurrentCamera :: Camera
 
 	local prevCameraCFrame = camera.CFrame
 	local prevCameraType = camera.CameraType

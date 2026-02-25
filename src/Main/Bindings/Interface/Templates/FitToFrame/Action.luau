@@ -59,7 +59,7 @@ end
 -- Capture
 
 local function capture()
-	local camera = workspace.CurrentCamera
+	local camera = workspace.CurrentCamera :: Camera
 	local viewportSize = camera.ViewportSize
 
 	local prevCameraCFrame = camera.CFrame
