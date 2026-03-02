@@ -146,12 +146,14 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 			futures[k] = future
 
 			local connection
-			connection = actorEntry.binding.Event:Connect(function(index: number, ...: any)
-				if k == index then
-					future:complete(Future.packAsCallback(...) :: () -> U...)
-					connection:Disconnect()
+			connection = actorEntry.binding.Event:Connect(
+				function(index: number, success: boolean, err: string?, ...: any)
+					if k == index then
+						future:complete(success, err, Future.packAsCallback(...) :: () -> U...)
+						connection:Disconnect()
+					end
 				end
-			end)
+			)
 
 			actorEntry.actor:SendMessage("Work", k, unpackArgs())
 		end
@@ -161,8 +163,14 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 
 	local results = {}
 	for i, future in futures do
-		local castedFuture = future :: Future.Future<() -> U...>
-		results[i] = castedFuture:expect()
+		local castedFuture = future :: Future.Future<boolean, string?, () -> U...>
+		local success, err, unpackResults = castedFuture:expect()
+
+		if not success then
+			error(err)
+		end
+
+		results[i] = unpackResults
 	end
 
 	self.isWorking = false

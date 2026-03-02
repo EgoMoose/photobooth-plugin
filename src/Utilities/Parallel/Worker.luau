@@ -1,5 +1,8 @@
 --!strict
 
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
+
 return function(script: LuaSourceContainer)
 	local actor = assert(script:GetActor(), "No actor found.")
 	local moduleRef = assert(actor.Parent and actor.Parent.Parent, "No module found.")
@@ -13,7 +16,8 @@ return function(script: LuaSourceContainer)
 
 	local workerAction = require(module) :: any
 	actor:BindToMessageParallel("Work", function(index, ...)
-		binding:Fire(index, workerAction(...))
+		local duration = Timeout.getStudioTimeoutLength(-1)
+		binding:Fire(index, Timeout.async(duration, workerAction, ...))
 	end)
 
 	actor:SetAttribute("IsReady", true)
