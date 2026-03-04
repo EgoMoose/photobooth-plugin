@@ -9,8 +9,8 @@ local CAN_SAMPLE = bit32.lshift(1, 1)
 local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
 local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer, pending: { number })
-	local img = Image.fromBuffer(imgBuffer, imgSize)
 	local tryYield = Timeout.scriptExhaustionStepper(10)
+	local img = Image.fromBuffer(imgBuffer, imgSize)
 
 	while #pending > 0 do
 		local pendingNext = {}
@@ -34,6 +34,8 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 					buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
 					table.insert(pendingNext, neighborIndex)
 				end
+
+				tryYield()
 			end
 
 			if contributing > 0 then

@@ -1,9 +1,10 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
-local function integralImgAlphaBuffer(img: Image.Image)
+local function integralImgAlphaBuffer(img: Image.Image, tryYield: () -> ())
 	local width = img:GetWidth()
 	local height = img:GetHeight()
 	local integralBuffer = buffer.create(width * height * 4)
@@ -44,15 +45,18 @@ local function integralImgAlphaBuffer(img: Image.Image)
 
 	for x = 2, width do
 		write(x, 1, readImg(x, 1) + read(x - 1, 1))
+		tryYield()
 	end
 
 	for y = 2, height do
 		write(1, y, readImg(1, y) + read(1, y - 1))
+		tryYield()
 	end
 
 	for x = 2, width do
 		for y = 2, height do
 			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
+			tryYield()
 		end
 	end
 
@@ -64,16 +68,20 @@ local CAN_SAMPLE = bit32.lshift(1, 1)
 local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
 local function alphaBleedSerial(img: Image.Image)
+	local tryYield = Timeout.scriptExhaustionStepper(10)
+
 	local copy = img:Clone()
 	local width, height = copy.size.X, copy.size.Y
 
 	local pending = {}
 	local visited = buffer.create(width * height)
 
-	local readRadius = integralImgAlphaBuffer(copy)
+	local readRadius = integralImgAlphaBuffer(copy, tryYield)
 
 	for y = 1, height do
 		for x = 1, width do
+			tryYield()
+
 			local index = copy:GetPixelIndex(x, y)
 			local _, _, _, alpha = copy:GetRGBA255(index)
 
@@ -111,15 +119,20 @@ local function alphaBleedSerial(img: Image.Image)
 					buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
 					table.insert(pendingNext, neighborIndex)
 				end
+
+				tryYield()
 			end
 
 			if contributing > 0 then
 				copy:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
 			end
+
+			tryYield()
 		end
 
 		for i = 1, #pending do
 			buffer.writeu8(visited, pending[i] - 1, BOTH)
+			tryYield()
 		end
 
 		pending = pendingNext
