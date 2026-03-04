@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
 local HAS_VISITED = bit32.lshift(1, 0)
@@ -8,6 +9,7 @@ local CAN_SAMPLE = bit32.lshift(1, 1)
 local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
 local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer, pending: { number })
+	local tryYield = Timeout.scriptExhaustionStepper(10)
 	local img = Image.fromBuffer(imgBuffer, imgSize)
 
 	while #pending > 0 do
@@ -32,15 +34,20 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 					buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
 					table.insert(pendingNext, neighborIndex)
 				end
+
+				tryYield()
 			end
 
 			if contributing > 0 then
 				img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
 			end
+
+			tryYield()
 		end
 
 		for i = 1, #pending do
 			buffer.writeu8(visited, pending[i] - 1, BOTH)
+			tryYield()
 		end
 
 		pending = pendingNext
