@@ -12,7 +12,7 @@ local resultVersion = "0.0.0"
 
 task.spawn(function()
 	local success, result =
-		pcall(MarketplaceService.GetProductInfo, MarketplaceService, 87864471469006, Enum.InfoType.Asset)
+		pcall(MarketplaceService.GetProductInfoAsync, MarketplaceService, 87864471469006, Enum.InfoType.Asset)
 	if success then
 		if Semver.validateVersion(result.Description) then
 			resultVersion = result.Description
