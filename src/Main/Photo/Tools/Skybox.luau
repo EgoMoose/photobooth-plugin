@@ -1,17 +1,20 @@
 --!strict
 
-local Lighting = game:GetService("Lighting")
+local Lighting = game:GetService("Lighting") :: Lighting
+
+local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Icons = require(pluginRoot.Main.UserInterface.Icons)
 
 local SkyboxClass = {}
 SkyboxClass.__index = SkyboxClass
 SkyboxClass.ClassName = "Skybox"
 
 SkyboxClass.Textures = {
-	White = "rbxassetid://134137086491604",
-	Black = "rbxassetid://116015770286707",
-	Red = "rbxassetid://74376310462275",
-	Green = "rbxassetid://104817323592681",
-	Blue = "rbxassetid://110533416384567",
+	White = Icons.swatches.white,
+	Black = Icons.swatches.black,
+	Red = Icons.swatches.red,
+	Green = Icons.swatches.green,
+	Blue = Icons.swatches.blue,
 }
 
 export type Skybox = typeof(setmetatable(
