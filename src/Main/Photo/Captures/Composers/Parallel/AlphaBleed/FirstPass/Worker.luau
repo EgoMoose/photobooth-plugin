@@ -1,13 +1,14 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
 local HAS_VISITED = bit32.lshift(1, 0)
 local CAN_SAMPLE = bit32.lshift(1, 1)
 local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
 
-local function integralImage(img: Image.Image)
+local function integralImage(img: Image.Image, tryYield: () -> ())
 	local width = img:GetWidth()
 	local height = img:GetHeight()
 	local integralBuffer = buffer.create(width * height * 4)
@@ -48,15 +49,18 @@ local function integralImage(img: Image.Image)
 
 	for x = 2, width do
 		write(x, 1, readImg(x, 1) + read(x - 1, 1))
+		tryYield()
 	end
 
 	for y = 2, height do
 		write(1, y, readImg(1, y) + read(1, y - 1))
+		tryYield()
 	end
 
 	for x = 2, width do
 		for y = 2, height do
 			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
+			tryYield()
 		end
 	end
 
@@ -64,8 +68,10 @@ local function integralImage(img: Image.Image)
 end
 
 local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
+	local tryYield = Timeout.scriptExhaustionStepper(10)
+
 	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
-	local readRadius = integralImage(chunkImg)
+	local readRadius = integralImage(chunkImg, tryYield)
 
 	local pending = {}
 	local visited = buffer.create(crop.Width * crop.Height)
@@ -74,6 +80,8 @@ local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect,
 	local toIndex = chunkImg:GetPixelIndex(crop.Max.X, crop.Max.Y)
 
 	for index = fromIndex, toIndex do
+		tryYield()
+
 		local croppedOffset = index - fromIndex
 		local _, _, _, alpha = chunkImg:GetRGBA255(index)
 

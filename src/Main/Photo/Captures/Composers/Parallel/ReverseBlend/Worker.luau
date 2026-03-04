@@ -1,6 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
 local COMPARE_MARGIN = 0
@@ -24,6 +25,8 @@ local function workerAction(
 	blackRetroBuffer: buffer,
 	blackBuffer: buffer?
 )
+	local tryYield = Timeout.scriptExhaustionStepper(10)
+
 	local brightness = colorCorrection.Brightness
 	local contrast = colorCorrection.Contrast + 1
 	local saturation = colorCorrection.Saturation + 1
@@ -37,6 +40,8 @@ local function workerAction(
 
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
+			tryYield()
+
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
 
 			local Wo = { onWhiteRetro:GetRGBA255(pixelIndex) }
