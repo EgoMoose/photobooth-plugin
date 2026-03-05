@@ -13,7 +13,7 @@
 	},
 	"luau-lsp.sourcemap.rojoProjectFile": "analysis.project.json",
 	"stylua.targetReleaseVersion": "latest",
-	"luau-lsp.types.definitionFiles": [
-		".vscode/definitions.d.luau"
-	],
+	"luau-lsp.types.definitionFiles": {
+		"general": ".vscode/definitions.d.luau"
+	},
 }
