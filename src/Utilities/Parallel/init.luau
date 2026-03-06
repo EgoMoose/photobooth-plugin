@@ -31,12 +31,12 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 		isWorking: boolean,
 		required: Required<T..., U...>,
 
+		binding: BindableEvent,
 		isReadyFuture: Future.Future<()>,
 
 		actorEntries: {
 			{
 				actor: Actor,
-				binding: BindableEvent,
 				scheduled: { () -> T... },
 			}
 		},
@@ -63,6 +63,11 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	moduleRef.Parent = MODULE_REF_FOLDER
 	self.trove:Add(moduleRef)
 
+	self.binding = Instance.new("BindableEvent")
+	self.binding.Name = "Binding"
+	self.binding.Parent = moduleRef
+	self.trove:Add(self.binding)
+
 	local template = script.ClientWorker
 	if script:FindFirstAncestorWhichIsA("Plugin") then
 		template = script.PluginWorker
@@ -75,17 +80,12 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 		actor.Name = tostring(i)
 		actor.Parent = moduleRef
 
-		local binding = Instance.new("BindableEvent")
-		binding.Name = "Binding"
-		binding.Parent = actor
-
 		local worker = template:Clone()
 		worker.Enabled = true
 		worker.Parent = actor
 
 		self.actorEntries[i] = {
 			actor = actor,
-			binding = binding,
 			scheduled = {},
 		}
 	end
@@ -141,20 +141,14 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 	self.isWorking = true
 
 	local futures = {}
+	local connection = self.binding.Event:Connect(function(k: number, ...)
+		futures[k]:complete(Future.packAsCallback(...))
+	end)
+
 	for i, actorEntry in self.actorEntries do
 		for j, unpackArgs in actorEntry.scheduled do
 			local k = ((j - 1) * #self.actorEntries) + i
-			local future = Future.new()
-			futures[k] = future
-
-			local connection
-			connection = actorEntry.binding.Event:Connect(function(index: number, ...: any)
-				if k == index then
-					future:complete(Future.packAsCallback(...) :: () -> U...)
-					connection:Disconnect()
-				end
-			end)
-
+			futures[k] = Future.new()
 			actorEntry.actor:SendMessage("Work", k, unpackArgs())
 		end
 	end
@@ -166,6 +160,8 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 		local castedFuture = future :: Future.Future<() -> U...>
 		results[i] = castedFuture:expect()
 	end
+
+	connection:Disconnect()
 
 	self.isWorking = false
 	return results
