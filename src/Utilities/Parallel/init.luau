@@ -4,6 +4,11 @@ local RunService = game:GetService("RunService") :: RunService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Future = require(pluginRoot.Packages.Future)
+local Trove = require(pluginRoot.Packages.Trove)
+
+local MODULE_REF_FOLDER = Instance.new("Folder")
+MODULE_REF_FOLDER.Name = "ModuleRefs"
+MODULE_REF_FOLDER.Parent = script
 
 -- Class
 
@@ -20,17 +25,18 @@ export type Required<T..., U...> = {
 
 export type Parallel<T..., U...> = typeof(setmetatable(
 	{} :: {
+		trove: Trove.Trove,
+
 		ticket: number,
 		isWorking: boolean,
-		moduleRef: ObjectValue,
 		required: Required<T..., U...>,
 
+		binding: BindableEvent,
 		isReadyFuture: Future.Future<()>,
 
 		actorEntries: {
 			{
 				actor: Actor,
-				binding: BindableEvent,
 				scheduled: { () -> T... },
 			}
 		},
@@ -41,6 +47,8 @@ export type Parallel<T..., U...> = typeof(setmetatable(
 function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...>)
 	local self = setmetatable({}, ParallelClass) :: Parallel<T..., U...>
 
+	self.trove = Trove.new()
+
 	self.ticket = 0
 	self.actorEntries = {}
 	self.required = required
@@ -48,18 +56,17 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	self.isWorking = false
 	self.isReadyFuture = Future.new()
 
-	self.moduleRef = Instance.new("ObjectValue")
-	self.moduleRef.Name = `Parallel_{required.script.Name}`
-	self.moduleRef.Value = required.script
-	self.moduleRef.Archivable = false
-	self.moduleRef.Parent = script
+	local moduleRef = Instance.new("ObjectValue")
+	moduleRef.Name = `Parallel_{required.script.Name}`
+	moduleRef.Value = required.script
+	moduleRef.Archivable = false
+	moduleRef.Parent = MODULE_REF_FOLDER
+	self.trove:Add(moduleRef)
 
-	local workerModule = script.Worker:Clone()
-	workerModule.Parent = self.moduleRef
-
-	local actorFolder = Instance.new("Folder")
-	actorFolder.Name = "Actors"
-	actorFolder.Parent = self.moduleRef
+	self.binding = Instance.new("BindableEvent")
+	self.binding.Name = "Binding"
+	self.binding.Parent = moduleRef
+	self.trove:Add(self.binding)
 
 	local template = script.ClientWorker
 	if script:FindFirstAncestorWhichIsA("Plugin") then
@@ -71,11 +78,7 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 	for i = 1, n do
 		local actor = Instance.new("Actor")
 		actor.Name = tostring(i)
-		actor.Parent = actorFolder
-
-		local binding = Instance.new("BindableEvent")
-		binding.Name = "Binding"
-		binding.Parent = actor
+		actor.Parent = moduleRef
 
 		local worker = template:Clone()
 		worker.Enabled = true
@@ -83,7 +86,6 @@ function ParallelStatic.new<T..., U...>(n: number, required: Required<T..., U...
 
 		self.actorEntries[i] = {
 			actor = actor,
-			binding = binding,
 			scheduled = {},
 		}
 	end
@@ -139,20 +141,14 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 	self.isWorking = true
 
 	local futures = {}
+	local connection = self.binding.Event:Connect(function(k: number, ...)
+		futures[k]:complete(Future.packAsCallback(...))
+	end)
+
 	for i, actorEntry in self.actorEntries do
 		for j, unpackArgs in actorEntry.scheduled do
 			local k = ((j - 1) * #self.actorEntries) + i
-			local future = Future.new()
-			futures[k] = future
-
-			local connection
-			connection = actorEntry.binding.Event:Connect(function(index: number, ...: any)
-				if k == index then
-					future:complete(Future.packAsCallback(...) :: () -> U...)
-					connection:Disconnect()
-				end
-			end)
-
+			futures[k] = Future.new()
 			actorEntry.actor:SendMessage("Work", k, unpackArgs())
 		end
 	end
@@ -165,12 +161,14 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 		results[i] = castedFuture:expect()
 	end
 
+	connection:Disconnect()
+
 	self.isWorking = false
 	return results
 end
 
 function ParallelClass.Destroy<T..., U...>(self: Parallel<T..., U...>)
-	self.moduleRef:Destroy()
+	self.trove:Destroy()
 	self.actorEntries = {}
 end
 
