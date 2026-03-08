@@ -28,4 +28,11 @@ function Timeout.scriptExhaustionStepper(default: number)
 	end
 end
 
+function Timeout.benchmark<T..., U...>(callback: (T...) -> U..., ...: T...): (number, U...)
+	local t = os.clock()
+	local packed = table.pack(callback(...))
+	local dt = os.clock() - t
+	return dt, table.unpack(packed :: { any }, 1, packed.n)
+end
+
 return Timeout
