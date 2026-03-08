@@ -228,7 +228,7 @@ local function UploadLineItem(props: Props)
 		Size = props.Size,
 
 		BackgroundColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Titlebar),
-		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.Border),
+		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.DialogButtonBorder),
 
 		LayoutOrder = props.LayoutOrder,
 	}, {
