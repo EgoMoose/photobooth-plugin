@@ -138,7 +138,7 @@ function Reversible.wrap(callback: () -> ())
 		return result.success :: boolean, result.err :: string?
 	end
 
-	return expect, cancel
+	return expect :: () -> (boolean, string?), cancel :: () -> ()
 end
 
 --
