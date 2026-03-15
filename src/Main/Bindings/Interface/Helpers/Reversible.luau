@@ -7,6 +7,8 @@ local Reversible = {}
 
 -- Private
 
+local pcall: <T...>((T...) -> (), T...) -> (boolean, string?) = pcall :: any
+
 local function simpleFuture<T>()
 	local result: T
 	local completed = false
@@ -132,8 +134,8 @@ function Reversible.wrap(callback: () -> ())
 	end
 
 	local function expect()
-		local result = callbackFuture.expect()
-		return result.success, result.err
+		local result = callbackFuture.expect() :: any
+		return result.success :: boolean, result.err :: string?
 	end
 
 	return expect, cancel
