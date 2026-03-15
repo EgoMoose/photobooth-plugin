@@ -54,10 +54,10 @@ function CachelessRequire.execute(root: LuaSourceContainer, env: { [string]: any
 	function import(module: ModuleScript)
 		if not required[module] then
 			local callback = getExecutionCallback(module, params)
-			required[module] = table.pack(callback(module, import, table.unpack(args, 1, nEnv)))
+			required[module] = table.pack(callback(module, import, table.unpack(args :: { any }, 1, nEnv)))
 		end
 		local packed = required[module]
-		return table.unpack(packed, 1, packed.n)
+		return table.unpack(packed :: { any }, 1, packed.n)
 	end
 
 	return import(root :: ModuleScript)
