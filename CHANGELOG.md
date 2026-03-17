@@ -1,6 +1,19 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.7] - 2026/03/17
+- Fix a typechecking errors from new solver in the bindings modules
+- Misc internal refactoring
+
+### [1.2.6] - 2026/03/13
+- Refactor parallel luau system to reduce result connection firing
+- Fix upload border color on dark mode for upload line items in the upload ui
+
+### [1.2.5] - 2026/03/03
+- Reupload image asset ids to photobooth account
+- Add yielding for processes that exceed the studio script exhaustion time limit
+- Fix the strict typing in the binding templates
+
 ### [1.2.4] - 2026/02/08
 - Fixes bug where non-zero exposure compensation values were not capturing correctly when using retro color grading.
 
