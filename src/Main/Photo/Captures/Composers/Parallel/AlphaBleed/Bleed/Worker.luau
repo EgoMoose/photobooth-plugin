@@ -4,12 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
-local HAS_VISITED = bit32.lshift(1, 0)
-local CAN_SAMPLE = bit32.lshift(1, 1)
-local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
-
 local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer, pending: { number })
-	local tryYield = Timeout.scriptExhaustionStepper(10)
 	local img = Image.fromBuffer(imgBuffer, imgSize)
 
 	while #pending > 0 do
@@ -22,7 +17,7 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 			local contributing = 0
 
 			for _, neighborIndex in img:IterateNeighbors(index) do
-				if bit32.band(buffer.readu8(visited, neighborIndex - 1), CAN_SAMPLE) > 0 then
+				if bit32.band(buffer.readu8(visited, neighborIndex - 1), 0b10) > 0 then
 					local r, g, b = img:GetRGBA255(neighborIndex)
 
 					rgb[1] = rgb[1] + r
@@ -30,24 +25,24 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 					rgb[3] = rgb[3] + b
 
 					contributing = contributing + 1
-				elseif not (bit32.band(buffer.readu8(visited, neighborIndex - 1), HAS_VISITED) > 0) then
-					buffer.writeu8(visited, neighborIndex - 1, HAS_VISITED)
+				elseif not (bit32.band(buffer.readu8(visited, neighborIndex - 1), 0b01) > 0) then
+					buffer.writeu8(visited, neighborIndex - 1, 0b01)
 					table.insert(pendingNext, neighborIndex)
 				end
 
-				tryYield()
+				Timeout.tryYield()
 			end
 
 			if contributing > 0 then
 				img:SetRGBA255(index, rgb[1] / contributing, rgb[2] / contributing, rgb[3] / contributing, 0)
 			end
 
-			tryYield()
+			Timeout.tryYield()
 		end
 
 		for i = 1, #pending do
-			buffer.writeu8(visited, pending[i] - 1, BOTH)
-			tryYield()
+			buffer.writeu8(visited, pending[i] - 1, 0b11)
+			Timeout.tryYield()
 		end
 
 		pending = pendingNext

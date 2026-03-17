@@ -6,5 +6,6 @@
 /lune/**/*.png
 /assets/icons/asphalt/processed
 
+globalTypes.d.lua
 sourcemap.json
 *.ds_store
