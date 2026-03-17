@@ -274,7 +274,7 @@ end
 
 function ImageClass.Save(self: Image)
 	if self.templateUri then
-		local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(self.templateUri))
+		local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(self.templateUri)) :: EditableImage
 		self:WriteToEditableImage(editImage, Vector2.zero, self.size)
 		return editImage
 	end
