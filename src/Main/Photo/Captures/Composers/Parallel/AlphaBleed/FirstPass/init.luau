@@ -15,15 +15,13 @@ local scheduler = Parallel.new(32, {
 local function parallelize(img: Image.Image)
 	scheduler:WaitForReady()
 
-	local tryYield = Timeout.scriptExhaustionStepper(10)
-
 	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
 		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
-		tryYield()
+		Timeout.tryYield()
 	end
 
 	local packedResults = scheduler:Work()
-	tryYield()
+	Timeout.tryYield()
 
 	local pending = {}
 	local copyIndex = 0
@@ -33,7 +31,7 @@ local function parallelize(img: Image.Image)
 		buffer.copy(visited, copyIndex, visitedChunk)
 		copyIndex = copyIndex + buffer.len(visitedChunk)
 		table.move(pendingChunk, 1, #pendingChunk, #pending + 1, pending)
-		tryYield()
+		Timeout.tryYield()
 	end
 
 	return visited, pending

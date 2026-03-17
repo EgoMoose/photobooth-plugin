@@ -25,8 +25,6 @@ local function workerAction(
 	blackRetroBuffer: buffer,
 	blackBuffer: buffer?
 )
-	local tryYield = Timeout.scriptExhaustionStepper(10)
-
 	local brightness = colorCorrection.Brightness
 	local contrast = colorCorrection.Contrast + 1
 	local saturation = colorCorrection.Saturation + 1
@@ -40,7 +38,7 @@ local function workerAction(
 
 	for h = 1, onBlack.size.Y do
 		for w = 1, onBlack.size.X do
-			tryYield()
+			Timeout.tryYield()
 
 			local pixelIndex = onBlack:GetPixelIndex(w, h)
 

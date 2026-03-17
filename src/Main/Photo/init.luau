@@ -5,9 +5,11 @@ local AssetService = game:GetService("AssetService") :: AssetService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Future = require(pluginRoot.Packages.Future)
-local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 local Sift = require(pluginRoot.Packages.Sift)
+
+local Timeout = require(pluginRoot.Utilities.Timeout)
+local Image = require(pluginRoot.Utilities.Image)
 
 local Types = require(pluginRoot.Main.Bindings.Interface.Types)
 local State = require(pluginRoot.Main.State)
@@ -33,6 +35,7 @@ local function createIsCapturingTrove()
 		end)
 	end)
 
+	Timeout.tryYield(true)
 	return trove
 end
 
@@ -169,7 +172,7 @@ end
 function Photo.importFiles(parent: Instance?)
 	local results = {}
 
-	local files = (StudioService:PromptImportFiles({ "png" }) :: any) :: { File }
+	local files = (StudioService:PromptImportFilesAsync({ "png" }) :: any) :: { File }
 	for _, file in files do
 		local content = Content.fromUri(file:GetTemporaryId())
 		local editImage = AssetService:CreateEditableImageAsync(content)

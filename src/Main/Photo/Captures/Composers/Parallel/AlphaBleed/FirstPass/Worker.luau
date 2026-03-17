@@ -1,77 +1,15 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local IntegralImage = require(pluginRoot.Utilities.IntegralImage)
 local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
-local HAS_VISITED = bit32.lshift(1, 0)
-local CAN_SAMPLE = bit32.lshift(1, 1)
-local BOTH = bit32.bor(HAS_VISITED, CAN_SAMPLE)
-
-local function integralImage(img: Image.Image, tryYield: () -> ())
-	local width = img:GetWidth()
-	local height = img:GetHeight()
-	local integralBuffer = buffer.create(width * height * 4)
-
-	local function readImg(x: number, y: number)
-		local i = img:GetPixelIndex(x, y)
-		local _, _, _, alpha = img:GetRGBA255(i)
-		return math.sign(alpha)
-	end
-
-	local function read(x: number, y: number)
-		local i = ((x - 1) + (y - 1) * width) * 4
-		return buffer.readu32(integralBuffer, i)
-	end
-
-	local function write(x: number, y: number, value: number)
-		local i = ((x - 1) + (y - 1) * width) * 4
-		buffer.writeu32(integralBuffer, i, value)
-	end
-
-	local function readClamped(x: number, y: number)
-		local cx = math.min(x, width)
-		local cy = math.min(y, height)
-		if cx > 0 and cy > 0 then
-			return read(cx, cy)
-		end
-		return 0
-	end
-
-	local function readRadius(x: number, y: number, radius: number)
-		return readClamped(x + radius, y + radius)
-			- readClamped(x - radius - 1, y + radius)
-			- readClamped(x + radius, y - radius - 1)
-			+ readClamped(x - radius - 1, y - radius - 1)
-	end
-
-	write(1, 1, readImg(1, 1))
-
-	for x = 2, width do
-		write(x, 1, readImg(x, 1) + read(x - 1, 1))
-		tryYield()
-	end
-
-	for y = 2, height do
-		write(1, y, readImg(1, y) + read(1, y - 1))
-		tryYield()
-	end
-
-	for x = 2, width do
-		for y = 2, height do
-			write(x, y, readImg(x, y) + read(x, y - 1) + read(x - 1, y) - read(x - 1, y - 1))
-			tryYield()
-		end
-	end
-
-	return readRadius
-end
-
 local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
-	local tryYield = Timeout.scriptExhaustionStepper(10)
-
 	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
-	local readRadius = integralImage(chunkImg, tryYield)
+	local alphaSignIntegralImg = IntegralImage.fromImage(chunkImg, function(u32)
+		return math.sign(bit32.extract(u32, 0, 8))
+	end)
 
 	local pending = {}
 	local visited = buffer.create(crop.Width * crop.Height)
@@ -80,20 +18,20 @@ local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect,
 	local toIndex = chunkImg:GetPixelIndex(crop.Max.X, crop.Max.Y)
 
 	for index = fromIndex, toIndex do
-		tryYield()
+		Timeout.tryYield()
 
 		local croppedOffset = index - fromIndex
 		local _, _, _, alpha = chunkImg:GetRGBA255(index)
 
 		if alpha ~= 0 then
-			buffer.writeu8(visited, croppedOffset, BOTH)
+			buffer.writeu8(visited, croppedOffset, 0b11)
 			continue
 		end
 
 		local x, y = chunkImg:GetXYFromPixelIndex(index)
-		if readRadius(x, y, 1) > 0 then
+		if alphaSignIntegralImg:readRadius(x, y, 1) > 0 then
 			table.insert(pending, minIndex + fromIndex - 1 + croppedOffset)
-			buffer.writeu8(visited, croppedOffset, HAS_VISITED)
+			buffer.writeu8(visited, croppedOffset, 0b01)
 		end
 	end
 
