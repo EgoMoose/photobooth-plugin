@@ -8,7 +8,7 @@ local Image = require(pluginRoot.Utilities.Image)
 local function workerAction(chunkBuffer: buffer, chunkSize: Vector2, crop: Rect, minIndex: number)
 	local chunkImg = Image.fromBuffer(chunkBuffer, chunkSize)
 	local alphaSignIntegralImg = IntegralImage.fromImage(chunkImg, function(u32)
-		return math.sign(bit32.extract(u32, 0, 8))
+		return math.sign(bit32.extract(u32, 24, 8))
 	end)
 
 	local pending = {}

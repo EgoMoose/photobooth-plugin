@@ -7,7 +7,7 @@ local Image = require(pluginRoot.Utilities.Image)
 
 local function alphaBleedSerial(img: Image.Image)
 	local alphaSignIntegralImg = IntegralImage.fromImage(img, function(u32)
-		return math.sign(bit32.extract(u32, 0, 8))
+		return math.sign(bit32.extract(u32, 24, 8))
 	end)
 
 	local copy = img:Clone()

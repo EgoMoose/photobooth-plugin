@@ -21,8 +21,8 @@ export type IntegralImage = typeof(setmetatable(
 function IntegralImageStatic.fromBuffer(imgBuffer: buffer, imgSize: Vector2, processImgRead: (number) -> number)
 	local self = setmetatable({}, IntegralImageClass) :: IntegralImage
 
-	local integralBuffer = buffer.create(imgSize.X * imgSize.Y * 4)
 	local width, height = imgSize.X, imgSize.Y
+	local integralBuffer = buffer.create(width * height * 4)
 
 	local function read(x: number, y: number)
 		local i = ((x - 1) + (y - 1) * width) * 4
@@ -58,7 +58,7 @@ function IntegralImageStatic.fromBuffer(imgBuffer: buffer, imgSize: Vector2, pro
 		end
 	end
 
-	self.buffer = imgBuffer
+	self.buffer = integralBuffer
 	self.width = width
 	self.height = height
 
