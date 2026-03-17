@@ -5,6 +5,7 @@
 
 /lune/**/*.png
 /assets/icons/asphalt/processed
+/.vscode/settings.json
 
 globalTypes.d.lua
 sourcemap.json
