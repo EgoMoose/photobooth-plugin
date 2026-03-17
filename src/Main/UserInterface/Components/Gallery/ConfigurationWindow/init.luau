@@ -1,5 +1,4 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)

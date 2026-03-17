@@ -157,7 +157,7 @@ function ParallelClass.Work<T..., U...>(self: Parallel<T..., U...>)
 
 	local results = {}
 	for i, future in futures do
-		local castedFuture = future :: Future.Future<() -> U...>
+		local castedFuture = (future :: any) :: Future.Future<() -> U...>
 		results[i] = castedFuture:expect()
 	end
 
