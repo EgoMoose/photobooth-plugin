@@ -39,7 +39,7 @@ local NEIGHBOR_OFFSETS: { { number } } = {
 -- Constructors
 
 function ImageStatic.fromBuffer(buffer: buffer, size: Vector2)
-	local self = setmetatable({} :: any, ImageClass) :: Image
+	local self = setmetatable({}, ImageClass) :: Image
 
 	self.buffer = buffer
 	self.size = size
