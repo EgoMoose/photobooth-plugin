@@ -168,15 +168,15 @@ function ImageClass.IterateNeighbors(self: Image, pixelIndex: number)
 			i = i + 1
 			local offset = NEIGHBOR_OFFSETS[i]
 
-			if not offset then
-				return nil :: any, nil :: any
-			end
+			if offset then
+				local xn = x + offset[1]
+				local yn = y + offset[2]
 
-			local xn = x + offset[1]
-			local yn = y + offset[2]
-
-			if not (xn < 1 or xn > width or yn < 1 or yn > height) then
-				return i, self:GetPixelIndex(xn, yn)
+				if not (xn < 1 or xn > width or yn < 1 or yn > height) then
+					return i, self:GetPixelIndex(xn, yn)
+				end
+			else
+				return table.unpack({})
 			end
 		end
 	end
