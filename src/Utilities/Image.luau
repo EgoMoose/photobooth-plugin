@@ -176,7 +176,7 @@ function ImageClass.IterateNeighbors(self: Image, pixelIndex: number)
 					return i, self:GetPixelIndex(xn, yn)
 				end
 			else
-				return table.unpack({})
+				return table.unpack({} :: any)
 			end
 		end
 	end
