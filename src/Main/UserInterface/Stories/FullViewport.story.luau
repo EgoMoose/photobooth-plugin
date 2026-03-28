@@ -1,7 +1,11 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
+
+local State = require(pluginRoot.Main.State)
+State.storybook()
 
 local Constants = require(pluginRoot.Constants)
 
@@ -49,5 +53,7 @@ local function story()
 end
 
 return {
+	react = React,
+	reactRoblox = ReactRoblox,
 	story = CreateStory.split(story),
 }
