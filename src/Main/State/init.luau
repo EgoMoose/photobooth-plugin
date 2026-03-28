@@ -135,6 +135,7 @@ function State.setup(plugin: Plugin)
 end
 
 function State.storybook()
+	print("?")
 	initState(nil)
 end
 

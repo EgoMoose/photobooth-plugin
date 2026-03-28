@@ -8,8 +8,6 @@ local useRefProperty = require(script.Generic.useRefProperty)
 local useBindingState = require(script.Generic.useBindingState)
 
 -- Animation
-local useMotion = require(script.Animation.useMotion)
-local useSpring = require(script.Animation.useSpring)
 local useShake = require(script.Animation.useShake)
 
 -- Plugin
@@ -36,8 +34,6 @@ return {
 	useRefProperty = useRefProperty,
 	useBindingState = useBindingState,
 
-	useMotion = useMotion,
-	useSpring = useSpring,
 	useShake = useShake,
 
 	usePlugin = usePlugin,
