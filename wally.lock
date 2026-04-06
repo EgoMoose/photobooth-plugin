@@ -19,8 +19,13 @@ dependencies = []
 
 [[package]]
 name = "egomoose/photobooth-plugin"
-version = "1.2.7"
-dependencies = [["Future", "egomoose/future@1.0.0"], ["GreenTea", "corecii/greentea@0.4.11"], ["Lucide", "virtualbutfake/lucide-roblox@1.1.3"], ["React", "jsdotlua/react@17.2.1"], ["ReactRipple", "littensy/react-ripple@3.0.1"], ["ReactRoblox", "jsdotlua/react-roblox@17.2.1"], ["Semver", "tim7775/semver@1.0.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["StudioComponents", "sircfenner/studiocomponents@1.2.0"], ["Trove", "sleitnick/trove@1.5.1"]]
+version = "1.2.8"
+dependencies = [["Future", "egomoose/future@1.0.0"], ["GreenTea", "corecii/greentea@0.4.11"], ["Lucide", "virtualbutfake/lucide-roblox@1.1.3"], ["React", "jsdotlua/react@17.2.1"], ["ReactRoblox", "jsdotlua/react-roblox@17.2.1"], ["Ripple", "littensy/ripple@0.9.3"], ["Semver", "tim7775/semver@1.0.0"], ["Sift", "csqrl/sift@0.0.11"], ["Signal", "sleitnick/signal@2.0.3"], ["StudioComponents", "sircfenner/studiocomponents@1.2.0"], ["Trove", "sleitnick/trove@1.5.1"]]
+
+[[package]]
+name = "evaera/promise"
+version = "4.0.0"
+dependencies = []
 
 [[package]]
 name = "jsdotlua/boolean"
@@ -108,14 +113,9 @@ version = "1.2.7"
 dependencies = [["collections", "jsdotlua/collections@1.2.7"]]
 
 [[package]]
-name = "littensy/react-ripple"
-version = "3.0.1"
-dependencies = [["React", "jsdotlua/react@17.2.1"], ["Ripple", "littensy/ripple@0.10.2"]]
-
-[[package]]
 name = "littensy/ripple"
-version = "0.10.2"
-dependencies = []
+version = "0.9.3"
+dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "sircfenner/studiocomponents"

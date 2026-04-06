@@ -20,26 +20,26 @@ jobs:
         run: |
           gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
 
-      - name: "Setup rokit"
-        uses: CompeyDev/setup-rokit@v0.1.2
+      # - name: "Setup rokit"
+      #   uses: CompeyDev/setup-rokit@v0.1.2
 
-      - name: "Run wally install"
-        run: |
-          lune run wally-install
+      # - name: "Run wally install"
+      #   run: |
+      #     lune run wally-install
 
-      - name: "Build rbxm"
-        run: |
-          rojo build plugin.project.json --output photobooth-${{ github.ref_name }}.rbxm
+      # - name: "Build rbxm"
+      #   run: |
+      #     rojo build plugin.project.json --output photobooth-${{ github.ref_name }}.rbxm
 
-      - name: Create Archive and Upload to Release
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload ${{ github.ref_name }} photobooth-${{ github.ref_name }}.rbxm
+      # - name: Create Archive and Upload to Release
+      #   shell: bash
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     gh release upload ${{ github.ref_name }} photobooth-${{ github.ref_name }}.rbxm
       
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: release
-          path: photobooth-${{ github.ref_name }}.rbxm
+      # - name: Upload build artifact
+      #   uses: actions/upload-artifact@v6
+      #   with:
+      #     name: release
+      #     path: photobooth-${{ github.ref_name }}.rbxm

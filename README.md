@@ -1,3 +1,11 @@
+## Developer Request
+
+This project is AGPL-3.0. If you modify this plugin and use it in a public-facing project, you are obligated to make your modified source code available. While I can't stop you from using modifications privately I strongly encourage you to contribute improvements back. If you've optimized something or added a feature that helps you or your team, please consider a PR so everyone benefits.
+
+This plugin is still being sold for money as a pre-built rbxm on the creator-store and itch.io offering convenience for those unfamiliar with building roblox projects and auto-updates for creator store users. I strongly request that you do not publicly distribute any builds as this is my primary way of earning money off the project.
+
+While the source is open, building and maintaining this tool takes significant time. The best way to ensure this plugin remains updated and compatible with the latest Roblox engine changes is to purchase the pre-built version on the Creator Store or Itch. Thanks!
+
 # Photobooth Plugin
 
 ![](docs/assets/readme/general/header.png)
@@ -24,14 +32,15 @@ Results are output as editable images stored as a mesh part's texture.
 
 ## Limitations
 
-Photobooth has a couple of limitations specific to the skybox removal preset. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before purchase.
+Photobooth has a couple of limitations that are worth noting. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before getting the plugin.
 
 General:
-- The plugin can capture any resolution desired, but there are some stipulations. Please read the “Full Viewport Captures” section for more details.
+- The plugin can capture any resolution desired, but there are some stipulations. Please read the "Full Viewport Captures" section for more details.
 - Photobooth can only be used during edit mode in studio. It cannot be used to capture anything during a studio play session.
 - The built-in upload feature is currently disabled. You can still upload, but you have to write code to do it yourself. Read more about this further down the post.
 - Using the emulator + photobooth only works correctly when on "actual resolution"
 - The viewport must be visible when capturing. You cannot tab out of studio or switch to the script editor while a capture is in progress.
+- `Studio Settings > Rendering > Graphics Mode = OpenGL` is unsupported (this is a Roblox bug).
 
 Skybox removal:
 - No atmosphere / fog support.
@@ -39,9 +48,6 @@ Skybox removal:
 	- Terrain grass.
 	- Force-field material.
 - Retro color grading is highly recommended for best results, but not mandatory.
-
-Bindings:
-- See the OS scaling section below
 
 **Warning: This plugin will cause the screen to flash when removing skyboxes. Those with photosensitive epilepsy are advised caution when using this plugin.**
 
@@ -62,12 +68,27 @@ This will create a `ModuleScript` underneath `ServerStorage` which provides a ty
 For example:
 
 ```luau
-local Photobooth = require(game.ServerStorage.PhotoboothBindings)
+local Photobooth = require(game.ServerStorage.Photobooth.Bindings)
 
-local capture = Photobooth.captureViewport(Rect.new(0, 0, 300, 300), "NoSkybox")
+local capture = Photobooth.captureViewport({
+	rect = Rect.new(0, 0, 300, 300),
+	type = "NoSkybox",
+})
 capture.Name = "Example"
-capture.Parent = game.ServerStorage
+capture.Parent = game.StarterGui
 ```
+
+Fullscreen captures can be made with bindings by passing a rect that represents the viewport. I.e.
+
+```luau
+local viewportSize = workspace.CurrentCamera.ViewportSize
+local capture = Photobooth.captureViewport({
+	rect = Rect.new(Vector2.zero, viewportSize),
+	type = "NoSkybox",
+})
+```
+
+Captures should be parented as a descendant of StarterGui. This ensures that they can be properly exported as pngs.
 
 ### OS scaling
 
@@ -87,7 +108,7 @@ Photobooth will attempt to resolve this issue automatically, but for the highest
 
 ## Full Viewport Captures
 
-Normally editable images have a 1024x1024 limit. However, it is possible to circumvent this by capturing the entire viewport window. You can toggle to full viewport capture mode in the settings menu.
+In cropped capture mode this plugin has a `2048 x 2048` limit. However, it is possible to circumvent this by capturing the entire viewport window. You can toggle to full viewport capture mode from the action bar or in the settings menu.
 
 To set an arbitrary size you can either resize your viewport (not recommended) or take advantage of custom device resolutions on the emulator.
 
@@ -95,15 +116,35 @@ To set an arbitrary size you can either resize your viewport (not recommended) o
 
 It's very important that you use the "Actual Resolution" option when capturing in the emulator. For very large dimensions that don't fit on screen I recommend temporarily switching to "Fit to Window", setting up the scene, and then switching back to "Actual resolution" once you're ready to capture.
 
+> **Note:** Full viewport captures will result in images with their dimensions as `viewportSize * osScale`. It is highly recommened to adjust your display settings such that os scale is `(1, 1)` when using full viewport captures.
+
+## Experimental Mode
+
+As of v1.2.0 Photobooth now supports a new setting called experimental mode. Enabling this requires restarting studio and is not available during team create sessions.
+
+Experimental mode is a way to provide speculative features to the public without making any guarantees that the behavior will remain supported in the future. If you enable this mode you should be aware that any behavior it exposes may be removed and should not be relied on.
+
+<details>
+<summary>Experimental Features:</summary>
+
+- `Experimental_NSB_A1` is a viewport capture mode that attempts to allow capturing with atmosphere in lighting
+
+</details>
+
+
 ## Saving Captures as PNGs
 
-If you want to save any of the plugin captures to your computer, you can do so by right clicking the exported mesh part and selecting "Export Selection".
+If you want to save any of the plugin captures to your computer, you can do so by right clicking the exported mesh part and selecting "Export Selection". This will prompt you to export the mesh in `.obj` format which will include the texture of the mesh in `.png` format. Both the `.obj` and `.mtl` files can be discarded.
+
+If you want to export many images at the same time. First group all the mesh parts together as a model and then export that model.
 
 <img src="docs/assets/readme/general/exportA.png" height=400> <img src="docs/assets/readme/general/exportB.png" height=400>
 
-This will prompt you to export the mesh in `.obj` format which will include the texture of the mesh in `.png` format. Both the `.obj` and `.mtl` files can be discarded.
+#### GLTF Exports
 
-If you want to export many images at the same time. First group all the mesh parts together as a model and then export that model.
+Alternatively, you can also export your photobooth selection in the [glTF format](https://devforum.roblox.com/t/gltf-export-beta-available-now/3905928). This may be preferable as many users have reported that sometimes exporting as an obj can crash studio.
+
+In order to extract the pngs from the glTF file you'll need an additional tool. For convenience I've created a website found [here](https://egomoose.github.io/photobooth-plugin-site/) where you can drag and drop the export and get the resulting pngs.
 
 ## Uploading
 

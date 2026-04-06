@@ -7,6 +7,7 @@
 /assets/icons/asphalt/processed
 /.vscode/settings.json
 
+*.rbxm
 globalTypes.d.lua
 sourcemap.json
 *.ds_store

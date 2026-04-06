@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.8] - 2026/04/06
+- Add AGPL-3.0 License
+
 ### [1.2.7] - 2026/03/17
 - Fix a typechecking errors from new solver in the bindings modules
 - Misc internal refactoring
