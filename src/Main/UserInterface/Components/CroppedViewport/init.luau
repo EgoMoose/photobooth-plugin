@@ -5,7 +5,7 @@ local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local Constants = require(pluginRoot.Constants)
 
 local ActionBar = require(script.ActionBar)

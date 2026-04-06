@@ -25,21 +25,6 @@ local Photobooth = require(ServerStorage.Photobooth.Bindings)
 local frame = script.Parent.CaptureFrame
 local folder = workspace:FindFirstChild("StaticFrameTargets") :: Folder
 
--- Helpers
-
-local function getRectFromGuiObject(subject: GuiObject)
-	local absPosition = subject.AbsolutePosition
-	local absSize = subject.AbsoluteSize
-
-	local minX = math.round(absPosition.X)
-	local minY = math.round(absPosition.Y)
-
-	local maxX = math.round(absPosition.X + absSize.X)
-	local maxY = math.round(absPosition.Y + absSize.Y)
-
-	return Rect.new(minX, minY, maxX, maxY)
-end
-
 -- Capture
 
 local function validate()
@@ -60,7 +45,7 @@ local function capture()
 	camera.CameraType = Enum.CameraType.Scriptable
 	folder.Parent = nil
 
-	local rect = getRectFromGuiObject(frame)
+	local rect = Photobooth.rect.fromGuiObject(frame)
 	local outputFolder = Instance.new("Folder")
 	for _, child in folder:GetChildren() do
 		child.Parent = workspace
