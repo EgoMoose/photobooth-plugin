@@ -70,15 +70,6 @@ local function StoryTheme(props: {
 	})
 end
 
-local function readFlipbookTheme(screenFrame: Frame)
-	local color = screenFrame:GetStyled("BackgroundColor3") :: Color3
-	if color == Color3.new(1, 1, 1) then
-		return settings().Studio:GetAvailableThemes()[1]
-	else
-		return settings().Studio:GetAvailableThemes()[2]
-	end
-end
-
 local function createSplitThemeStory(component: React.FC<any>)
 	return function(props: any)
 		local order = 0
@@ -87,31 +78,29 @@ local function createSplitThemeStory(component: React.FC<any>)
 			return order
 		end
 
-		local items: { React.ReactNode } = {}
+		local items: { [string]: React.ReactNode } = {}
 		for i, theme in themes do
 			local widthOffset = if #themes > 2 and i == #themes then -1 else 0
 			if i == 1 and #themes > 1 then
 				widthOffset -= 1
 			end
-			table.insert(
-				items,
-				React.createElement(StoryTheme, {
-					Theme = theme,
-					Size = UDim2.new(1 / #themes, widthOffset, 1, 0),
-					LayoutOrder = getOrder(),
-				}, React.createElement(component, props))
-			)
+
+			items[theme.Name] = React.createElement(StoryTheme, {
+				Theme = theme,
+				Size = UDim2.new(1 / #themes, widthOffset, 1, 0),
+				LayoutOrder = getOrder(),
+			}, {
+				Component = React.createElement(component, props),
+			})
+
 			-- invisible divider to prevent scrollframe edges overlapping as
 			-- they have default borders (outside, not inset)
 			if i < #themes then
-				table.insert(
-					items,
-					React.createElement("Frame", {
-						Size = UDim2.new(0, 2, 1, 0),
-						BackgroundTransparency = 1,
-						LayoutOrder = getOrder(),
-					})
-				)
+				items["Divider" .. i] = React.createElement("Frame", {
+					Size = UDim2.new(0, 2, 1, 0),
+					BackgroundTransparency = 1,
+					LayoutOrder = getOrder(),
+				})
 			end
 		end
 
@@ -135,31 +124,9 @@ local function createSplitThemeStory(component: React.FC<any>)
 	end
 end
 
-local function createFlipbookStory(component: React.FC<any>)
+local function createThemeStory(component: React.FC<any>, theme: ("dark" | "light")?)
 	return function(props: any)
-		local scroll = props.container :: ScrollingFrame
-		local screenFrame = scroll:FindFirstAncestor("Screen") :: Frame
-		local theme, setTheme = React.useState(readFlipbookTheme(screenFrame))
-
-		React.useEffect(function()
-			local prevEnabled = scroll.ScrollingEnabled
-			local prevThickness = scroll.ScrollBarThickness
-
-			scroll.ScrollingEnabled = false
-			scroll.ScrollBarThickness = 0
-
-			setTheme(readFlipbookTheme(screenFrame))
-			local connection = screenFrame:GetStyledPropertyChangedSignal("BackgroundColor3"):Connect(function()
-				setTheme(readFlipbookTheme(screenFrame))
-			end)
-
-			return function()
-				scroll.ScrollingEnabled = prevEnabled
-				scroll.ScrollBarThickness = prevThickness
-				connection:Disconnect()
-			end
-		end, {})
-
+		local renderedTheme = theme or props.theme:lower()
 		return React.createElement(IsStoryContext.Provider, {
 			value = true,
 		}, {
@@ -167,30 +134,7 @@ local function createFlipbookStory(component: React.FC<any>)
 				Plugin = GetStoryPlugin(),
 			}, {
 				ThemeProvider = React.createElement(StudioComponents.ThemeContext.Provider, {
-					value = theme,
-				}, {
-					Container = React.createElement("Frame", {
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(1, 1),
-					}, {
-						Component = React.createElement(component, props),
-					}),
-				}),
-			}),
-		})
-	end
-end
-
-local function createThemeStory(theme: "dark" | "light", component: React.FC<any>)
-	return function(props: any)
-		return React.createElement(IsStoryContext.Provider, {
-			value = true,
-		}, {
-			PluginProvider = React.createElement(StudioComponents.PluginProvider, {
-				Plugin = GetStoryPlugin(),
-			}, {
-				ThemeProvider = React.createElement(StudioComponents.ThemeContext.Provider, {
-					value = if theme == "dark" then themes[1] else themes[2],
+					value = if renderedTheme == "dark" then themes[1] else themes[2],
 				}, {
 					Container = React.createElement("Frame", {
 						BackgroundTransparency = 1,
@@ -206,6 +150,5 @@ end
 
 return {
 	split = createSplitThemeStory,
-	flipbook = createFlipbookStory,
 	theme = createThemeStory,
 }

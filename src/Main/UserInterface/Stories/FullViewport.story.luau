@@ -55,5 +55,5 @@ end
 return {
 	react = React,
 	reactRoblox = ReactRoblox,
-	story = CreateStory.split(story),
+	story = CreateStory.theme(story),
 }
