@@ -37,6 +37,28 @@ local GetStoryPlugin = require(script.GetStoryPlugin)
 local themes = settings().Studio:GetAvailableThemes()
 themes[1], themes[2] = themes[2], themes[1]
 
+local THEME_NAME_MAP = {
+	["Dark"] = "dark",
+	["Light"] = "light",
+}
+
+local function useMyStudioTheme()
+	local value, setValue = React.useState(settings().Studio.Theme)
+
+	React.useEffect(function()
+		setValue(settings().Studio.Theme)
+		local connection = settings().Studio.ThemeChanged:Connect(function()
+			setValue(settings().Studio.Theme)
+		end)
+
+		return function()
+			connection:Disconnect()
+		end
+	end, {})
+
+	return value
+end
+
 local function StoryTheme(props: {
 	Theme: StudioTheme,
 	Size: UDim2,
@@ -126,7 +148,15 @@ end
 
 local function createThemeStory(component: React.FC<any>, theme: ("dark" | "light")?)
 	return function(props: any)
-		local renderedTheme = theme or props.theme:lower()
+		local myTheme = useMyStudioTheme()
+		local themeName = "dark"
+
+		if props.controls.darkMode ~= nil then
+			themeName = if props.controls.darkMode then "dark" else "light"
+		else
+			themeName = theme or THEME_NAME_MAP[props.theme] or myTheme.Name:lower()
+		end
+
 		return React.createElement(IsStoryContext.Provider, {
 			value = true,
 		}, {
@@ -134,7 +164,7 @@ local function createThemeStory(component: React.FC<any>, theme: ("dark" | "ligh
 				Plugin = GetStoryPlugin(),
 			}, {
 				ThemeProvider = React.createElement(StudioComponents.ThemeContext.Provider, {
-					value = if renderedTheme == "dark" then themes[1] else themes[2],
+					value = if themeName == "dark" then themes[1] else themes[2],
 				}, {
 					Container = React.createElement("Frame", {
 						BackgroundTransparency = 1,
