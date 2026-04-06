@@ -2,7 +2,11 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local ReactRoblox = require(pluginRoot.Packages.ReactRoblox)
 local React = require(pluginRoot.Packages.React)
+
+local State = require(pluginRoot.Main.State)
+State.storybook()
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Gallery = require(uiRoot.Components.Gallery)
@@ -75,5 +79,7 @@ local function story()
 end
 
 return {
-	story = CreateStory.split(story),
+	react = React,
+	reactRoblox = ReactRoblox,
+	story = CreateStory.theme(story),
 }

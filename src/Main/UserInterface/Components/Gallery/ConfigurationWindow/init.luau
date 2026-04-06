@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local ReactRipple = require(pluginRoot.Packages.ReactRipple)
 local Semver = require(pluginRoot.Packages.Semver)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
@@ -305,10 +306,11 @@ local function DevGroup(props: GroupsProps)
 end
 
 local function useScrollTransparency()
-	local transparencyTargetBinding, setTransparencyTarget = React.useBinding(1)
-	local transparencyBinding, _setTransparency = Hooks.useSpring(transparencyTargetBinding)
+	local transparencyBinding, control = ReactRipple.useSpring(1)
 	local transparency = Hooks.useBindingState(transparencyBinding)
-	return transparency, setTransparencyTarget
+	return transparency, React.useCallback(function(value: number)
+		control:setGoal(value)
+	end, {})
 end
 
 local function ConfigurationWindow(props: Props)

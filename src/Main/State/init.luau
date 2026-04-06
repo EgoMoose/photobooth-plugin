@@ -135,7 +135,9 @@ function State.setup(plugin: Plugin)
 end
 
 function State.storybook()
-	initState(nil)
+	if not currentState then
+		initState(nil)
+	end
 end
 
 return State

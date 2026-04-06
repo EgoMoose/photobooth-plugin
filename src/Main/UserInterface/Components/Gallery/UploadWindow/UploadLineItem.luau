@@ -2,6 +2,7 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
+local ReactRipple = require(pluginRoot.Packages.ReactRipple)
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)
 
@@ -211,14 +212,14 @@ end
 local function UploadLineItem(props: Props)
 	local theme = StudioComponents.useTheme()
 
-	local uploadPercentGoal, setUploadPercentGoal = React.useBinding(props.Progress)
-	local uploadPercentBinding, setUploadPercent = Hooks.useSpring(uploadPercentGoal)
+	local uploadPercentBinding, control = ReactRipple.useSpring(props.Progress)
 	local uploadPercent = Hooks.useBindingState(uploadPercentBinding)
 
 	React.useEffect(function()
-		setUploadPercentGoal(props.Progress)
+		control:setGoal(props.Progress)
 		if props.Progress == 0 then
-			setUploadPercent(props.Progress)
+			control:setVelocity(0)
+			control:setPosition(props.Progress)
 		end
 	end, { props.Progress })
 
