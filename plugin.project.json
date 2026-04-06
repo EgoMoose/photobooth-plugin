@@ -1,5 +1,11 @@
 {
 	"name": "PluginRoot",
+	"syncRules": [
+		{
+			"pattern": "LICENSE",
+			"use": "moduleScript"
+		}
+	],
 	"tree": {
 		"$className": "Folder",
 		"$path": "default.project.json",
@@ -8,6 +14,9 @@
 		},
 		"Wally": {
 			"$path": "wally.toml"
+		},
+		"LICENSE": {
+			"$path": "LICENSE"
 		},
 		"Runner": {
 			"$className": "Script",
