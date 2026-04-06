@@ -1,8 +1,11 @@
 [package]
 name = "egomoose/photobooth-plugin"
+description = "A plugin for capturing images in Roblox studio."
+repository = "https://github.com/EgoMoose/photobooth-plugin"
 version = "1.2.8"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
+license = "AGPL-3.0"
 private = true
 
 [dependencies]
