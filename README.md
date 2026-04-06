@@ -24,8 +24,6 @@ Results are output as editable images stored as a mesh part's texture.
 
 ## Limitations
 
-## Limitations
-
 Photobooth has a couple of limitations that are worth noting. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before purchase.
 
 General:
