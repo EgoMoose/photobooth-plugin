@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local State = require(pluginRoot.Main.State)
 
 local ALWAYS_CLIPPED = true

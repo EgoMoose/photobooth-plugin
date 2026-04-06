@@ -20,4 +20,16 @@ function RenderRect.fromRect(rect: Rect)
 	return RenderRect.fromAbs(rect.Min, rect.Max - rect.Min)
 end
 
+function RenderRect.fromViewportCenter(size: Vector2)
+	local viewportSize = (workspace.CurrentCamera :: Camera).ViewportSize
+	local absPosition = (viewportSize - size) / 2
+	return RenderRect.fromAbs(absPosition, size)
+end
+
+function RenderRect.fromGuiObject(subject: GuiObject)
+	local absPosition = subject.AbsolutePosition
+	local absSize = subject.AbsoluteSize
+	return RenderRect.fromAbs(absPosition, absSize)
+end
+
 return RenderRect

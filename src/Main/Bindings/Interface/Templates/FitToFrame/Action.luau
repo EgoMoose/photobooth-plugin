@@ -43,19 +43,6 @@ local function validate()
 	)
 end
 
-local function getRectFromGuiObject(subject: GuiObject)
-	local absPosition = subject.AbsolutePosition
-	local absSize = subject.AbsoluteSize
-
-	local minX = math.round(absPosition.X)
-	local minY = math.round(absPosition.Y)
-
-	local maxX = math.round(absPosition.X + absSize.X)
-	local maxY = math.round(absPosition.Y + absSize.Y)
-
-	return Rect.new(minX, minY, maxX, maxY)
-end
-
 -- Capture
 
 local function capture()
@@ -68,7 +55,7 @@ local function capture()
 	folder.Parent = nil
 
 	-- figure out the rect we're capturing and some math values we'll need to fit inside it
-	local rect = getRectFromGuiObject(frame)
+	local rect = Photobooth.rect.fromGuiObject(frame)
 	local aspect = rect.Width / rect.Height
 	local scaleY = rect.Height / viewportSize.Y
 	local scaledFov2 = math.atan(math.tan(math.rad(camera.FieldOfView / 2)) * scaleY)

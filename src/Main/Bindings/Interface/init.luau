@@ -2,6 +2,7 @@
 
 local Types = require(script.Types)
 
+local RenderRect = require(script.Helpers.RenderRect)
 local Reversible = require(script.Helpers.Reversible)
 local CachelessRequire = require(script.Helpers.CachelessRequire)
 
@@ -25,6 +26,7 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	return table.unpack(results, 2)
 end
 
+Bindings.rect = RenderRect
 Bindings.reversible = Reversible.wrap
 
 function Bindings.execute(script: LuaSourceContainer)

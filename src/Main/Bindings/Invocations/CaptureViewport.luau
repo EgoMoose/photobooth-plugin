@@ -4,7 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local gt = require(pluginRoot.Packages.GreenTea)
 local Sift = require(pluginRoot.Packages.Sift)
 
-local RenderRect = require(pluginRoot.Utilities.RenderRect)
+local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local Camera = require(pluginRoot.Utilities.Camera)
 local State = require(pluginRoot.Main.State)
