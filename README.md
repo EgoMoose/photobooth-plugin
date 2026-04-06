@@ -1,3 +1,11 @@
+## Developer Request
+
+This project is AGPL-3.0. While I can't stop you from using modifications privately in your own projects, I strongly encourage you to contribute improvements back. If you've optimized something or added a feature that helps you or your team, please consider a PR so everyone benefits.
+
+This plugin is still being sold for money as a pre-built rbxm on the creator-store and itch.io offering convenience for those unfamiliar with building roblox projects. I strongly request that you do not publicly distribute any builds as this is my primary way of earning money off the project. I think I'm being pretty generous already, please don't betray my goodwill.
+
+If you find the project useful and can afford it I really appreciate support by buying on the creator store or itch. Thanks!
+
 # Photobooth Plugin
 
 ![](docs/assets/readme/general/header.png)
@@ -24,7 +32,7 @@ Results are output as editable images stored as a mesh part's texture.
 
 ## Limitations
 
-Photobooth has a couple of limitations that are worth noting. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before purchase.
+Photobooth has a couple of limitations that are worth noting. For most users these will likely not be of significant impact, but I'm listing them here so people can see them before getting the plugin.
 
 General:
 - The plugin can capture any resolution desired, but there are some stipulations. Please read the "Full Viewport Captures" section for more details.
