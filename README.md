@@ -2,7 +2,7 @@
 
 This project is AGPL-3.0. If you modify this plugin and use it in a public-facing project, you are obligated to make your modified source code available. While I can't stop you from using modifications privately I strongly encourage you to contribute improvements back. If you've optimized something or added a feature that helps you or your team, please consider a PR so everyone benefits.
 
-This plugin is still being sold for money as a pre-built rbxm on the creator-store and itch.io offering convenience for those unfamiliar with building roblox projects. I strongly request that you do not publicly distribute any builds as this is my primary way of earning money off the project.
+This plugin is still being sold for money as a pre-built rbxm on the creator-store and itch.io offering convenience for those unfamiliar with building roblox projects and auto-updates for creator store users. I strongly request that you do not publicly distribute any builds as this is my primary way of earning money off the project.
 
 While the source is open, building and maintaining this tool takes significant time. The best way to ensure this plugin remains updated and compatible with the latest Roblox engine changes is to purchase the pre-built version on the Creator Store or Itch. Thanks!
 
