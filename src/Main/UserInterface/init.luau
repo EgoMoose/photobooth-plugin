@@ -29,7 +29,7 @@ local Icons = require(script.Icons)
 
 local Gallery = require(script.Components.Gallery)
 local FullViewport = require(script.Components.FullViewport)
-local CroppedViewport = require(script.Components.CroppedViewport2)
+local CroppedViewport = require(script.Components.CroppedViewport)
 
 local UserInterface = {}
 

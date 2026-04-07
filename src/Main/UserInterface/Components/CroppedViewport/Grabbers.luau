@@ -8,30 +8,31 @@ local Hooks = require(uiRoot.Hooks)
 
 -- stylua: ignore
 type OnDragCallback = (
-	rbx: GuiObject,
-	input: InputObject,
-	direction: Vector2
+	direction: Vector2,
+	delta: Vector2
 ) -> ()
 
-type Props = {
+export type Props = {
 	Transparency: number,
 	Thickness: UDim,
 	Padding: UDim,
 	Length: UDim,
 
+	TranslateEnabled: boolean,
 	CornersEnabled: boolean,
 	MiddlesEnabled: boolean,
 
 	OnDrag: OnDragCallback,
 	OnDragStart: OnDragCallback,
-	OnDragFinish: () -> (),
+	-- OnDragFinish: () -> (),
 
-	Disabled: boolean,
+	Disabled: boolean?,
 }
 
 type GenericGrabberProps = {
 	RootProps: Props,
 	AnchorPoint: Vector2,
+	Disabled: boolean?,
 }
 
 type GrabberProps = GenericGrabberProps & {
@@ -152,22 +153,31 @@ local function GrabDragger(props: GenericGrabberProps)
 		(2 * props.AnchorPoint.Y) - 1
 	)
 
+	local initialDragRef = React.useRef(nil :: Vector3?)
 	local dragger = Hooks.useMouseDrag({
-		onDragCallback = function(rbx, input)
-			props.RootProps.OnDrag(rbx, input, direction)
+		onDragCallback = function(_rbx, input)
+			if initialDragRef.current then
+				local delta3 = input.Position - initialDragRef.current
+				local delta2 = Vector2.new(delta3.X, delta3.Y)
+				props.RootProps.OnDrag(direction, delta2)
+			end
 		end,
-		onBeganCallback = function(rbx, input)
-			props.RootProps.OnDragStart(rbx, input, direction)
+		onBeganCallback = function(_rbx, input)
+			initialDragRef.current = input.Position
+			props.RootProps.OnDragStart(direction, Vector2.zero)
 		end,
-		onEndedCallback = props.RootProps.OnDragFinish,
+		onEndedCallback = function()
+			initialDragRef.current = nil
+		end,
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
 	})
 
-	if props.RootProps.Disabled and dragger.isActive() then
+	if props.Disabled and dragger.isActive() then
 		dragger.cancel()
 	end
 
 	local color = Color3.fromRGB(255, 255, 255)
-	if props.RootProps.Disabled or dragger.isActive() then
+	if props.Disabled or dragger.isActive() then
 		color = Color3.fromRGB(60, 60, 60)
 	end
 
@@ -182,45 +192,98 @@ local function GrabDragger(props: GenericGrabberProps)
 	})
 end
 
+local function TranslateDragger(props: GenericGrabberProps)
+	-- stylua: ignore
+	local direction = Vector2.new(
+		(2 * props.AnchorPoint.X) - 1,
+		(2 * props.AnchorPoint.Y) - 1
+	)
+
+	local initialDragRef = React.useRef(nil :: Vector3?)
+	local dragger = Hooks.useMouseDrag({
+		onDragCallback = function(_rbx, input)
+			if initialDragRef.current then
+				local delta3 = input.Position - initialDragRef.current
+				local delta2 = Vector2.new(delta3.X, delta3.Y)
+				props.RootProps.OnDrag(direction, delta2)
+			end
+		end,
+		onBeganCallback = function(_rbx, input)
+			initialDragRef.current = input.Position
+			props.RootProps.OnDragStart(direction, Vector2.zero)
+		end,
+		onEndedCallback = function()
+			initialDragRef.current = nil
+		end,
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
+	})
+
+	if props.Disabled and dragger.isActive() then
+		dragger.cancel()
+	end
+
+	return React.createElement("ImageButton", {
+		BackgroundTransparency = 1,
+		AnchorPoint = props.AnchorPoint,
+		Position = UDim2.fromScale(props.AnchorPoint.X, props.AnchorPoint.Y),
+		Size = UDim2.fromScale(1, 1),
+
+		[React.Event.InputBegan] = dragger.onInputBegan,
+		[React.Event.InputChanged] = dragger.onInputChanged,
+		[React.Event.InputEnded] = dragger.onInputEnded,
+	})
+end
+
 local function Grabbers(props: Props)
 	local gap = props.Thickness + props.Padding
 
 	return React.createElement("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(1 + gap.Scale * 2, gap.Offset * 2, 1 + gap.Scale * 2, gap.Offset * 2),
 		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
 	}, {
-		TopLeft = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 0),
-			RootProps = props,
+		Gapped = React.createElement("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.new(1 + gap.Scale * 2, gap.Offset * 2, 1 + gap.Scale * 2, gap.Offset * 2),
+			BackgroundTransparency = 1,
+			ZIndex = -1,
+		}, {
+			TopLeft = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 0),
+				RootProps = props,
+			}),
+			TopMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0.5, 0),
+				RootProps = props,
+			}),
+			TopRight = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 0),
+				RootProps = props,
+			}),
+			RightMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 0.5),
+				RootProps = props,
+			}),
+			BottomRight = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 1),
+				RootProps = props,
+			}),
+			BottomMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0.5, 1),
+				RootProps = props,
+			}),
+			BottomLeft = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 1),
+				RootProps = props,
+			}),
+			LeftMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				RootProps = props,
+			}),
 		}),
-		TopMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0.5, 0),
-			RootProps = props,
-		}),
-		TopRight = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 0),
-			RootProps = props,
-		}),
-		RightMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 0.5),
-			RootProps = props,
-		}),
-		BottomRight = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 1),
-			RootProps = props,
-		}),
-		BottomMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0.5, 1),
-			RootProps = props,
-		}),
-		BottomLeft = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 1),
-			RootProps = props,
-		}),
-		LeftMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 0.5),
+
+		Translate = props.TranslateEnabled and React.createElement(TranslateDragger, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
 			RootProps = props,
 		}),
 	})

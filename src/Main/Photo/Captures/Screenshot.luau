@@ -63,10 +63,6 @@ function Screenshot.isUnitScaleOS(scaleOS: Vector2)
 end
 
 function Screenshot.isFullscreenRect(rect: Rect)
-	if not Constants.AllowFullscreen then
-		return false
-	end
-
 	local scaleOS = State.read().temporary.scaleOS
 	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
 

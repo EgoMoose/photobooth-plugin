@@ -20,10 +20,10 @@ type Props = {
 	DisplayedAbsSize: Vector2,
 	OnDimensionInput: (Vector2) -> (),
 
-	OnMaximize: () -> ()?,
+	OnMaximize: () -> (),
 	OnCapture: () -> (boolean, string?),
 
-	Disabled: boolean,
+	Disabled: boolean?,
 }
 
 type DimensionProps = {
@@ -34,7 +34,7 @@ type DimensionProps = {
 	DisplayedAbsSize: Vector2,
 	OnDimensionInput: (Vector2) -> (),
 
-	Disabled: boolean,
+	Disabled: boolean?,
 }
 
 local function Dimensions(props: DimensionProps)
@@ -142,11 +142,6 @@ local function ActionBar(props: Props)
 			:Lerp(theme:GetColor(Enum.StudioStyleGuideColor.ErrorText), 0.2)
 	end, { theme })
 
-	local dimensionsWidthOffset = 0
-	if props.OnMaximize then
-		dimensionsWidthOffset = -24 - 4
-	end
-
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
 		AnchorPoint = props.AnchorPoint,
@@ -180,7 +175,7 @@ local function ActionBar(props: Props)
 				Dimensions = React.createElement(Dimensions, {
 					AnchorPoint = Vector2.new(0, 0),
 					Position = UDim2.fromScale(0, 0),
-					Size = UDim2.new(1, -24 - 4 + dimensionsWidthOffset, 1, 0),
+					Size = UDim2.new(1, -28 * 2, 1, 0),
 
 					DisplayedAbsSize = props.DisplayedAbsSize,
 					OnDimensionInput = props.OnDimensionInput,
@@ -188,7 +183,7 @@ local function ActionBar(props: Props)
 					Disabled = props.Disabled,
 				}),
 
-				Maximize = props.OnMaximize and React.createElement(BaseButton, {
+				Maximize = React.createElement(BaseButton, {
 					AnchorPoint = Vector2.new(1, 0),
 					Position = UDim2.new(1, -24 - 4, 0, 0),
 					Size = UDim2.new(0, 24, 1, 0),

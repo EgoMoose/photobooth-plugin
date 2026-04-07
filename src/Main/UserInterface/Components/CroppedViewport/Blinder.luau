@@ -4,9 +4,9 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local React = require(pluginRoot.Packages.React)
 
 type Props = {
-	AnchorPoint: Vector2,
-	Position: UDim2,
-	Size: UDim2,
+	AnchorPoint: Vector2?,
+	Position: UDim2?,
+	Size: UDim2?,
 
 	MarginBump: number,
 	OverlapBump: number,
@@ -18,9 +18,9 @@ type Props = {
 }
 
 local function Blinder(props: Props)
-	local anchorPoint = props.AnchorPoint
-	local position = props.Position
-	local size = props.Size
+	local anchorPoint = props.AnchorPoint or Vector2.zero
+	local position = props.Position or UDim2.new(0, 0, 0, 0)
+	local size = props.Size or UDim2.new(0, 0, 0, 0)
 
 	local centerXScale = position.X.Scale + size.X.Scale * (0.5 - anchorPoint.X)
 	local centerYScale = position.Y.Scale + size.Y.Scale * (0.5 - anchorPoint.Y)

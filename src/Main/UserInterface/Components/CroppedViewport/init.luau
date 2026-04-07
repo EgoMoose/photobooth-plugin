@@ -3,154 +3,157 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
-local Sift = require(pluginRoot.Packages.Sift)
 
 local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local Constants = require(pluginRoot.Constants)
 
-local ActionBar = require(script.ActionBar)
-local Grabbers = require(script.Grabbers)
-local Blinder = require(script.Blinder)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
-local MAX_CAPTURE_RECT_SIZE = Vector2.new(Constants.MaxCaptureRectSize.X, Constants.MaxCaptureRectSize.Y)
+local Blinder = require(script.Blinder)
+local Grabbers = require(script.Grabbers)
+local ActionBar = require(script.ActionBar)
 
 local GRABBERS = {
 	CornersEnabled = true,
 	MiddlesEnabled = true,
-
-	MaintainAspectKeys = Sift.Array.toSet({
-		Enum.KeyCode.LeftControl,
-		Enum.KeyCode.RightControl,
-		Enum.KeyCode.LeftMeta,
-		Enum.KeyCode.RightMeta,
-	}),
 
 	Length = 30,
 	Padding = 8,
 	Thickness = 4,
 }
 
+local GRABBER_MARGIN = GRABBERS.Padding + GRABBERS.Thickness
+
 local ACTION_BAR = {
+	Width = 148,
 	Height = 28,
 	Padding = 8,
 }
 
-local grabberMargin = GRABBERS.Padding + GRABBERS.Thickness
-local actionBarPadding = if GRABBERS.MiddlesEnabled
-	then ACTION_BAR.Padding + grabberMargin
-	else ACTION_BAR.Padding + grabberMargin
-local actionBarMargin = ACTION_BAR.Height + actionBarPadding
+local ACTION_BAR_PADDING = ACTION_BAR.Padding + GRABBER_MARGIN
+local ACTION_BAR_MARGIN = ACTION_BAR.Height + ACTION_BAR_PADDING
 
-export type Props = {
-	InitialSize: UDim2,
-	FocusLenseSizeRef: { current: Vector2? },
-	OnCapture: (Rect) -> (boolean, string?),
-	OnMaximize: () -> ()?,
-	Disabled: boolean,
-}
+local MIN_CAPTURE_HEIGHT = GRABBERS.Length * 3
+local MIN_CAPTURE_WIDTH = math.max(MIN_CAPTURE_HEIGHT, ACTION_BAR.Width)
 
-local function useLenseSize(size: Vector2, viewportSize: Vector2, scale: Vector2, grabberMin: number)
-	local width = viewportSize.X - grabberMargin * 2
-	local height = viewportSize.Y - actionBarMargin * 2
+local MAX_CAPTURE_HEIGHT = Constants.MaxCaptureRectSize.Y
+local MAX_CAPTURE_WIDTH = Constants.MaxCaptureRectSize.X
 
-	local minX = math.max(0, math.min(width, grabberMin * scale.X))
-	local minY = math.max(0, math.min(height, grabberMin * scale.Y))
+local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vector2, delta: Vector2)
+	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN
+	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN
+	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN
+	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN
 
-	local maxX = math.min(MAX_CAPTURE_RECT_SIZE.X * scale.X, width)
-	local maxY = math.min(MAX_CAPTURE_RECT_SIZE.Y * scale.Y, height)
+	local dX, dY = direction.X, direction.Y
+	if dX == 0 and dY == 0 then
+		-- the rect is translating
+		local minX = captureRect.Min.X + delta.X
+		local minY = captureRect.Min.Y + delta.Y
+		local maxX = captureRect.Max.X + delta.X
+		local maxY = captureRect.Max.Y + delta.Y
 
-	local clampedX = math.clamp(size.X * scale.X, minX, math.max(minX, maxX))
-	local clampedY = math.clamp(size.Y * scale.X, minY, math.max(minY, maxY))
+		local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
+		local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
 
-	return Vector2.new(clampedX, clampedY)
+		maxX = math.min(math.max(minX, boundMinX) + width, boundMaxX)
+		minX = math.max(maxX - width, boundMinX)
+		maxY = math.min(math.max(minY, boundMinY) + height, boundMaxY)
+		minY = math.max(maxY - height, boundMinY)
+
+		return Rect.new(minX, minY, maxX, maxY)
+	else
+		local minX = captureRect.Min.X
+		local minY = captureRect.Min.Y
+		local maxX = captureRect.Max.X
+		local maxY = captureRect.Max.Y
+
+		if dX ~= 0 then
+			local dMinX = math.abs(math.min(dX, 0))
+			local dMaxX = math.abs(math.max(dX, 0))
+			minX = captureRect.Min.X + delta.X * dMinX
+			maxX = captureRect.Max.X + delta.X * dMaxX
+			local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
+			minX = (minX * dMaxX + maxX * dMinX) - dMinX * width
+			maxX = (minX * dMaxX + maxX * dMinX) + dMaxX * width
+		end
+
+		if dY ~= 0 then
+			local dMinY = math.abs(math.min(dY, 0))
+			local dMaxY = math.abs(math.max(dY, 0))
+			minY = captureRect.Min.Y + delta.Y * dMinY
+			maxY = captureRect.Max.Y + delta.Y * dMaxY
+			local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
+			minY = (minY * dMaxY + maxY * dMinY) - dMinY * height
+			maxY = (minY * dMaxY + maxY * dMinY) + dMaxY * height
+		end
+
+		return Rect.new(
+			math.clamp(minX, boundMinX, boundMaxX),
+			math.clamp(minY, boundMinY, boundMaxY),
+			math.clamp(maxX, boundMinX, boundMaxX),
+			math.clamp(maxY, boundMinY, boundMaxY)
+		)
+	end
 end
 
-local function CroppedViewport(props: Props & { ViewportSize: Vector2, ViewportPosition: Vector2 })
+local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Vector2, captureRef: { current: Rect? })
+	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+		local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
+		local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
+		return clampRect(rect, scaledViewportRect, direction, delta)
+	end, { viewportRect, scaleOS } :: { any })
+
+	local captureRect, setCaptureRect = React.useState(initialRect)
+
+	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+		local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta))
+		captureRef.current = clampedCaptureRect
+		setCaptureRect(clampedCaptureRect)
+	end, { getClampedCaptureRect })
+
+	React.useEffect(function()
+		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero)
+	end, { setCaptureRectClamped })
+
+	return captureRect, setCaptureRectClamped
+end
+
+export type Props = {
+	CaptureRectRef: { current: Rect? },
+	OnCapture: (Rect) -> (boolean, string?),
+	OnMaximize: () -> (),
+	Disabled: boolean?,
+}
+
+local function CroppedViewport(props: Props & { ViewportRect: Rect })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.useStatePath(function(state)
 		return state.temporary.scaleOS
 	end)
 
-	local viewportSize = props.ViewportSize
-	local scaledViewport = Vector2.new(math.round(viewportSize.X * scaleOS.X), math.round(viewportSize.Y * scaleOS.Y))
+	local dragRectRef = React.useRef(nil :: Rect?)
+	local captureRect, setCaptureRect =
+		useCaptureRect(props.CaptureRectRef.current :: Rect, props.ViewportRect, scaleOS, props.CaptureRectRef)
 
-	local aspectKeysDown, setAspectKeysDown = React.useState({})
-
-	local size, setSize = React.useState(MAX_CAPTURE_RECT_SIZE / 2)
-	local sizeInitiated = React.useRef(false)
-	local prevSize = React.useRef(MAX_CAPTURE_RECT_SIZE / 2)
-	local startDrag = React.useRef(nil :: Vector3?)
-
-	local actionBarWidth = if props.OnMaximize then 148 else 120
-	local grabberMin = GRABBERS.Length * 3
-
-	React.useEffect(function()
-		local minX = grabberMin + grabberMargin * 2
-		local minY = grabberMin + actionBarMargin * 2
-
-		if viewportSize.X >= minX and viewportSize.Y >= minY then
-			local initialSize = Vector2.new(
-				props.InitialSize.X.Offset + props.InitialSize.X.Scale * scaledViewport.X,
-				props.InitialSize.Y.Offset + props.InitialSize.Y.Scale * scaledViewport.Y
-			)
-
-			local targetSize = if sizeInitiated.current then size else initialSize
-			local clamped = useLenseSize(targetSize, scaledViewport, Vector2.new(1, 1), grabberMin)
-			setSize(clamped)
-			prevSize.current = clamped
-			sizeInitiated.current = true
-		end
-	end, { viewportSize })
-
-	-- this is used for displaying dimensions + capture rect
-	local scaledLenseAbsSize = useLenseSize(size, scaledViewport, Vector2.new(1, 1), grabberMin)
-	local scaledLenseAbsPosition = (scaledViewport - scaledLenseAbsSize) / 2
-	local scaledLenseRect = RenderRect.fromAbs(scaledLenseAbsPosition, scaledLenseAbsSize)
-	local scaledLenseRectSize = Vector2.new(scaledLenseRect.Width, scaledLenseRect.Height)
-
-	-- this is what renders
-	local lenseAbsSize = (scaledLenseRectSize / scaleOS):Ceil()
-	local lenseAbsPosition = (scaledLenseRect.Min / scaleOS):Floor()
-	local lenseRect = Rect.new(lenseAbsPosition, lenseAbsPosition + lenseAbsSize)
-	local lenseUDim2Size = UDim2.fromOffset(lenseRect.Width, lenseRect.Height)
-	local lenseUDim2Position = UDim2.fromOffset(lenseRect.Min.X, lenseRect.Min.Y)
-
-	React.useEffect(function()
-		props.FocusLenseSizeRef.current = scaledLenseRectSize
-	end, { scaledLenseRectSize })
+	local renderedCaptureRect = RenderRect.fromRect(
+		Rect.new(
+			captureRect.Min.X / scaleOS.X,
+			captureRect.Min.Y / scaleOS.Y,
+			captureRect.Max.X / scaleOS.X,
+			captureRect.Max.Y / scaleOS.Y
+		)
+	)
 
 	return React.createElement("Frame", {
-		Position = UDim2.fromScale(0, 0),
-		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-
-		[React.Event.InputBegan] = function(_, input)
-			if GRABBERS.MaintainAspectKeys[input.KeyCode] then
-				aspectKeysDown[input.KeyCode] = true
-				setAspectKeysDown(aspectKeysDown)
-
-				if startDrag.current then
-					prevSize.current = size
-					startDrag.current = input.Position
-				end
-			end
-		end,
-		[React.Event.InputEnded] = function(_, input)
-			if GRABBERS.MaintainAspectKeys[input.KeyCode] then
-				aspectKeysDown[input.KeyCode] = nil
-				setAspectKeysDown(aspectKeysDown)
-			end
-		end,
+		Size = UDim2.fromScale(1, 1),
 	}, {
-		Focus = React.createElement("Frame", {
-			AnchorPoint = Vector2.zero,
-			Position = lenseUDim2Position,
-			Size = lenseUDim2Size,
+		Lense = React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			ZIndex = 2,
+			Position = UDim2.fromOffset(renderedCaptureRect.Min.X, renderedCaptureRect.Min.Y),
+			Size = UDim2.fromOffset(renderedCaptureRect.Width, renderedCaptureRect.Height),
 		}, {
 			Outline = React.createElement("Frame", {
 				Size = UDim2.fromScale(1, 1),
@@ -165,64 +168,44 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2, ViewportP
 					),
 				}),
 			}),
+
 			Grabbers = React.createElement(Grabbers, {
 				Transparency = 0.4,
 				Thickness = UDim.new(0, GRABBERS.Thickness),
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
+				TranslateEnabled = true,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
-				OnDragStart = function(_rbx, input)
-					prevSize.current = size
-					startDrag.current = input.Position
+				OnDragStart = function()
+					dragRectRef.current = captureRect
 				end,
 
-				OnDragFinish = function()
-					startDrag.current = nil
-				end,
-
-				OnDrag = function(_rbx, input, direction)
-					if startDrag.current then
-						local delta3 = input.Position - startDrag.current
-						local delta2 = Vector2.new(delta3.X, delta3.Y)
-
-						if next(aspectKeysDown) then
-							local directionAbsSum = math.abs(direction.X) + math.abs(direction.Y)
-							local isDiagonal = directionAbsSum >= 2
-
-							if isDiagonal then
-								local projectionAxis = (prevSize.current * direction).Unit
-								delta2 = delta2:Dot(projectionAxis) * projectionAxis
-							end
-						end
-
-						local offset = 2 * direction * scaleOS * delta2
-						local newSize = prevSize.current + offset
-
-						setSize(useLenseSize(newSize, scaledViewport, Vector2.new(1, 1), grabberMin))
-					end
+				OnDrag = function(direction, delta)
+					local dragRect = dragRectRef.current :: Rect
+					setCaptureRect(dragRect, direction, delta)
 				end,
 
 				Disabled = props.Disabled,
 			}),
+
 			ActionBar = React.createElement(ActionBar, {
 				AnchorPoint = Vector2.new(0.5, 0),
-				Position = UDim2.new(0.5, 0, 1, actionBarPadding),
-				Size = UDim2.fromOffset(actionBarWidth, ACTION_BAR.Height),
+				Position = UDim2.new(0.5, 0, 1, ACTION_BAR_PADDING),
+				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
 
-				ViewportSize = props.ViewportSize,
-				ViewportPosition = props.ViewportPosition,
+				ViewportSize = Vector2.new(props.ViewportRect.Width, props.ViewportRect.Height),
+				ViewportPosition = props.ViewportRect.Min,
 
-				DisplayedAbsSize = scaledLenseRectSize,
-				OnDimensionInput = function(dimensions)
-					setSize(useLenseSize(dimensions, scaledViewport, Vector2.new(1, 1), grabberMin))
-				end,
+				DisplayedAbsSize = Vector2.new(captureRect.Width, captureRect.Height),
+
+				OnDimensionInput = function(dimensions) end,
 
 				OnMaximize = props.OnMaximize,
 				OnCapture = function()
-					return props.OnCapture(scaledLenseRect)
+					return props.OnCapture(captureRect)
 				end,
 
 				Disabled = props.Disabled,
@@ -230,9 +213,8 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2, ViewportP
 		}),
 
 		Blinder = React.createElement(Blinder, {
-			AnchorPoint = Vector2.zero,
-			Position = lenseUDim2Position,
-			Size = lenseUDim2Size,
+			Position = UDim2.fromOffset(renderedCaptureRect.Min.X, renderedCaptureRect.Min.Y),
+			Size = UDim2.fromOffset(renderedCaptureRect.Width, renderedCaptureRect.Height),
 
 			-- this should be hidden by the UI stroke
 			-- it acts as a margin of error against half-pixel scaling
@@ -241,31 +223,35 @@ local function CroppedViewport(props: Props & { ViewportSize: Vector2, ViewportP
 
 			Color = Color3.new(0, 0, 0),
 			Transparency = 0.7,
-			ZIndex = 1,
+			ZIndex = -1,
 
 			Disabled = props.Disabled,
 		}),
 	})
 end
 
-return function(props: Props)
-	local containerRef = React.useRef(nil :: GuiObject?)
-	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
-	local containerPosition = Hooks.useRefProperty(containerRef, "AbsolutePosition", Vector2.zero)
+return React.memo(function(props: Props)
+	local viewportRef = React.useRef(nil :: GuiObject?)
+	local viewportAbsSize = Hooks.useRefProperty(viewportRef, "AbsoluteSize", Vector2.new(math.huge, math.huge))
+	local viewportAbsPosition = Vector2.zero --Hooks.useRefProperty(viewportRef, "AbsolutePosition", Vector2.zero)
+
+	local viewportRect = Rect.new(
+		viewportAbsPosition.X,
+		viewportAbsPosition.Y,
+		viewportAbsPosition.X + viewportAbsSize.X,
+		viewportAbsPosition.Y + viewportAbsSize.Y
+	)
 
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
-		ref = containerRef,
+		ref = viewportRef,
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
-			ViewportSize = containerSize,
-			ViewportPosition = containerPosition,
-			InitialSize = props.InitialSize,
-			FocusLenseSizeRef = props.FocusLenseSizeRef,
+			ViewportRect = viewportRect,
+			CaptureRectRef = props.CaptureRectRef,
 			OnMaximize = props.OnMaximize,
 			OnCapture = props.OnCapture,
-			Disabled = props.Disabled,
 		}),
 	})
-end
+end)
