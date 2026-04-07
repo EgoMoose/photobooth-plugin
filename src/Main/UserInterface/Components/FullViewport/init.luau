@@ -14,7 +14,7 @@ local FreeDrag = require(script.FreeDrag)
 export type Props = {
 	OnMinimize: () -> ()?,
 	OnCapture: (Rect) -> (boolean, string?),
-	FocusLenseSizeRef: { current: Vector2? },
+	CaptureRectRef: { current: Rect? },
 	Disabled: boolean,
 }
 
@@ -258,7 +258,7 @@ local function FullViewport(props: Props)
 	local containerPosition = Hooks.useRefProperty(containerRef, "AbsolutePosition", Vector2.zero)
 
 	React.useEffect(function()
-		props.FocusLenseSizeRef.current = containerSize
+		props.CaptureRectRef.current = Rect.new(0, 0, containerSize.X, containerSize.Y)
 	end, { containerSize })
 
 	local draggerSize = Vector2.new(120, 28)

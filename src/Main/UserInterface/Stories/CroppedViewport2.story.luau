@@ -15,7 +15,7 @@ local CreateStory = require(stories.Helpers.CreateStory)
 
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
-	local captureRectRef = React.useRef(Rect.new(0, 0, 0, 0))
+	local captureRectRef = React.useRef(Rect.new(0, 0, 512, 512))
 
 	return React.createElement(CroppedViewport, {
 		CaptureRectRef = captureRectRef,

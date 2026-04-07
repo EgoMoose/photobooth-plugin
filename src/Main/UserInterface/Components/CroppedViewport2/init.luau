@@ -135,7 +135,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 
 	local dragRectRef = React.useRef(nil :: Rect?)
 	local captureRect, setCaptureRect =
-		useCaptureRect(Rect.new(100, 100, 512, 512), props.ViewportRect, scaleOS, props.CaptureRectRef)
+		useCaptureRect(props.CaptureRectRef.current :: Rect, props.ViewportRect, scaleOS, props.CaptureRectRef)
 
 	local renderedCaptureRect = RenderRect.fromRect(
 		Rect.new(
