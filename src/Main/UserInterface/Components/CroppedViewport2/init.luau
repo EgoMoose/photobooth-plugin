@@ -12,6 +12,7 @@ local Hooks = require(uiRoot.Hooks)
 
 local Blinder = require(script.Blinder)
 local Grabbers = require(script.Grabbers)
+local ActionBar = require(script.ActionBar)
 
 local GRABBERS = {
 	CornersEnabled = true,
@@ -97,7 +98,7 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 	end
 end
 
-local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Vector2)
+local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Vector2, captureRef: { current: Rect? })
 	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
 		local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
 		local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
@@ -107,7 +108,9 @@ local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Ve
 	local captureRect, setCaptureRect = React.useState(initialRect)
 
 	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
-		setCaptureRect(getClampedCaptureRect(rect, direction, delta))
+		local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta))
+		captureRef.current = clampedCaptureRect
+		setCaptureRect(clampedCaptureRect)
 	end, { getClampedCaptureRect })
 
 	React.useEffect(function()
@@ -118,7 +121,9 @@ local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Ve
 end
 
 export type Props = {
-	LenseRectRef: { current: Rect? },
+	CaptureRectRef: { current: Rect? },
+	OnCapture: (Rect) -> (boolean, string?),
+	OnMaximize: () -> (),
 	Disabled: boolean?,
 }
 
@@ -129,7 +134,8 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 	end)
 
 	local dragRectRef = React.useRef(nil :: Rect?)
-	local captureRect, setCaptureRect = useCaptureRect(Rect.new(100, 100, 512, 512), props.ViewportRect, scaleOS)
+	local captureRect, setCaptureRect =
+		useCaptureRect(Rect.new(100, 100, 512, 512), props.ViewportRect, scaleOS, props.CaptureRectRef)
 
 	local renderedCaptureRect = RenderRect.fromRect(
 		Rect.new(
@@ -184,6 +190,26 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 
 				Disabled = props.Disabled,
 			}),
+
+			ActionBar = React.createElement(ActionBar, {
+				AnchorPoint = Vector2.new(0.5, 0),
+				Position = UDim2.new(0.5, 0, 1, ACTION_BAR_PADDING),
+				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
+
+				ViewportSize = Vector2.new(props.ViewportRect.Width, props.ViewportRect.Height),
+				ViewportPosition = props.ViewportRect.Min,
+
+				DisplayedAbsSize = Vector2.new(captureRect.Width, captureRect.Height),
+
+				OnDimensionInput = function(dimensions) end,
+
+				OnMaximize = props.OnMaximize,
+				OnCapture = function()
+					return props.OnCapture(captureRect)
+				end,
+
+				Disabled = props.Disabled,
+			}),
 		}),
 
 		Blinder = React.createElement(Blinder, {
@@ -223,7 +249,9 @@ return React.memo(function(props: Props)
 	}, {
 		CroppedViewport = React.createElement(CroppedViewport, {
 			ViewportRect = viewportRect,
-			LenseRectRef = props.LenseRectRef,
+			CaptureRectRef = props.CaptureRectRef,
+			OnMaximize = props.OnMaximize,
+			OnCapture = props.OnCapture,
 		}),
 	})
 end)

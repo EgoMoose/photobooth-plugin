@@ -14,10 +14,31 @@ local stories = script:FindFirstAncestor("Stories")
 local CreateStory = require(stories.Helpers.CreateStory)
 
 local function story()
-	local lenseRectRef = React.useRef(Rect.new(0, 0, 0, 0))
+	local isDisabled, setIsDisabled = React.useState(false)
+	local captureRectRef = React.useRef(Rect.new(0, 0, 0, 0))
 
 	return React.createElement(CroppedViewport, {
-		LenseRectRef = lenseRectRef,
+		CaptureRectRef = captureRectRef,
+
+		OnMaximize = function()
+			print("Maximize")
+		end,
+
+		OnCapture = function(rect)
+			setIsDisabled(true)
+			print(captureRectRef.current)
+			print(table.concat({
+				"",
+				"Viewport Capture",
+				`> Rect: {rect}`,
+				`> Size: ({rect.Width}, {rect.Height})`,
+			}, "\n"))
+			task.wait(1)
+			setIsDisabled(false)
+			return true
+		end,
+
+		Disabled = isDisabled,
 	})
 end
 
