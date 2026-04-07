@@ -197,10 +197,10 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 				Disabled = isCapturing,
 			}),
 
-			Cropped = not isFullscreen and React.createElement(CroppedViewport, {
-				CaptureRectRef = captureRectRef,
+			Cropped = React.createElement(CroppedViewport, {
 				OnMaximize = onMinMax,
 				OnCapture = onCapture,
+				Visible = not isFullscreen,
 				Disabled = isCapturing,
 			}),
 		})

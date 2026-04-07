@@ -98,14 +98,27 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 	end
 end
 
-local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Vector2, captureRef: { current: Rect? })
-	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+local function useScaledViewportRect(viewportRect: Rect, scaleOS: Vector2)
+	local getScaledViewportRect = React.useCallback(function()
 		local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
-		local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
-		return clampRect(rect, scaledViewportRect, direction, delta)
+		return RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
 	end, { viewportRect, scaleOS } :: { any })
 
-	local captureRect, setCaptureRect = React.useState(initialRect)
+	local scaledViewportRect, setScaledViewportRect = React.useState(getScaledViewportRect())
+
+	React.useEffect(function()
+		setScaledViewportRect(getScaledViewportRect())
+	end, { getScaledViewportRect })
+
+	return scaledViewportRect
+end
+
+local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect: Rect)
+	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+		return clampRect(rect, scaledViewportRect, direction, delta)
+	end, { scaledViewportRect })
+
+	local captureRect, setCaptureRect = React.useState(captureRef.current)
 
 	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
 		local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta))
@@ -121,21 +134,21 @@ local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Ve
 end
 
 export type Props = {
-	CaptureRectRef: { current: Rect? },
 	OnCapture: (Rect) -> (boolean, string?),
 	OnMaximize: () -> (),
+	Visible: boolean,
 	Disabled: boolean?,
 }
 
-local function CroppedViewport(props: Props & { ViewportRect: Rect })
+local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectRef: { current: Rect } })
 	local theme = StudioComponents.useTheme()
 	local scaleOS = Hooks.useStatePath(function(state)
 		return state.temporary.scaleOS
 	end)
 
 	local dragRectRef = React.useRef(nil :: Rect?)
-	local captureRect, setCaptureRect =
-		useCaptureRect(props.CaptureRectRef.current :: Rect, props.ViewportRect, scaleOS, props.CaptureRectRef)
+	local scaledViewportRect = useScaledViewportRect(props.ViewportRect, scaleOS)
+	local captureRect, setCaptureRect = useCaptureRect(props.CaptureRectRef, scaledViewportRect)
 
 	local renderedCaptureRect = RenderRect.fromRect(
 		Rect.new(
@@ -152,7 +165,10 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 	}, {
 		Lense = React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(renderedCaptureRect.Min.X, renderedCaptureRect.Min.Y),
+			Position = UDim2.fromOffset(
+				renderedCaptureRect.Min.X - scaledViewportRect.Min.X,
+				renderedCaptureRect.Min.Y - scaledViewportRect.Min.Y
+			),
 			Size = UDim2.fromOffset(renderedCaptureRect.Width, renderedCaptureRect.Height),
 		}, {
 			Outline = React.createElement("Frame", {
@@ -213,7 +229,10 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 		}),
 
 		Blinder = React.createElement(Blinder, {
-			Position = UDim2.fromOffset(renderedCaptureRect.Min.X, renderedCaptureRect.Min.Y),
+			Position = UDim2.fromOffset(
+				renderedCaptureRect.Min.X - scaledViewportRect.Min.X,
+				renderedCaptureRect.Min.Y - scaledViewportRect.Min.Y
+			),
 			Size = UDim2.fromOffset(renderedCaptureRect.Width, renderedCaptureRect.Height),
 
 			-- this should be hidden by the UI stroke
@@ -231,9 +250,11 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 end
 
 return React.memo(function(props: Props)
+	local captureRectRef = React.useRef(Rect.new(0, 0, 512, 512))
+
 	local viewportRef = React.useRef(nil :: GuiObject?)
 	local viewportAbsSize = Hooks.useRefProperty(viewportRef, "AbsoluteSize", Vector2.new(math.huge, math.huge))
-	local viewportAbsPosition = Vector2.zero --Hooks.useRefProperty(viewportRef, "AbsolutePosition", Vector2.zero)
+	local viewportAbsPosition = Hooks.useRefProperty(viewportRef, "AbsolutePosition", Vector2.zero)
 
 	local viewportRect = Rect.new(
 		viewportAbsPosition.X,
@@ -242,16 +263,30 @@ return React.memo(function(props: Props)
 		viewportAbsPosition.Y + viewportAbsSize.Y
 	)
 
+	local isReady, setIsReady = React.useState(false)
+	React.useEffect(function()
+		local viewportFrame = viewportRef.current
+		if viewportFrame then
+			local size = viewportFrame.AbsoluteSize * 0.5
+			local remainder = viewportFrame.AbsoluteSize - size
+			captureRectRef.current = RenderRect.fromAbs(viewportFrame.AbsolutePosition + (remainder / 2), size)
+			setIsReady(true)
+		end
+	end, {})
+
 	return React.createElement("Frame", {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
+		Active = false,
 		ref = viewportRef,
 	}, {
-		CroppedViewport = React.createElement(CroppedViewport, {
+		CroppedViewport = props.Visible and isReady and React.createElement(CroppedViewport, {
 			ViewportRect = viewportRect,
-			CaptureRectRef = props.CaptureRectRef,
+			CaptureRectRef = captureRectRef,
 			OnMaximize = props.OnMaximize,
 			OnCapture = props.OnCapture,
+			Visible = props.Visible :: boolean,
+			Disabled = props.Disabled,
 		}),
 	})
 end)
