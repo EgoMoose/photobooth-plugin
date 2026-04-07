@@ -48,16 +48,29 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 	local dX, dY = direction.X, direction.Y
 	if dX == 0 and dY == 0 then
 		-- the rect is translating
-		captureRect = Rect.new(
-			captureRect.Min.X + delta.X,
-			captureRect.Min.Y + delta.Y,
-			captureRect.Max.X + delta.X,
-			captureRect.Max.Y + delta.Y
-		)
+		local minX = captureRect.Min.X + delta.X
+		local minY = captureRect.Min.Y + delta.Y
+		local maxX = captureRect.Max.X + delta.X
+		local maxY = captureRect.Max.Y + delta.Y
+
+		local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
+		local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
+
+		maxX = math.min(math.max(minX, boundMinX) + width, boundMaxX)
+		minX = math.max(maxX - width, boundMinX)
+		maxY = math.min(math.max(minY, boundMinY) + height, boundMaxY)
+		minY = math.max(maxY - height, boundMinY)
+
+		return Rect.new(minX, minY, maxX, maxY)
 	else
-		local minX, maxX = captureRect.Min.X, captureRect.Max.X
+		local minX = captureRect.Min.X
+		local minY = captureRect.Min.Y
+		local maxX = captureRect.Max.X
+		local maxY = captureRect.Max.Y
+
 		if dX ~= 0 then
-			local dMinX, dMaxX = math.abs(math.min(dX, 0)), math.abs(math.max(dX, 0))
+			local dMinX = math.abs(math.min(dX, 0))
+			local dMaxX = math.abs(math.max(dX, 0))
 			minX = captureRect.Min.X + delta.X * dMinX
 			maxX = captureRect.Max.X + delta.X * dMaxX
 			local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
@@ -65,9 +78,9 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 			maxX = (minX * dMaxX + maxX * dMinX) + dMaxX * width
 		end
 
-		local minY, maxY = captureRect.Min.Y, captureRect.Max.Y
 		if dY ~= 0 then
-			local dMinY, dMaxY = math.abs(math.min(dY, 0)), math.abs(math.max(dY, 0))
+			local dMinY = math.abs(math.min(dY, 0))
+			local dMaxY = math.abs(math.max(dY, 0))
 			minY = captureRect.Min.Y + delta.Y * dMinY
 			maxY = captureRect.Max.Y + delta.Y * dMaxY
 			local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
@@ -75,27 +88,27 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 			maxY = (minY * dMaxY + maxY * dMinY) + dMaxY * height
 		end
 
-		captureRect = Rect.new(minX, minY, maxX, maxY)
+		return Rect.new(
+			math.clamp(minX, boundMinX, boundMaxX),
+			math.clamp(minY, boundMinY, boundMaxY),
+			math.clamp(maxX, boundMinX, boundMaxX),
+			math.clamp(maxY, boundMinY, boundMaxY)
+		)
 	end
-
-	return Rect.new(
-		math.clamp(captureRect.Min.X, boundMinX, boundMaxX),
-		math.clamp(captureRect.Min.Y, boundMinY, boundMaxY),
-		math.clamp(captureRect.Max.X, boundMinX, boundMaxX),
-		math.clamp(captureRect.Max.Y, boundMinY, boundMaxY)
-	)
 end
 
 local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Vector2)
-	local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
-	local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
+	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+		local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
+		local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
+		return clampRect(rect, scaledViewportRect, direction, delta)
+	end, { viewportRect, scaleOS } :: { any })
 
-	local captureRect, setCaptureRect =
-		React.useState(clampRect(initialRect, scaledViewportRect, Vector2.zero, Vector2.zero))
+	local captureRect, setCaptureRect = React.useState(initialRect)
 
 	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
-		setCaptureRect(clampRect(rect, scaledViewportRect, direction, delta))
-	end, { scaledViewportRect } :: { any })
+		setCaptureRect(getClampedCaptureRect(rect, direction, delta))
+	end, { getClampedCaptureRect })
 
 	React.useEffect(function()
 		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero)
@@ -191,7 +204,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 	})
 end
 
-return function(props: Props)
+return React.memo(function(props: Props)
 	local viewportRef = React.useRef(nil :: GuiObject?)
 	local viewportAbsSize = Hooks.useRefProperty(viewportRef, "AbsoluteSize", Vector2.new(math.huge, math.huge))
 	local viewportAbsPosition = Vector2.zero --Hooks.useRefProperty(viewportRef, "AbsolutePosition", Vector2.zero)
@@ -213,4 +226,4 @@ return function(props: Props)
 			LenseRectRef = props.LenseRectRef,
 		}),
 	})
-end
+end)

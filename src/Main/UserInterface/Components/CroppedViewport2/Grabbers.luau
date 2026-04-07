@@ -169,7 +169,7 @@ local function GrabDragger(props: GenericGrabberProps)
 		onEndedCallback = function()
 			initialDragRef.current = nil
 		end,
-		deps = {},
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
 	})
 
 	if props.Disabled and dragger.isActive() then
@@ -215,7 +215,7 @@ local function TranslateDragger(props: GenericGrabberProps)
 		onEndedCallback = function()
 			initialDragRef.current = nil
 		end,
-		deps = {},
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
 	})
 
 	if props.Disabled and dragger.isActive() then
@@ -238,42 +238,48 @@ local function Grabbers(props: Props)
 	local gap = props.Thickness + props.Padding
 
 	return React.createElement("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(1 + gap.Scale * 2, gap.Offset * 2, 1 + gap.Scale * 2, gap.Offset * 2),
 		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
 	}, {
-		TopLeft = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 0),
-			RootProps = props,
-		}),
-		TopMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0.5, 0),
-			RootProps = props,
-		}),
-		TopRight = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 0),
-			RootProps = props,
-		}),
-		RightMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 0.5),
-			RootProps = props,
-		}),
-		BottomRight = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(1, 1),
-			RootProps = props,
-		}),
-		BottomMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0.5, 1),
-			RootProps = props,
-		}),
-		BottomLeft = props.CornersEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 1),
-			RootProps = props,
-		}),
-		LeftMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
-			AnchorPoint = Vector2.new(0, 0.5),
-			RootProps = props,
+		Gapped = React.createElement("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.new(1 + gap.Scale * 2, gap.Offset * 2, 1 + gap.Scale * 2, gap.Offset * 2),
+			BackgroundTransparency = 1,
+			ZIndex = -1,
+		}, {
+			TopLeft = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 0),
+				RootProps = props,
+			}),
+			TopMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0.5, 0),
+				RootProps = props,
+			}),
+			TopRight = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 0),
+				RootProps = props,
+			}),
+			RightMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 0.5),
+				RootProps = props,
+			}),
+			BottomRight = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(1, 1),
+				RootProps = props,
+			}),
+			BottomMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0.5, 1),
+				RootProps = props,
+			}),
+			BottomLeft = props.CornersEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 1),
+				RootProps = props,
+			}),
+			LeftMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
+				AnchorPoint = Vector2.new(0, 0.5),
+				RootProps = props,
+			}),
 		}),
 
 		Translate = props.TranslateEnabled and React.createElement(TranslateDragger, {
