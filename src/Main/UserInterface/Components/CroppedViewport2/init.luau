@@ -39,22 +39,50 @@ local MIN_CAPTURE_WIDTH = math.max(MIN_CAPTURE_HEIGHT, ACTION_BAR.Width)
 local MAX_CAPTURE_HEIGHT = Constants.MaxCaptureRectSize.Y
 local MAX_CAPTURE_WIDTH = Constants.MaxCaptureRectSize.X
 
-local function clampRect(captureRect: Rect, viewportRect: Rect, scale: Vector2)
-	local minX = viewportRect.Min.X + GRABBER_MARGIN * scale.X
-	local minY = viewportRect.Min.Y + GRABBER_MARGIN * scale.Y
-	local maxX = viewportRect.Max.X - GRABBER_MARGIN * scale.X
-	local maxY = viewportRect.Max.Y - ACTION_BAR_MARGIN * scale.Y
+local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vector2, delta: Vector2)
+	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN
+	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN
+	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN
+	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN
 
-	local maxWidth = math.min(MAX_CAPTURE_WIDTH, maxX - minX)
-	local maxHeight = math.min(MAX_CAPTURE_HEIGHT, maxY - minY)
+	local dX, dY = direction.X, direction.Y
+	if dX == 0 and dY == 0 then
+		-- the rect is translating
+		captureRect = Rect.new(
+			captureRect.Min.X + delta.X,
+			captureRect.Min.Y + delta.Y,
+			captureRect.Max.X + delta.X,
+			captureRect.Max.Y + delta.Y
+		)
+	else
+		local minX, maxX = captureRect.Min.X, captureRect.Max.X
+		if dX ~= 0 then
+			local dMinX, dMaxX = math.abs(math.min(dX, 0)), math.abs(math.max(dX, 0))
+			minX = captureRect.Min.X + delta.X * dMinX
+			maxX = captureRect.Max.X + delta.X * dMaxX
+			local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
+			minX = (minX * dMaxX + maxX * dMinX) - dMinX * width
+			maxX = (minX * dMaxX + maxX * dMinX) + dMaxX * width
+		end
 
-	-- how we clamp is dependent on how we drag (i.e. from right-side is different vs the from left-side)
+		local minY, maxY = captureRect.Min.Y, captureRect.Max.Y
+		if dY ~= 0 then
+			local dMinY, dMaxY = math.abs(math.min(dY, 0)), math.abs(math.max(dY, 0))
+			minY = captureRect.Min.Y + delta.Y * dMinY
+			maxY = captureRect.Max.Y + delta.Y * dMaxY
+			local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
+			minY = (minY * dMaxY + maxY * dMinY) - dMinY * height
+			maxY = (minY * dMaxY + maxY * dMinY) + dMaxY * height
+		end
+
+		captureRect = Rect.new(minX, minY, maxX, maxY)
+	end
 
 	return Rect.new(
-		math.clamp(captureRect.Min.X, minX, maxX),
-		math.clamp(captureRect.Min.Y, minY, maxY),
-		math.clamp(captureRect.Max.X, minX, maxX),
-		math.clamp(captureRect.Max.Y, minY, maxY)
+		math.clamp(captureRect.Min.X, boundMinX, boundMaxX),
+		math.clamp(captureRect.Min.Y, boundMinY, boundMaxY),
+		math.clamp(captureRect.Max.X, boundMinX, boundMaxX),
+		math.clamp(captureRect.Max.Y, boundMinY, boundMaxY)
 	)
 end
 
@@ -62,14 +90,15 @@ local function useCaptureRect(initialRect: Rect, viewportRect: Rect, scaleOS: Ve
 	local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
 	local scaledViewportRect = RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
 
-	local captureRect, setCaptureRect = React.useState(clampRect(initialRect, scaledViewportRect, scaleOS))
+	local captureRect, setCaptureRect =
+		React.useState(clampRect(initialRect, scaledViewportRect, Vector2.zero, Vector2.zero))
 
-	local setCaptureRectClamped = React.useCallback(function(rect: Rect)
-		setCaptureRect(clampRect(rect, scaledViewportRect, scaleOS))
-	end, { scaledViewportRect, scaleOS } :: { any })
+	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
+		setCaptureRect(clampRect(rect, scaledViewportRect, direction, delta))
+	end, { scaledViewportRect } :: { any })
 
 	React.useEffect(function()
-		setCaptureRectClamped(captureRect)
+		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero)
 	end, { setCaptureRectClamped })
 
 	return captureRect, setCaptureRectClamped
@@ -127,6 +156,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
+				TranslateEnabled = true,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
@@ -134,32 +164,10 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect })
 					dragRectRef.current = captureRect
 				end,
 
-				OnDrag = React.useCallback(function(direction: Vector2, delta: Vector2)
-					local dX, dY = direction.X, direction.Y
+				OnDrag = function(direction, delta)
 					local dragRect = dragRectRef.current :: Rect
-
-					if dX == 0 and dY == 0 then
-						-- translate the entire rect
-						setCaptureRect(
-							Rect.new(
-								dragRect.Min.X + delta.X,
-								dragRect.Min.Y + delta.Y,
-								dragRect.Max.X + delta.X,
-								dragRect.Max.Y + delta.Y
-							)
-						)
-					else
-						-- resize from the desired side
-						setCaptureRect(
-							Rect.new(
-								dragRect.Min.X + delta.X * math.abs(math.min(dX, 0)),
-								dragRect.Min.Y + delta.Y * math.abs(math.min(dY, 0)),
-								dragRect.Max.X + delta.X * math.abs(math.max(dX, 0)),
-								dragRect.Max.Y + delta.Y * math.abs(math.max(dY, 0))
-							)
-						)
-					end
-				end, {}),
+					setCaptureRect(dragRect, direction, delta)
+				end,
 
 				Disabled = props.Disabled,
 			}),

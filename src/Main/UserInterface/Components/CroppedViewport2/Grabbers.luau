@@ -18,6 +18,7 @@ export type Props = {
 	Padding: UDim,
 	Length: UDim,
 
+	TranslateEnabled: boolean,
 	CornersEnabled: boolean,
 	MiddlesEnabled: boolean,
 
@@ -31,6 +32,7 @@ export type Props = {
 type GenericGrabberProps = {
 	RootProps: Props,
 	AnchorPoint: Vector2,
+	Disabled: boolean?,
 }
 
 type GrabberProps = GenericGrabberProps & {
@@ -152,7 +154,6 @@ local function GrabDragger(props: GenericGrabberProps)
 	)
 
 	local initialDragRef = React.useRef(nil :: Vector3?)
-
 	local dragger = Hooks.useMouseDrag({
 		onDragCallback = function(_rbx, input)
 			if initialDragRef.current then
@@ -168,14 +169,15 @@ local function GrabDragger(props: GenericGrabberProps)
 		onEndedCallback = function()
 			initialDragRef.current = nil
 		end,
+		deps = {},
 	})
 
-	if props.RootProps.Disabled and dragger.isActive() then
+	if props.Disabled and dragger.isActive() then
 		dragger.cancel()
 	end
 
 	local color = Color3.fromRGB(255, 255, 255)
-	if props.RootProps.Disabled or dragger.isActive() then
+	if props.Disabled or dragger.isActive() then
 		color = Color3.fromRGB(60, 60, 60)
 	end
 
@@ -187,6 +189,48 @@ local function GrabDragger(props: GenericGrabberProps)
 		OnInputBegan = dragger.onInputBegan,
 		OnInputChanged = dragger.onInputChanged,
 		OnInputEnded = dragger.onInputEnded,
+	})
+end
+
+local function TranslateDragger(props: GenericGrabberProps)
+	-- stylua: ignore
+	local direction = Vector2.new(
+		(2 * props.AnchorPoint.X) - 1,
+		(2 * props.AnchorPoint.Y) - 1
+	)
+
+	local initialDragRef = React.useRef(nil :: Vector3?)
+	local dragger = Hooks.useMouseDrag({
+		onDragCallback = function(_rbx, input)
+			if initialDragRef.current then
+				local delta3 = input.Position - initialDragRef.current
+				local delta2 = Vector2.new(delta3.X, delta3.Y)
+				props.RootProps.OnDrag(direction, delta2)
+			end
+		end,
+		onBeganCallback = function(_rbx, input)
+			initialDragRef.current = input.Position
+			props.RootProps.OnDragStart(direction, Vector2.zero)
+		end,
+		onEndedCallback = function()
+			initialDragRef.current = nil
+		end,
+		deps = {},
+	})
+
+	if props.Disabled and dragger.isActive() then
+		dragger.cancel()
+	end
+
+	return React.createElement("ImageButton", {
+		BackgroundTransparency = 1,
+		AnchorPoint = props.AnchorPoint,
+		Position = UDim2.fromScale(props.AnchorPoint.X, props.AnchorPoint.Y),
+		Size = UDim2.fromScale(1, 1),
+
+		[React.Event.InputBegan] = dragger.onInputBegan,
+		[React.Event.InputChanged] = dragger.onInputChanged,
+		[React.Event.InputEnded] = dragger.onInputEnded,
 	})
 end
 
@@ -229,6 +273,11 @@ local function Grabbers(props: Props)
 		}),
 		LeftMiddle = props.MiddlesEnabled and React.createElement(GrabDragger, {
 			AnchorPoint = Vector2.new(0, 0.5),
+			RootProps = props,
+		}),
+
+		Translate = props.TranslateEnabled and React.createElement(TranslateDragger, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
 			RootProps = props,
 		}),
 	})
