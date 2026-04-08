@@ -71,7 +71,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignCenter.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -107,7 +107,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignRightHorizontal.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -128,7 +128,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignCenterHorizontal.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -149,7 +149,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignLeftHorizontal.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -185,7 +185,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignTopVertical.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -206,7 +206,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignCenterVertical.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
@@ -227,7 +227,7 @@ local function AlignButtons(props: Props)
 
 						Size = alignBottomVertical.ImageRectSize,
 						Transparency = if props.Disabled then 0.7 else 0,
-						Color = Color3.new(1, 1, 1),
+						UseThemeColor = true,
 					},
 
 					OnActivated = function()
