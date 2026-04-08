@@ -14,7 +14,13 @@ local Hooks = require(uiRoot.Hooks)
 local Blinder = require(script.Blinder)
 local Grabbers = require(script.Grabbers)
 local ActionBar = require(script.ActionBar)
-local QuickBar = require(script.QuickBar)
+local AlignButtons = require(script.AlignButtons)
+local IsKeyDownTracker = require(script.IsKeyDownTracker)
+
+local CROP_MODE_KEYCODE_SET = {
+	[Enum.KeyCode.LeftShift] = true,
+	[Enum.KeyCode.RightShift] = true,
+}
 
 local GRABBERS = {
 	CornersEnabled = true,
@@ -36,8 +42,11 @@ local ACTION_BAR = {
 local ACTION_BAR_PADDING = ACTION_BAR.Padding + GRABBER_MARGIN
 local ACTION_BAR_MARGIN = ACTION_BAR.Height + ACTION_BAR_PADDING
 
-local MIN_CAPTURE_HEIGHT = GRABBERS.Length * 3
-local MIN_CAPTURE_WIDTH = math.max(MIN_CAPTURE_HEIGHT, ACTION_BAR.Width)
+local ALIGN_BUTTONS_HEIGHT = 112
+local ALIGN_BUTTONS_WIDTH = 116
+
+local MIN_CAPTURE_HEIGHT = math.max(GRABBERS.Length * 3, ALIGN_BUTTONS_HEIGHT)
+local MIN_CAPTURE_WIDTH = math.max(MIN_CAPTURE_HEIGHT, ACTION_BAR.Width, ALIGN_BUTTONS_WIDTH)
 
 local MAX_CAPTURE_HEIGHT = Constants.MaxCaptureRectSize.Y
 local MAX_CAPTURE_WIDTH = Constants.MaxCaptureRectSize.X
@@ -195,7 +204,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	end)
 
 	local isCropMode, setIsCropMode = React.useState(false)
-	local isMoveMode, setIsMoveMode = React.useState(false)
+	local isDragCropMode, setIsDragCropMode = React.useState(false)
 
 	local dragRectRef = React.useRef(nil :: Rect?)
 	local scaledViewportRect = useScaledViewportRect(props.ViewportRect, scaleOS)
@@ -242,17 +251,22 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
-				TranslateEnabled = isMoveMode,
+				TranslateEnabled = isCropMode or isDragCropMode,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
 				OnDragStart = function()
 					dragRectRef.current = captureRect
+					setIsDragCropMode(isCropMode)
 				end,
 
 				OnDrag = function(direction, delta)
 					local dragRect = dragRectRef.current :: Rect
-					setCaptureRect(dragRect, direction, delta, not isCropMode)
+					setCaptureRect(dragRect, direction, delta, not (isCropMode or isDragCropMode))
+				end,
+
+				OnDragFinish = function()
+					setIsDragCropMode(false)
 				end,
 
 				Disabled = props.Disabled,
@@ -282,12 +296,8 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Disabled = props.Disabled,
 			}),
 
-			QuickBar = React.createElement(QuickBar, {
-				IsCropMode = isCropMode,
-				SetIsCropMode = setIsCropMode,
-
-				IsMoveMode = isMoveMode,
-				SetIsMoveMode = setIsMoveMode,
+			AlignButtons = React.createElement(AlignButtons, {
+				Visible = isCropMode or isDragCropMode,
 
 				OnJustify = function(jx, jy)
 					local justifiedRect = captureRect
@@ -329,6 +339,16 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			ZIndex = -1,
 
 			Disabled = props.Disabled,
+		}),
+
+		IsKeyDownTracker = React.createElement(IsKeyDownTracker, {
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 2,
+
+			KeyCodeSet = CROP_MODE_KEYCODE_SET,
+			OnKeyDownChanged = React.useCallback(function(isKeyDown)
+				setIsCropMode(isKeyDown)
+			end, { setIsCropMode }),
 		}),
 	})
 end

@@ -24,7 +24,7 @@ export type Props = {
 
 	OnDrag: OnDragCallback,
 	OnDragStart: OnDragCallback,
-	-- OnDragFinish: () -> (),
+	OnDragFinish: () -> (),
 
 	ZIndex: number?,
 	Disabled: boolean?,
@@ -169,8 +169,9 @@ local function GrabDragger(props: GenericGrabberProps)
 		end,
 		onEndedCallback = function()
 			initialDragRef.current = nil
+			props.RootProps.OnDragFinish()
 		end,
-		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart, props.RootProps.OnDragFinish },
 	})
 
 	if props.Disabled and dragger.isActive() then
@@ -215,8 +216,9 @@ local function TranslateDragger(props: GenericGrabberProps)
 		end,
 		onEndedCallback = function()
 			initialDragRef.current = nil
+			props.RootProps.OnDragFinish()
 		end,
-		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart },
+		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart, props.RootProps.OnDragFinish },
 	})
 
 	if props.Disabled and dragger.isActive() then
