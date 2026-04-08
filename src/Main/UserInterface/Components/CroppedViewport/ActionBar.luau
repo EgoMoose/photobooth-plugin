@@ -14,11 +14,13 @@ type Props = {
 	Position: UDim2,
 	Size: UDim2,
 
-	ViewportSize: Vector2,
-	ViewportPosition: Vector2,
+	ViewportRect: Rect,
+	DisplayRect: Rect,
 
-	DisplayedAbsSize: Vector2,
 	OnDimensionInput: (Vector2) -> (),
+
+	UseRectText: boolean,
+	OnRectInput: (Rect) -> (),
 
 	OnMaximize: () -> (),
 	OnCapture: () -> (boolean, string?),
@@ -31,14 +33,18 @@ type DimensionProps = {
 	Position: UDim2,
 	Size: UDim2,
 
-	DisplayedAbsSize: Vector2,
+	UseRectText: boolean,
+	DisplayRect: Rect,
 	OnDimensionInput: (Vector2) -> (),
+	OnRectInput: (Rect) -> (),
 
 	Disabled: boolean?,
 }
 
 local function Dimensions(props: DimensionProps)
 	local theme = StudioComponents.useTheme()
+	local isRectTextFocused, setIsRectTextFocused = React.useState(false)
+	local displayRectText = props.UseRectText or isRectTextFocused
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -48,76 +54,131 @@ local function Dimensions(props: DimensionProps)
 		BorderColor3 = theme:GetColor(Enum.StudioStyleGuideColor.InputFieldBorder),
 		BorderMode = Enum.BorderMode.Inset,
 	}, {
-		Layout = React.createElement("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			FillDirection = Enum.FillDirection.Horizontal,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			Padding = UDim.new(0, 0),
+		SizeInput = not displayRectText and React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+		}, {
+			Layout = React.createElement("UIListLayout", {
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				Padding = UDim.new(0, 0),
+			}),
+
+			CrossContainer = React.createElement("Frame", {
+				Size = UDim2.new(0, 14, 1, 0),
+				BackgroundTransparency = 1,
+				LayoutOrder = 2,
+			}, {
+				Cross = React.createElement("TextLabel", {
+					Size = UDim2.fromScale(1, 1),
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					BackgroundTransparency = 1,
+
+					FontFace = Font.fromName("SourceSansPro"),
+					TextColor3 = Color3.fromRGB(102, 102, 102),
+					TextXAlignment = Enum.TextXAlignment.Center,
+					TextYAlignment = Enum.TextYAlignment.Center,
+					TextSize = 14,
+					Text = "x",
+				}),
+			}),
+
+			Width = React.createElement("TextBox", {
+				Size = UDim2.new(0.5, -7, 1, 0),
+				BackgroundTransparency = 1,
+				LayoutOrder = 1,
+
+				FontFace = Font.fromName("SourceSansPro"),
+				TextColor3 = Color3.fromRGB(102, 102, 102),
+				TextXAlignment = Enum.TextXAlignment.Right,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				TextSize = 14,
+				Text = tostring(props.DisplayRect.Width),
+
+				[React.Event.FocusLost] = function(rbx, _enterPressed)
+					local dimension = tonumber(rbx.Text)
+					if dimension then
+						dimension = math.floor(dimension)
+						props.OnDimensionInput(Vector2.new(dimension, props.DisplayRect.Height))
+					end
+					rbx.Text = tostring(props.DisplayRect.Width)
+				end,
+			}),
+
+			Height = React.createElement("TextBox", {
+				Size = UDim2.new(0.5, -7, 1, 0),
+				BackgroundTransparency = 1,
+				LayoutOrder = 3,
+
+				FontFace = Font.fromName("SourceSansPro"),
+				TextColor3 = Color3.fromRGB(102, 102, 102),
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Center,
+				TextSize = 14,
+				Text = tostring(props.DisplayRect.Height),
+
+				[React.Event.FocusLost] = function(rbx, _enterPressed)
+					local dimension = tonumber(rbx.Text)
+					if dimension then
+						dimension = math.floor(dimension)
+						props.OnDimensionInput(Vector2.new(props.DisplayRect.Width, dimension))
+					end
+					rbx.Text = tostring(props.DisplayRect.Height)
+				end,
+			}),
 		}),
 
-		CrossContainer = React.createElement("Frame", {
-			Size = UDim2.new(0, 14, 1, 0),
+		RectInput = displayRectText and React.createElement("Frame", {
 			BackgroundTransparency = 1,
-			LayoutOrder = 2,
+			Size = UDim2.fromScale(1, 1),
 		}, {
-			Cross = React.createElement("TextLabel", {
+			Padding = React.createElement("UIPadding", {
+				PaddingLeft = UDim.new(0, 2),
+				PaddingRight = UDim.new(0, 2),
+				PaddingTop = UDim.new(0, 0),
+				PaddingBottom = UDim.new(0, 0),
+			}),
+
+			RectBox = React.createElement("TextBox", {
 				Size = UDim2.fromScale(1, 1),
-				Position = UDim2.new(0.5, 0, 0.5, 0),
-				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
 
 				FontFace = Font.fromName("SourceSansPro"),
 				TextColor3 = Color3.fromRGB(102, 102, 102),
 				TextXAlignment = Enum.TextXAlignment.Center,
 				TextYAlignment = Enum.TextYAlignment.Center,
-				TextSize = 14,
-				Text = "x",
+				ClearTextOnFocus = false,
+				ClipsDescendants = true,
+				TextScaled = true,
+				Text = tostring(props.DisplayRect),
+
+				[React.Event.FocusLost] = function(rbx: TextBox, _enterPressed: boolean)
+					local components = {}
+					for i, section in rbx.Text:gsub("%s+", ""):split(",") do
+						components[i] = tonumber(section)
+					end
+
+					if #components == 4 then
+						local minX = components[1]
+						local minY = components[2]
+						local maxX = components[3]
+						local maxY = components[4]
+
+						if minX and minY and maxX and maxY then
+							props.OnRectInput(Rect.new(minX, minY, maxX, maxY))
+						end
+					end
+					rbx.Text = tostring(props.DisplayRect)
+					setIsRectTextFocused(false)
+				end,
+
+				[React.Event.Focused] = function()
+					setIsRectTextFocused(true)
+				end,
 			}),
-		}),
-
-		Width = React.createElement("TextBox", {
-			Size = UDim2.new(0.5, -7, 1, 0),
-			BackgroundTransparency = 1,
-			LayoutOrder = 1,
-
-			FontFace = Font.fromName("SourceSansPro"),
-			TextColor3 = Color3.fromRGB(102, 102, 102),
-			TextXAlignment = Enum.TextXAlignment.Right,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			TextSize = 14,
-			Text = tostring(props.DisplayedAbsSize.X),
-
-			[React.Event.FocusLost] = function(rbx, _enterPressed)
-				local dimension = tonumber(rbx.Text)
-				if dimension then
-					dimension = math.floor(dimension)
-					props.OnDimensionInput(Vector2.new(dimension, props.DisplayedAbsSize.Y))
-				end
-				rbx.Text = tostring(props.DisplayedAbsSize.X)
-			end,
-		}),
-
-		Height = React.createElement("TextBox", {
-			Size = UDim2.new(0.5, -7, 1, 0),
-			BackgroundTransparency = 1,
-			LayoutOrder = 3,
-
-			FontFace = Font.fromName("SourceSansPro"),
-			TextColor3 = Color3.fromRGB(102, 102, 102),
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			TextSize = 14,
-			Text = tostring(props.DisplayedAbsSize.Y),
-
-			[React.Event.FocusLost] = function(rbx, _enterPressed)
-				local dimension = tonumber(rbx.Text)
-				if dimension then
-					dimension = math.floor(dimension)
-					props.OnDimensionInput(Vector2.new(props.DisplayedAbsSize.X, dimension))
-				end
-				rbx.Text = tostring(props.DisplayedAbsSize.Y)
-			end,
 		}),
 	})
 end
@@ -131,7 +192,7 @@ local function ActionBar(props: Props)
 	local underFrameAbsPosition = Hooks.useRefProperty(underFrameRef, "AbsolutePosition", Vector2.zero)
 	local underFrameAbsSize = Hooks.useRefProperty(underFrameRef, "AbsoluteSize", Vector2.zero)
 	local underFrameBottomY = underFrameAbsPosition.Y + underFrameAbsSize.Y
-	local useUnderFrame = underFrameBottomY <= (props.ViewportPosition.Y + props.ViewportSize.Y)
+	local useUnderFrame = underFrameBottomY <= props.ViewportRect.Max.Y
 
 	local shakeOffset, makeShake = Hooks.useShake()
 	local errorOffset, makeError = Hooks.useShake()
@@ -177,8 +238,10 @@ local function ActionBar(props: Props)
 					Position = UDim2.fromScale(0, 0),
 					Size = UDim2.new(1, -28 * 2, 1, 0),
 
-					DisplayedAbsSize = props.DisplayedAbsSize,
+					UseRectText = props.UseRectText,
+					DisplayRect = props.DisplayRect,
 					OnDimensionInput = props.OnDimensionInput,
+					OnRectInput = props.OnRectInput,
 
 					Disabled = props.Disabled,
 				}),

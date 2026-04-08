@@ -277,14 +277,17 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Position = UDim2.new(0.5, 0, 1, ACTION_BAR_PADDING),
 				Size = UDim2.fromOffset(ACTION_BAR.Width, ACTION_BAR.Height),
 
-				ViewportSize = Vector2.new(props.ViewportRect.Width, props.ViewportRect.Height),
-				ViewportPosition = props.ViewportRect.Min,
-
-				DisplayedAbsSize = Vector2.new(captureRect.Width, captureRect.Height),
+				ViewportRect = props.ViewportRect,
+				DisplayRect = captureRect,
 
 				OnDimensionInput = function(dimensions)
 					local center = (captureRect.Min + captureRect.Max) / 2
 					local rect = Rect.new(center - dimensions / 2, center + dimensions / 2)
+					setCaptureRect(rect, Vector2.zero, Vector2.zero, false)
+				end,
+
+				UseRectText = isCropMode or isDragCropMode,
+				OnRectInput = function(rect)
 					setCaptureRect(rect, Vector2.zero, Vector2.zero, false)
 				end,
 
