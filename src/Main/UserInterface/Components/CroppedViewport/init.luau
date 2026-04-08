@@ -14,6 +14,7 @@ local Hooks = require(uiRoot.Hooks)
 local Blinder = require(script.Blinder)
 local Grabbers = require(script.Grabbers)
 local ActionBar = require(script.ActionBar)
+local QuickBar = require(script.QuickBar)
 
 local GRABBERS = {
 	CornersEnabled = true,
@@ -47,7 +48,20 @@ local function scaleRect(rect: Rect, anchorPoint: Vector2, scale: Vector2)
 	return Rect.new(rect.Min + (anchor - rect.Min) * scale, rect.Max + (anchor - rect.Max) * scale)
 end
 
-local function clampRect(captureRect: Rect, viewportRect: Rect, scaleOS: Vector2, direction: Vector2, delta: Vector2)
+local function positionRect(rect: Rect, anchorPoint: Vector2, position: Vector2)
+	local size = Vector2.new(rect.Width, rect.Height)
+	local anchor = rect.Min + size * anchorPoint
+	return Rect.new(position + (rect.Min - anchor), position + (rect.Max - anchor))
+end
+
+local function clampRect(
+	captureRect: Rect,
+	viewportRect: Rect,
+	scaleOS: Vector2,
+	direction: Vector2,
+	delta: Vector2,
+	mirror: boolean
+)
 	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN * scaleOS.X
 	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN * scaleOS.Y
 	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN * scaleOS.X
@@ -70,6 +84,25 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, scaleOS: Vector2
 		minY = math.max(maxY - height, boundMinY)
 
 		return Rect.new(minX, minY, maxX, maxY)
+	elseif mirror then
+		local center = (captureRect.Min + captureRect.Max) / 2
+
+		local centerMinX = center.X - (MIN_CAPTURE_WIDTH * scaleOS.X) / 2
+		local centerMinY = center.Y - (MIN_CAPTURE_HEIGHT * scaleOS.Y) / 2
+		local centerMaxX = center.X + (MIN_CAPTURE_WIDTH * scaleOS.X) / 2
+		local centerMaxY = center.Y + (MIN_CAPTURE_HEIGHT * scaleOS.Y) / 2
+
+		local minX = math.min(captureRect.Min.X - delta.X * dX, centerMinX)
+		local minY = math.min(captureRect.Min.Y - delta.Y * dY, centerMinY)
+		local maxX = math.max(captureRect.Max.X + delta.X * dX, centerMaxX)
+		local maxY = math.max(captureRect.Max.Y + delta.Y * dY, centerMaxY)
+
+		return Rect.new(
+			math.clamp(minX, boundMinX, boundMaxX),
+			math.clamp(minY, boundMinY, boundMaxY),
+			math.clamp(maxX, boundMinX, boundMaxX),
+			math.clamp(maxY, boundMinY, boundMaxY)
+		)
 	else
 		local minX = captureRect.Min.X
 		local minY = captureRect.Min.Y
@@ -121,20 +154,28 @@ local function useScaledViewportRect(viewportRect: Rect, scaleOS: Vector2)
 end
 
 local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect: Rect, scaleOS: Vector2)
-	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
-		return clampRect(rect, scaledViewportRect, scaleOS, direction, delta * scaleOS)
-	end, { scaledViewportRect, scaleOS } :: { any })
+	local getClampedCaptureRect = React.useCallback(
+		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean)
+			return clampRect(rect, scaledViewportRect, scaleOS, direction, delta * scaleOS, mirror)
+		end,
+		{ scaledViewportRect, scaleOS } :: { any }
+	)
 
-	local captureRect, setCaptureRect = React.useState(captureRef.current)
+	local captureRect, setCaptureRect = React.useState(
+		RenderRect.fromRect(getClampedCaptureRect(captureRef.current, Vector2.zero, Vector2.zero, false))
+	)
 
-	local setCaptureRectClamped = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
-		local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta))
-		captureRef.current = clampedCaptureRect
-		setCaptureRect(clampedCaptureRect)
-	end, { getClampedCaptureRect })
+	local setCaptureRectClamped = React.useCallback(
+		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean)
+			local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta, mirror))
+			captureRef.current = clampedCaptureRect
+			setCaptureRect(clampedCaptureRect)
+		end,
+		{ getClampedCaptureRect }
+	)
 
 	React.useEffect(function()
-		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero)
+		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero, false)
 	end, { setCaptureRectClamped })
 
 	return captureRect, setCaptureRectClamped
@@ -152,6 +193,9 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	local scaleOS = Hooks.useStatePath(function(state)
 		return state.temporary.scaleOS
 	end)
+
+	local isCropMode, setIsCropMode = React.useState(false)
+	local isMoveMode, setIsMoveMode = React.useState(false)
 
 	local dragRectRef = React.useRef(nil :: Rect?)
 	local scaledViewportRect = useScaledViewportRect(props.ViewportRect, scaleOS)
@@ -198,7 +242,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
-				TranslateEnabled = true,
+				TranslateEnabled = isMoveMode,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
@@ -208,7 +252,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 
 				OnDrag = function(direction, delta)
 					local dragRect = dragRectRef.current :: Rect
-					setCaptureRect(dragRect, direction, delta)
+					setCaptureRect(dragRect, direction, delta, not isCropMode)
 				end,
 
 				Disabled = props.Disabled,
@@ -224,13 +268,46 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 
 				DisplayedAbsSize = Vector2.new(captureRect.Width, captureRect.Height),
 
-				OnDimensionInput = function(dimensions) end,
+				OnDimensionInput = function(dimensions)
+					local center = (captureRect.Min + captureRect.Max) / 2
+					local rect = Rect.new(center - dimensions / 2, center + dimensions / 2)
+					setCaptureRect(rect, Vector2.zero, Vector2.zero, false)
+				end,
 
 				OnMaximize = props.OnMaximize,
 				OnCapture = function()
 					return props.OnCapture(captureRect)
 				end,
 
+				Disabled = props.Disabled,
+			}),
+
+			QuickBar = React.createElement(QuickBar, {
+				IsCropMode = isCropMode,
+				SetIsCropMode = setIsCropMode,
+
+				IsMoveMode = isMoveMode,
+				SetIsMoveMode = setIsMoveMode,
+
+				OnJustify = function(jx, jy)
+					local justifiedRect = captureRect
+
+					if jx then
+						local positionX = scaledViewportRect.Min.X + scaledViewportRect.Width * jx
+						justifiedRect =
+							positionRect(justifiedRect, Vector2.new(jx, 0), Vector2.new(positionX, justifiedRect.Min.Y))
+					end
+
+					if jy then
+						local positionY = scaledViewportRect.Min.Y + scaledViewportRect.Height * jy
+						justifiedRect =
+							positionRect(justifiedRect, Vector2.new(0, jy), Vector2.new(justifiedRect.Min.X, positionY))
+					end
+
+					setCaptureRect(justifiedRect, Vector2.zero, Vector2.zero, false)
+				end,
+
+				ZIndex = 2,
 				Disabled = props.Disabled,
 			}),
 		}),
@@ -281,6 +358,7 @@ return React.memo(function(props: Props)
 			local scaledViewportRect = RenderRect.fromAbs(absPosition * scaleOS, absSize * scaleOS)
 			local centerRect = scaleRect(scaledViewportRect, Vector2.new(0.5, 0.5), Vector2.new(0.5, 0.5))
 
+			-- we are setting the initial capture rect ref to be half the viewport from the center of the screen
 			captureRectRef.current = RenderRect.fromRect(centerRect)
 
 			setIsReady(true)

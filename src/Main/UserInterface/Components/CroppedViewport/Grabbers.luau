@@ -26,6 +26,7 @@ export type Props = {
 	OnDragStart: OnDragCallback,
 	-- OnDragFinish: () -> (),
 
+	ZIndex: number?,
 	Disabled: boolean?,
 }
 
@@ -240,6 +241,7 @@ local function Grabbers(props: Props)
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
+		ZIndex = props.ZIndex,
 	}, {
 		Gapped = React.createElement("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),

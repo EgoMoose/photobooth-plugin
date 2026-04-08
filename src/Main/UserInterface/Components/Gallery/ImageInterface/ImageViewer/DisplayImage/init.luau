@@ -42,7 +42,7 @@ end
 local function usePluginMenu(backgroundType: string, setBackgroundType: (string) -> ())
 	return Hooks.usePluginMenu(React.useMemo(function()
 		return {
-			Title = "Photobooth",
+			Title = "Photobooth_Gallery_Alpha_Background",
 			Icon = "",
 
 			Actions = {
