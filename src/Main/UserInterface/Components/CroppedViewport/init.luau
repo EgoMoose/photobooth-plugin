@@ -394,7 +394,7 @@ return React.memo(function(props: Props)
 		Active = false,
 		ref = viewportRef,
 	}, {
-		CroppedViewport = props.Visible and isReady and React.createElement(CroppedViewport, {
+		Core = props.Visible and isReady and React.createElement(CroppedViewport, {
 			ViewportRect = viewportRect,
 			CaptureRectRef = captureRectRef,
 			OnMaximize = props.OnMaximize,

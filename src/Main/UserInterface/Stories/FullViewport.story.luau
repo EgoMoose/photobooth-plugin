@@ -7,10 +7,8 @@ local React = require(pluginRoot.Packages.React)
 local State = require(pluginRoot.Main.State)
 State.storybook()
 
-local Constants = require(pluginRoot.Constants)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local FullViewport = require(uiRoot.Components.FullViewport)
+local FullViewport = require(uiRoot.Components.FullViewport2)
 
 local stories = script:FindFirstAncestor("Stories")
 local CreateStory = require(stories.Helpers.CreateStory)
@@ -44,7 +42,7 @@ local function story()
 				return true
 			end,
 
-			CaptureRectRef = focusLenseSizeRef,
+			Visible = true,
 			Disabled = isDisabled,
 		}),
 	})

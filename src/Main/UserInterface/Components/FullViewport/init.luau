@@ -12,14 +12,13 @@ local Hooks = require(uiRoot.Hooks)
 local FreeDrag = require(script.FreeDrag)
 
 export type Props = {
-	OnMinimize: () -> ()?,
+	OnMinimize: () -> (),
 	OnCapture: (Rect) -> (boolean, string?),
-	CaptureRectRef: { current: Rect? },
 	Disabled: boolean,
 }
 
 type ActionBarProps = {
-	OnMinimize: () -> ()?,
+	OnMinimize: () -> (),
 	OnCapture: (Rect) -> (boolean, string?),
 	IsDragging: boolean,
 	ContainerPosition: Vector2,
@@ -57,11 +56,6 @@ local function ActionBar(props: ActionBarProps)
 		math.round(scaleOS.X * props.ContainerSize.X),
 		math.round(scaleOS.Y * props.ContainerSize.Y)
 	)
-
-	local labelWithOffset = 0
-	if props.OnMinimize then
-		labelWithOffset = -24 - 4
-	end
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -116,7 +110,7 @@ local function ActionBar(props: ActionBarProps)
 				}),
 
 				Label = React.createElement("TextLabel", {
-					Size = UDim2.new(1, -24 - 16 - 4 - 6 + labelWithOffset, 1, 0),
+					Size = UDim2.new(1, -78, 1, 0),
 					BackgroundTransparency = 1,
 
 					Text = `{displaySize.X} x {displaySize.Y}`,
@@ -135,7 +129,7 @@ local function ActionBar(props: ActionBarProps)
 					LayoutOrder = 4,
 				}),
 
-				Minimize = props.OnMinimize and React.createElement(BaseButton, {
+				Minimize = React.createElement(BaseButton, {
 					Size = UDim2.new(0, 24, 1, 0),
 
 					BackgroundColorStyle = Enum.StudioStyleGuideColor.Button,
@@ -257,10 +251,6 @@ local function FullViewport(props: Props)
 	local containerSize = Hooks.useRefProperty(containerRef, "AbsoluteSize", Vector2.zero)
 	local containerPosition = Hooks.useRefProperty(containerRef, "AbsolutePosition", Vector2.zero)
 
-	React.useEffect(function()
-		props.CaptureRectRef.current = Rect.new(0, 0, containerSize.X, containerSize.Y)
-	end, { containerSize })
-
 	local draggerSize = Vector2.new(120, 28)
 	if props.OnMinimize then
 		draggerSize = Vector2.new(148, 28)
@@ -305,4 +295,4 @@ local function FullViewport(props: Props)
 	})
 end
 
-return FullViewport
+return React.memo(FullViewport)
