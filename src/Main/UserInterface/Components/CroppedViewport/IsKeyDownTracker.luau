@@ -40,6 +40,19 @@ local function IsKeyDownTracker(props: Props)
 		end
 	end, { props.KeyCodeSet })
 
+	React.useEffect(function()
+		return function()
+			-- cleanup code if the component is deleted
+			for keyCode, _ in state.connectionsByKeyCode do
+				state.connectionsByKeyCode[keyCode]:Disconnect()
+				state.connectionsByKeyCode[keyCode] = nil
+			end
+
+			state.isKeyDown = false
+			props.OnKeyDownChanged(state.isKeyDown)
+		end
+	end, {})
+
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
 		AnchorPoint = props.AnchorPoint,
