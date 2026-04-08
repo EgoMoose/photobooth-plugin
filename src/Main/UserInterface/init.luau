@@ -190,17 +190,17 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ref = screenGuiRef,
 		}, {
-			Fullscreen = isFullscreen and React.createElement(FullViewport, {
-				CaptureRectRef = captureRectRef,
+			Fullscreen = React.createElement(FullViewport, {
 				OnMinimize = onMinMax,
 				OnCapture = onCapture,
+				Visible = isFullscreen :: boolean,
 				Disabled = isCapturing,
 			}),
 
 			Cropped = React.createElement(CroppedViewport, {
 				OnMaximize = onMinMax,
 				OnCapture = onCapture,
-				Visible = not isFullscreen,
+				Visible = not isFullscreen :: boolean,
 				Disabled = isCapturing,
 			}),
 		})

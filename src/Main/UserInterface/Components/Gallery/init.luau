@@ -161,4 +161,4 @@ local function Gallery(props: Props)
 	})
 end
 
-return React.memo(Gallery)
+return Gallery

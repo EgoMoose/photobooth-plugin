@@ -8,7 +8,7 @@ local State = require(pluginRoot.Main.State)
 State.storybook()
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
-local FullViewport = require(uiRoot.Components.FullViewport2)
+local FullViewport = require(uiRoot.Components.FullViewport)
 
 local stories = script:FindFirstAncestor("Stories")
 local CreateStory = require(stories.Helpers.CreateStory)

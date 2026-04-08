@@ -356,7 +356,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	})
 end
 
-return React.memo(function(props: Props)
+return function(props: Props)
 	local captureRectRef = React.useRef(Rect.new(0, 0, 512, 512))
 
 	local viewportRef = React.useRef(nil :: GuiObject?)
@@ -403,4 +403,4 @@ return React.memo(function(props: Props)
 			Disabled = props.Disabled,
 		}),
 	})
-end)
+end
