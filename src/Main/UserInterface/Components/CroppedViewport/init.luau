@@ -6,6 +6,7 @@ local React = require(pluginRoot.Packages.React)
 
 local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local Constants = require(pluginRoot.Constants)
+local State = require(pluginRoot.Main.State)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
@@ -40,11 +41,17 @@ local MIN_CAPTURE_WIDTH = math.max(MIN_CAPTURE_HEIGHT, ACTION_BAR.Width)
 local MAX_CAPTURE_HEIGHT = Constants.MaxCaptureRectSize.Y
 local MAX_CAPTURE_WIDTH = Constants.MaxCaptureRectSize.X
 
-local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vector2, delta: Vector2)
-	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN
-	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN
-	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN
-	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN
+local function scaleRect(rect: Rect, anchorPoint: Vector2, scale: Vector2)
+	local size = Vector2.new(rect.Width, rect.Height)
+	local anchor = rect.Min + size * anchorPoint
+	return Rect.new(rect.Min + (anchor - rect.Min) * scale, rect.Max + (anchor - rect.Max) * scale)
+end
+
+local function clampRect(captureRect: Rect, viewportRect: Rect, scaleOS: Vector2, direction: Vector2, delta: Vector2)
+	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN * scaleOS.X
+	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN * scaleOS.Y
+	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN * scaleOS.X
+	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN * scaleOS.Y
 
 	local dX, dY = direction.X, direction.Y
 	if dX == 0 and dY == 0 then
@@ -54,8 +61,8 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 		local maxX = captureRect.Max.X + delta.X
 		local maxY = captureRect.Max.Y + delta.Y
 
-		local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
-		local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
+		local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH * scaleOS.X, MAX_CAPTURE_WIDTH * scaleOS.X)
+		local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT * scaleOS.Y, MAX_CAPTURE_HEIGHT * scaleOS.Y)
 
 		maxX = math.min(math.max(minX, boundMinX) + width, boundMaxX)
 		minX = math.max(maxX - width, boundMinX)
@@ -74,7 +81,7 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 			local dMaxX = math.abs(math.max(dX, 0))
 			minX = captureRect.Min.X + delta.X * dMinX
 			maxX = captureRect.Max.X + delta.X * dMaxX
-			local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH, MAX_CAPTURE_WIDTH)
+			local width = math.clamp(maxX - minX, MIN_CAPTURE_WIDTH * scaleOS.X, MAX_CAPTURE_WIDTH * scaleOS.X)
 			minX = (minX * dMaxX + maxX * dMinX) - dMinX * width
 			maxX = (minX * dMaxX + maxX * dMinX) + dMaxX * width
 		end
@@ -84,7 +91,7 @@ local function clampRect(captureRect: Rect, viewportRect: Rect, direction: Vecto
 			local dMaxY = math.abs(math.max(dY, 0))
 			minY = captureRect.Min.Y + delta.Y * dMinY
 			maxY = captureRect.Max.Y + delta.Y * dMaxY
-			local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT, MAX_CAPTURE_HEIGHT)
+			local height = math.clamp(maxY - minY, MIN_CAPTURE_HEIGHT * scaleOS.Y, MAX_CAPTURE_HEIGHT * scaleOS.Y)
 			minY = (minY * dMaxY + maxY * dMinY) - dMinY * height
 			maxY = (minY * dMaxY + maxY * dMinY) + dMaxY * height
 		end
@@ -101,7 +108,7 @@ end
 local function useScaledViewportRect(viewportRect: Rect, scaleOS: Vector2)
 	local getScaledViewportRect = React.useCallback(function()
 		local viewportSize = Vector2.new(viewportRect.Width, viewportRect.Height)
-		return RenderRect.fromAbs(viewportRect.Min, viewportSize * scaleOS)
+		return RenderRect.fromAbs(viewportRect.Min * scaleOS, viewportSize * scaleOS)
 	end, { viewportRect, scaleOS } :: { any })
 
 	local scaledViewportRect, setScaledViewportRect = React.useState(getScaledViewportRect())
@@ -113,10 +120,10 @@ local function useScaledViewportRect(viewportRect: Rect, scaleOS: Vector2)
 	return scaledViewportRect
 end
 
-local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect: Rect)
+local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect: Rect, scaleOS: Vector2)
 	local getClampedCaptureRect = React.useCallback(function(rect: Rect, direction: Vector2, delta: Vector2)
-		return clampRect(rect, scaledViewportRect, direction, delta)
-	end, { scaledViewportRect })
+		return clampRect(rect, scaledViewportRect, scaleOS, direction, delta * scaleOS)
+	end, { scaledViewportRect, scaleOS } :: { any })
 
 	local captureRect, setCaptureRect = React.useState(captureRef.current)
 
@@ -148,7 +155,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 
 	local dragRectRef = React.useRef(nil :: Rect?)
 	local scaledViewportRect = useScaledViewportRect(props.ViewportRect, scaleOS)
-	local captureRect, setCaptureRect = useCaptureRect(props.CaptureRectRef, scaledViewportRect)
+	local captureRect, setCaptureRect = useCaptureRect(props.CaptureRectRef, scaledViewportRect, scaleOS)
 
 	local renderedCaptureRect = RenderRect.fromRect(
 		Rect.new(
@@ -267,9 +274,15 @@ return React.memo(function(props: Props)
 	React.useEffect(function()
 		local viewportFrame = viewportRef.current
 		if viewportFrame then
-			local size = viewportFrame.AbsoluteSize * 0.5
-			local remainder = viewportFrame.AbsoluteSize - size
-			captureRectRef.current = RenderRect.fromAbs(viewportFrame.AbsolutePosition + (remainder / 2), size)
+			local scaleOS = State.read().temporary.scaleOS
+			local absSize = viewportFrame.AbsoluteSize
+			local absPosition = viewportFrame.AbsolutePosition
+
+			local scaledViewportRect = RenderRect.fromAbs(absPosition * scaleOS, absSize * scaleOS)
+			local centerRect = scaleRect(scaledViewportRect, Vector2.new(0.5, 0.5), Vector2.new(0.5, 0.5))
+
+			captureRectRef.current = RenderRect.fromRect(centerRect)
+
 			setIsReady(true)
 		end
 	end, {})
