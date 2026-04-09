@@ -87,4 +87,4 @@ local function IsKeyDownTracker(props: Props)
 	})
 end
 
-return React.memo(IsKeyDownTracker)
+return IsKeyDownTracker

@@ -356,9 +356,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	})
 end
 
-local CroppedViewportMemo = React.memo(CroppedViewport)
-
-return React.memo(function(props: Props)
+return function(props: Props)
 	local captureRectRef = React.useRef(Rect.new(0, 0, 512, 512))
 
 	local viewportRef = React.useRef(nil :: GuiObject?)
@@ -396,7 +394,7 @@ return React.memo(function(props: Props)
 		Active = false,
 		ref = viewportRef,
 	}, {
-		Core = props.Visible and isReady and React.createElement(CroppedViewportMemo, {
+		Core = props.Visible and isReady and React.createElement(CroppedViewport, {
 			ViewportRect = viewportRect,
 			CaptureRectRef = captureRectRef,
 			OnMaximize = props.OnMaximize,
@@ -405,4 +403,4 @@ return React.memo(function(props: Props)
 			Disabled = props.Disabled,
 		}),
 	})
-end)
+end

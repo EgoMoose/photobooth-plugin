@@ -83,9 +83,7 @@ local function FullViewport(props: Props & { ViewportRect: Rect })
 	})
 end
 
-local FullViewportMemo = React.memo(FullViewport)
-
-return React.memo(function(props: Props)
+return function(props: Props)
 	local viewportRef = React.useRef(nil :: GuiObject?)
 	local viewportAbsSize = Hooks.useRefProperty(viewportRef, "AbsoluteSize", Vector2.new(math.huge, math.huge))
 	local viewportAbsPosition = Hooks.useRefProperty(viewportRef, "AbsolutePosition", Vector2.zero)
@@ -97,7 +95,7 @@ return React.memo(function(props: Props)
 		Active = false,
 		ref = viewportRef,
 	}, {
-		Core = props.Visible and React.createElement(FullViewportMemo, {
+		Core = props.Visible and React.createElement(FullViewport, {
 			ViewportRect = viewportRect,
 			OnCapture = props.OnCapture,
 			OnMinimize = props.OnMinimize,
@@ -105,4 +103,4 @@ return React.memo(function(props: Props)
 			Disabled = props.Disabled,
 		}),
 	})
-end)
+end

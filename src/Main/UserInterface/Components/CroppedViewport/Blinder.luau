@@ -92,4 +92,4 @@ local function Blinder(props: Props)
 	})
 end
 
-return React.memo(Blinder)
+return Blinder

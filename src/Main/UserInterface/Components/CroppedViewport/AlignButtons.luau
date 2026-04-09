@@ -241,4 +241,4 @@ local function AlignButtons(props: Props)
 	})
 end
 
-return React.memo(AlignButtons)
+return AlignButtons

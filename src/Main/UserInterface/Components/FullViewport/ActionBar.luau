@@ -201,4 +201,4 @@ local function ActionBar(props: Props)
 	})
 end
 
-return React.memo(ActionBar)
+return ActionBar
