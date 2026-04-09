@@ -7,6 +7,12 @@
 /assets/icons/asphalt/processed
 /.vscode/settings.json
 
+/lune/bindings/src
+/lune/bindings/LICENSE
+/lune/bindings/Packages
+/lune/bindings/DevPackages
+/lune/bindings/ServerPackages
+
 *.rbxm
 globalTypes.d.lua
 sourcemap.json

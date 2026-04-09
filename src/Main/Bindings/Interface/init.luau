@@ -8,6 +8,7 @@ local CachelessRequire = require(script.Helpers.CachelessRequire)
 
 local Bindings = {}
 local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
+local connected = assert(binding:FindFirstChild("Connected") :: BoolValue?)
 
 export type UICaptureTypes = Types.UICaptureTypes
 export type ViewportCaptureTypes = Types.ViewportCaptureTypes
@@ -52,6 +53,16 @@ end
 
 function Bindings.captureUI(options: CaptureUIOptions): MeshPart?
 	return invokeBinding("captureUI", options)
+end
+
+function Bindings.isConnected(): boolean
+	return connected.Value
+end
+
+function Bindings.waitForConnected(): ()
+	while not connected.Value do
+		connected.Changed:Wait()
+	end
 end
 
 return Bindings

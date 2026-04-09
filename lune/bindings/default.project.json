@@ -1,0 +1,22 @@
+{
+	"name": "photobooth-plugin-bindings",
+	"syncRules": [
+		{
+			"pattern": "LICENSE",
+			"use": "moduleScript"
+		}
+	],
+	"tree": {
+		"$path": "src",
+		"$properties": {
+			"Tags": ["Photobooth_Bindings_Package"],
+			"Attributes": {
+				"Version": {"String": "0.0.0"}
+			}
+		},
+
+		"LICENSE": {
+			"$path": "LICENSE"
+		}
+	}
+}

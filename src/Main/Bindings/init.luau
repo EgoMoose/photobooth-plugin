@@ -1,5 +1,6 @@
 --!strict
 
+local CollectionService = game:GetService("CollectionService") :: CollectionService
 local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
@@ -29,9 +30,31 @@ for _, invocationModule in script.Invocations:GetDescendants() do
 	end
 end
 
+local function connectBindings(interface: Instance)
+	local binding = interface:FindFirstChild("Binding") :: BindableFunction?
+	local connected = binding and binding:FindFirstChild("Connected") :: BoolValue?
+
+	if binding and connected then
+		connected.Value = true
+		binding.OnInvoke = function(identifier: string, ...: any)
+			local results
+			local packedArgs = table.pack(...)
+			local success, err = pcall(function()
+				local invocation = assert(invocationByIdentifier[identifier], `No invocation found for: {identifier}`)
+				results = table.pack(invocation.callback(table.unpack(packedArgs)))
+			end)
+
+			if success then
+				return true, table.unpack(results)
+			end
+
+			return false, err
+		end
+	end
+end
+
 local function createBindings()
 	local interface = script.Interface:Clone()
-	local binding = interface.Binding
 	interface.Name = "Bindings"
 
 	local descendants = interface:GetDescendants()
@@ -42,20 +65,7 @@ local function createBindings()
 		descendant.Archivable = false
 	end
 
-	binding.OnInvoke = function(identifier: string, ...: any)
-		local results
-		local packedArgs = table.pack(...)
-		local success, err = pcall(function()
-			local invocation = assert(invocationByIdentifier[identifier], `No invocation found for: {identifier}`)
-			results = table.pack(invocation.callback(table.unpack(packedArgs)))
-		end)
-
-		if success then
-			return true, table.unpack(results)
-		end
-
-		return false, err
-	end
+	connectBindings(interface)
 
 	local camera = Instance.new("Camera")
 	camera.Name = "Photobooth"
@@ -87,7 +97,16 @@ function Bindings.setup(plugin: Plugin)
 		setEnabled(State.read().saved.bindingsEnabled)
 	end)
 
+	for _, instance in CollectionService:GetTagged("Photobooth_Bindings_Package") do
+		connectBindings(instance)
+	end
+
+	local tagAdded = CollectionService:GetInstanceAddedSignal("Photobooth_Bindings_Package"):Connect(function(instance)
+		connectBindings(instance)
+	end)
+
 	plugin.Unloading:Connect(function()
+		tagAdded:Disconnect()
 		disconnect()
 		setEnabled(false)
 	end)
