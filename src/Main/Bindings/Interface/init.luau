@@ -39,6 +39,10 @@ function Bindings.getVersion(): string
 	return invokeBinding("getVersion")
 end
 
+function Bindings.getPackageVersion(): string
+	return assert(script:GetAttribute("PackageVersion") :: string?, "No package version attribute found.")
+end
+
 function Bindings.getOSScale(): Vector2
 	return invokeBinding("getOSScale")
 end

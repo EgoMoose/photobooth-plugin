@@ -7,6 +7,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
 local State = require(pluginRoot.Main.State)
+local Wally = require(pluginRoot.Wally)
 
 local Bindings = {}
 local trove = Trove.new()
@@ -56,6 +57,7 @@ end
 local function createBindings()
 	local interface = script.Interface:Clone()
 	interface.Name = "Bindings"
+	interface:SetAttribute("PackageVersion", Wally.package.version)
 
 	local descendants = interface:GetDescendants()
 	table.insert(descendants, interface)

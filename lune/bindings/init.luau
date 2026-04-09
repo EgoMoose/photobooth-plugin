@@ -19,8 +19,8 @@ wallyToml.package.version = rootToml.package.version
 fs.writeFile("lune/bindings/wally.toml", serde.encode("toml", wallyToml, false))
 
 local project = serde.decode("json", fs.readFile("lune/bindings/default.project.json"))
-project.tree["$properties"].Attributes.Version.String = rootToml.package.version
-fs.writeFile("lune/bindings/default.project.json", serde.encode("json", project, false))
+project.tree["$properties"].Attributes.PackageVersion.String = rootToml.package.version
+fs.writeFile("lune/bindings/default.project.json", serde.encode("json", project, true))
 
 -- cd lune/bindings
 -- build as rbxm or publish
