@@ -293,4 +293,4 @@ local function Grabbers(props: Props)
 	})
 end
 
-return Grabbers
+return React.memo(Grabbers)

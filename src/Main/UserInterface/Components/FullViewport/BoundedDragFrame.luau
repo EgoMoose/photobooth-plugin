@@ -73,7 +73,9 @@ local function BoundedDragFrame(props: Props & { BoundsRect: Rect })
 	}, props.children)
 end
 
-return function(props: Props)
+local BoundedDragFrameMemo = React.memo(BoundedDragFrame)
+
+return React.memo(function(props: Props)
 	local boundFrameRef = React.useRef(nil)
 	local boundFrameAbsSize = Hooks.useRefProperty(boundFrameRef, "AbsoluteSize", Vector2.zero)
 	local boundFrameAbsPosition = Hooks.useRefProperty(boundFrameRef, "AbsolutePosition", Vector2.zero)
@@ -85,7 +87,7 @@ return function(props: Props)
 		Active = false,
 		ref = boundFrameRef,
 	}, {
-		Core = React.createElement(BoundedDragFrame, {
+		Core = React.createElement(BoundedDragFrameMemo, {
 			BoundsRect = boundsRect,
 			InitialPosition = props.InitialPosition,
 			AnchorPoint = props.AnchorPoint,
@@ -94,4 +96,4 @@ return function(props: Props)
 			Disabled = props.Disabled,
 		}, props.children),
 	})
-end
+end)
