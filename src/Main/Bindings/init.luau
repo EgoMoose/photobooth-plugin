@@ -7,7 +7,6 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
 
 local State = require(pluginRoot.Main.State)
-local Wally = require(pluginRoot.Wally)
 
 local Bindings = {}
 local trove = Trove.new()
@@ -32,12 +31,11 @@ for _, invocationModule in script.Invocations:GetDescendants() do
 end
 
 local function connectBindings(plugin: Plugin, interface: Instance)
-	local binding = interface:FindFirstChild("Binding") :: BindableFunction?
-	local connected = binding and binding:FindFirstChild("Connected") :: BoolValue?
+	local binding = interface:FindFirstChild("Binding") :: ModuleScript?
+	local bindable = binding and binding:FindFirstChild("Bindable") :: BindableFunction?
 
-	if binding and connected then
-		connected.Value = true
-		binding.OnInvoke = function(identifier: string, ...: any)
+	if bindable then
+		bindable.OnInvoke = function(identifier: string, ...: any)
 			local results
 			local packedArgs = table.pack(...)
 			local success, err = pcall(function()
@@ -52,8 +50,8 @@ local function connectBindings(plugin: Plugin, interface: Instance)
 			return false, err
 		end
 
-		plugin.Unloading:Once(function()
-			connected.Value = false
+		plugin.Unloading:Connect(function()
+			bindable.OnInvoke = function() end
 		end)
 	end
 end
@@ -61,14 +59,13 @@ end
 local function createBindings(plugin: Plugin)
 	local interface = script.Interface:Clone()
 	interface.Name = "Bindings"
-	interface:SetAttribute("PackageVersion", Wally.package.version)
+	interface:AddTag("Photobooth_Bindings")
 
 	local descendants = interface:GetDescendants()
 	table.insert(descendants, interface)
 
 	for _, descendant in descendants do
 		trove:Add(descendant)
-		descendant.Archivable = false
 	end
 
 	connectBindings(plugin, interface)
@@ -112,7 +109,7 @@ function Bindings.setup(plugin: Plugin)
 	connectBinding.Archivable = false
 	connectBinding.Name = "ConnectBinding"
 	connectBinding.OnInvoke = function(instance: Instance)
-		if instance:HasTag("Photobooth_Bindings_Package") then
+		if instance:HasTag("Photobooth_Bindings") then
 			connectBindings(plugin, instance)
 		end
 	end
