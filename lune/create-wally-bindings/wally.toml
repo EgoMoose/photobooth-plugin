@@ -1,5 +1,5 @@
 [package]
-description = "A plugin for capturing images in Roblox studio."
+description = "Package bindings for photobooth."
 exclude = ["**"]
 include = ["src", "src/**", "wally.toml", "wally.lock", "default.project.json", "LICENSE"]
 license = "AGPL-3.0"
