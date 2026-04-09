@@ -1,6 +1,7 @@
 --!strict
 
 local Types = require(script.Types)
+local Wally = require(script.Wally)
 local Binding = require(script.Binding)
 
 local RenderRect = require(script.Helpers.RenderRect)
@@ -54,7 +55,7 @@ function Bindings.isConnected(): boolean
 end
 
 function Bindings.isCompatible(): boolean
-	local pkgVersion = "0.0.0"
+	local pkgVersion = Wally.package.version
 	return Binding.invoke("compatibilityCheck", pkgVersion)
 end
 
