@@ -1,6 +1,6 @@
 --!strict
 
-local CollectionService = game:GetService("CollectionService") :: CollectionService
+local CaptureService = game:GetService("CaptureService") :: CaptureService
 local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
@@ -31,7 +31,7 @@ for _, invocationModule in script.Invocations:GetDescendants() do
 	end
 end
 
-local function connectBindings(interface: Instance)
+local function connectBindings(plugin: Plugin, interface: Instance)
 	local binding = interface:FindFirstChild("Binding") :: BindableFunction?
 	local connected = binding and binding:FindFirstChild("Connected") :: BoolValue?
 
@@ -51,10 +51,14 @@ local function connectBindings(interface: Instance)
 
 			return false, err
 		end
+
+		plugin.Unloading:Once(function()
+			connected.Value = false
+		end)
 	end
 end
 
-local function createBindings()
+local function createBindings(plugin: Plugin)
 	local interface = script.Interface:Clone()
 	interface.Name = "Bindings"
 	interface:SetAttribute("PackageVersion", Wally.package.version)
@@ -67,7 +71,7 @@ local function createBindings()
 		descendant.Archivable = false
 	end
 
-	connectBindings(interface)
+	connectBindings(plugin, interface)
 
 	local camera = Instance.new("Camera")
 	camera.Name = "Photobooth"
@@ -79,13 +83,13 @@ local function createBindings()
 end
 
 local isEnabled = false
-local function setEnabled(enabled: boolean)
+local function setEnabled(plugin: Plugin, enabled: boolean)
 	if isEnabled ~= enabled then
 		isEnabled = enabled
 		trove:Clean()
 
 		if isEnabled then
-			local interface = createBindings()
+			local interface = createBindings(plugin)
 			interface.Parent = ServerStorage
 		end
 	end
@@ -94,23 +98,31 @@ end
 -- Public
 
 function Bindings.setup(plugin: Plugin)
-	setEnabled(State.read().saved.bindingsEnabled)
+	setEnabled(plugin, State.read().saved.bindingsEnabled)
 	local disconnect = State.onChanged(function()
-		setEnabled(State.read().saved.bindingsEnabled)
+		setEnabled(plugin, State.read().saved.bindingsEnabled)
 	end)
 
-	for _, instance in CollectionService:GetTagged("Photobooth_Bindings_Package") do
-		connectBindings(instance)
+	local camera = Instance.new("Camera")
+	camera.Name = "Photobooth"
+	camera.Archivable = false
+	camera.Parent = CaptureService
+
+	local connectBinding = Instance.new("BindableFunction")
+	connectBinding.Archivable = false
+	connectBinding.Name = "ConnectBinding"
+	connectBinding.OnInvoke = function(instance: Instance)
+		if instance:HasTag("Photobooth_Bindings_Package") then
+			connectBindings(plugin, instance)
+		end
 	end
-
-	local tagAdded = CollectionService:GetInstanceAddedSignal("Photobooth_Bindings_Package"):Connect(function(instance)
-		connectBindings(instance)
-	end)
+	connectBinding.Parent = camera
 
 	plugin.Unloading:Connect(function()
-		tagAdded:Disconnect()
+		connectBinding:Destroy()
+		camera:Destroy()
 		disconnect()
-		setEnabled(false)
+		setEnabled(plugin, false)
 	end)
 end
 

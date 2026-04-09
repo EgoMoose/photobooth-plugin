@@ -27,6 +27,32 @@ local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
 	return table.unpack(results, 2)
 end
 
+local function handleBindingConnection()
+	local function tryHookAsync()
+		while not connected.Value do
+			local camera = game:GetService("CaptureService"):FindFirstChild("Photobooth") :: Camera?
+			local connectBinding = camera and camera:FindFirstChild("ConnectBinding") :: BindableFunction?
+
+			if connectBinding then
+				connectBinding:Invoke(script)
+				break
+			end
+
+			game:GetService("CaptureService").DescendantAdded:Wait()
+		end
+	end
+
+	task.spawn(function()
+		connected.Changed:Connect(function(isConnected)
+			if not isConnected then
+				tryHookAsync()
+			end
+		end)
+
+		tryHookAsync()
+	end)
+end
+
 Bindings.rect = RenderRect
 Bindings.reversible = Reversible.wrap
 
@@ -63,10 +89,12 @@ function Bindings.isConnected(): boolean
 	return connected.Value
 end
 
-function Bindings.waitForConnected(): ()
-	while not connected.Value do
-		connected.Changed:Wait()
-	end
+function Bindings.isCompatible(): boolean
+	local packageVersion =
+		assert(script:GetAttribute("PackageVersion") :: string?, "No package version attribute found.")
+	return invokeBinding("compatibilityCheck", packageVersion)
 end
+
+handleBindingConnection()
 
 return Bindings
