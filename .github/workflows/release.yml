@@ -20,8 +20,27 @@ jobs:
         run: |
           gh release create ${{ github.ref_name }} --draft --verify-tag --title ${{ github.ref_name }}
 
-      # - name: "Setup rokit"
-      #   uses: CompeyDev/setup-rokit@v0.1.2
+      - name: "Setup rokit"
+        uses: CompeyDev/setup-rokit@v0.1.2
+
+      - name: "Run create-bindings-package"
+        run: |
+          lune run create-bindings-package
+
+      - name: "Build bindings package"
+        run: |
+          rojo build bindings-package/default.project.json --output bindings-package/photobooth-bindings-${{ github.ref_name }}.rbxm
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: photobooth-bindings
+          path: bindings-package/photobooth-bindings-${{ github.ref_name }}.rbxm
+      
+      - name: Upload bindings rbxm to Release
+        run: |
+          gh release upload ${{ github.ref_name }} bindings-package/photobooth-bindings-${{ github.ref_name }}.rbxm
+
 
       # - name: "Run wally install"
       #   run: |
