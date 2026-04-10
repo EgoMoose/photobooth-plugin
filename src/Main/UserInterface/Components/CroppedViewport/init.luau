@@ -184,7 +184,10 @@ local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect:
 	)
 
 	React.useEffect(function()
-		setCaptureRectClamped(captureRect, Vector2.zero, Vector2.zero, false)
+		local rectSize2 = Vector2.new(captureRect.Width, captureRect.Height) / 2
+		local viewportCenter = (scaledViewportRect.Min + scaledViewportRect.Max) / 2
+		local centeredCaptureRect = Rect.new(viewportCenter - rectSize2, viewportCenter + rectSize2)
+		setCaptureRectClamped(centeredCaptureRect, Vector2.zero, Vector2.zero, false)
 	end, { setCaptureRectClamped })
 
 	return captureRect, setCaptureRectClamped
