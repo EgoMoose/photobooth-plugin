@@ -1,0 +1,22 @@
+{
+	"name": "Interface",
+	"syncRules": [
+		{
+		"pattern": "**/*/LICENSE",
+		"use": "moduleScript"
+		}
+	],
+	"tree": {
+		"$path": "src",
+		"$properties": {
+			"Tags": [ "Photobooth_Bindings" ]
+		},
+
+		"Wally": {
+			"$path": "../../../../wally.toml"
+		},
+		"LICENSE": {
+			"$path": "../../../../LICENSE"
+		}
+	}
+}

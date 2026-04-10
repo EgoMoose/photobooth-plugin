@@ -1,13 +1,14 @@
 --!strict
 
 local Types = require(script.Types)
+local Wally = require(script.Wally)
+local Binding = require(script.Binding)
 
 local RenderRect = require(script.Helpers.RenderRect)
 local Reversible = require(script.Helpers.Reversible)
 local CachelessRequire = require(script.Helpers.CachelessRequire)
 
 local Bindings = {}
-local binding = assert(script:FindFirstChild("Binding") :: BindableFunction?)
 
 export type UICaptureTypes = Types.UICaptureTypes
 export type ViewportCaptureTypes = Types.ViewportCaptureTypes
@@ -15,16 +16,7 @@ export type ViewportCaptureTypes = Types.ViewportCaptureTypes
 export type CaptureViewportOptions = Types.CaptureViewportOptions
 export type CaptureUIOptions = Types.CaptureUIOptions
 
-local function invokeBinding<T..., U...>(identifier: string, ...: T...): U...
-	local results = table.pack(binding:Invoke(identifier, ...))
-	local success = table.unpack(results, 1, 1)
-
-	if not success then
-		error(table.unpack(results, 2, 2), 2)
-	end
-
-	return table.unpack(results, 2)
-end
+-- Public
 
 Bindings.rect = RenderRect
 Bindings.reversible = Reversible.wrap
@@ -35,23 +27,36 @@ function Bindings.execute(script: LuaSourceContainer)
 end
 
 function Bindings.getVersion(): string
-	return invokeBinding("getVersion")
+	return Binding.invoke("getVersion")
+end
+
+function Bindings.getPackageVersion(): string
+	return assert(script:GetAttribute("PackageVersion") :: string?, "No package version attribute found.")
 end
 
 function Bindings.getOSScale(): Vector2
-	return invokeBinding("getOSScale")
+	return Binding.invoke("getOSScale")
 end
 
 function Bindings.yieldUntilNextFrame(): ()
-	return invokeBinding("yieldUntilNextFrame")
+	return Binding.invoke("yieldUntilNextFrame")
 end
 
 function Bindings.captureViewport(options: CaptureViewportOptions): MeshPart?
-	return invokeBinding("captureViewport", options)
+	return Binding.invoke("captureViewport", options)
 end
 
 function Bindings.captureUI(options: CaptureUIOptions): MeshPart?
-	return invokeBinding("captureUI", options)
+	return Binding.invoke("captureUI", options)
+end
+
+function Bindings.isConnected(): boolean
+	return Binding.isConnected()
+end
+
+function Bindings.isCompatible(): boolean
+	local pkgVersion = Wally.package.version
+	return Binding.invoke("compatibilityCheck", pkgVersion)
 end
 
 return Bindings

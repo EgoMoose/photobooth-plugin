@@ -1,5 +1,6 @@
 --!strict
 
+local CaptureService = game:GetService("CaptureService") :: CaptureService
 local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
@@ -29,9 +30,34 @@ for _, invocationModule in script.Invocations:GetDescendants() do
 	end
 end
 
-local function createBindings()
+local function connectBindings(plugin: Plugin, interface: Instance)
+	local binding = interface:FindFirstChild("Binding") :: ModuleScript?
+	local bindable = binding and binding:FindFirstChild("Bindable") :: BindableFunction?
+
+	if bindable then
+		bindable.OnInvoke = function(identifier: string, ...: any)
+			local results
+			local packedArgs = table.pack(...)
+			local success, err = pcall(function()
+				local invocation = assert(invocationByIdentifier[identifier], `No invocation found for: {identifier}`)
+				results = table.pack(invocation.callback(table.unpack(packedArgs)))
+			end)
+
+			if success then
+				return true, table.unpack(results)
+			end
+
+			return false, err
+		end
+
+		plugin.Unloading:Connect(function()
+			bindable.OnInvoke = function() end
+		end)
+	end
+end
+
+local function createBindings(plugin: Plugin)
 	local interface = script.Interface:Clone()
-	local binding = interface.Binding
 	interface.Name = "Bindings"
 
 	local descendants = interface:GetDescendants()
@@ -39,23 +65,9 @@ local function createBindings()
 
 	for _, descendant in descendants do
 		trove:Add(descendant)
-		descendant.Archivable = false
 	end
 
-	binding.OnInvoke = function(identifier: string, ...: any)
-		local results
-		local packedArgs = table.pack(...)
-		local success, err = pcall(function()
-			local invocation = assert(invocationByIdentifier[identifier], `No invocation found for: {identifier}`)
-			results = table.pack(invocation.callback(table.unpack(packedArgs)))
-		end)
-
-		if success then
-			return true, table.unpack(results)
-		end
-
-		return false, err
-	end
+	connectBindings(plugin, interface)
 
 	local camera = Instance.new("Camera")
 	camera.Name = "Photobooth"
@@ -67,13 +79,13 @@ local function createBindings()
 end
 
 local isEnabled = false
-local function setEnabled(enabled: boolean)
+local function setEnabled(plugin: Plugin, enabled: boolean)
 	if isEnabled ~= enabled then
 		isEnabled = enabled
 		trove:Clean()
 
 		if isEnabled then
-			local interface = createBindings()
+			local interface = createBindings(plugin)
 			interface.Parent = ServerStorage
 		end
 	end
@@ -82,14 +94,31 @@ end
 -- Public
 
 function Bindings.setup(plugin: Plugin)
-	setEnabled(State.read().saved.bindingsEnabled)
+	setEnabled(plugin, State.read().saved.bindingsEnabled)
 	local disconnect = State.onChanged(function()
-		setEnabled(State.read().saved.bindingsEnabled)
+		setEnabled(plugin, State.read().saved.bindingsEnabled)
 	end)
 
+	local camera = Instance.new("Camera")
+	camera.Name = "Photobooth"
+	camera.Archivable = false
+	camera.Parent = CaptureService
+
+	local connectBinding = Instance.new("BindableFunction")
+	connectBinding.Archivable = false
+	connectBinding.Name = "ConnectBinding"
+	connectBinding.OnInvoke = function(instance: Instance)
+		if instance:HasTag("Photobooth_Bindings") then
+			connectBindings(plugin, instance)
+		end
+	end
+	connectBinding.Parent = camera
+
 	plugin.Unloading:Connect(function()
+		connectBinding:Destroy()
+		camera:Destroy()
 		disconnect()
-		setEnabled(false)
+		setEnabled(plugin, false)
 	end)
 end
 
