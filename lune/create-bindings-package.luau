@@ -1,5 +1,6 @@
 local fs = require("@lune/fs")
 local serde = require("@lune/serde")
+local run = require("@root/lune/utils/run")
 
 if fs.isDir("bindings-package") then
 	fs.removeDir("bindings-package")
@@ -17,7 +18,17 @@ package.include = { "src", "src/**", "wally.toml", "default.project.json" }
 fs.writeFile("bindings-package/wally.toml", serde.encode("toml", { package = package }, false))
 
 local defaultProject = serde.decode("json", fs.readFile("bindings-package/default.project.json"))
-defaultProject.name = package.name
+defaultProject.name = package.name:split("/")[2]
 defaultProject.tree.Wally["$path"] = "../wally.toml"
 defaultProject.tree.LICENSE["$path"] = "../LICENSE"
 fs.writeFile("bindings-package/default.project.json", serde.encode("json", defaultProject, true))
+
+run(
+	"rojo",
+	{
+		"build",
+		"bindings-package/default.project.json",
+		"--output",
+		`bindings-package/{defaultProject.name}-v{package.version}.rbxm`,
+	}
+)
