@@ -59,7 +59,6 @@ end
 local function createBindings(plugin: Plugin)
 	local interface = script.Interface:Clone()
 	interface.Name = "Bindings"
-	interface:AddTag("Photobooth_Bindings")
 
 	local descendants = interface:GetDescendants()
 	table.insert(descendants, interface)
