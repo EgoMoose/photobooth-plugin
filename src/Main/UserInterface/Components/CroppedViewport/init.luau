@@ -74,7 +74,7 @@ local function clampRect(
 	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN * scaleOS.X
 	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN * scaleOS.Y
 	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN * scaleOS.X
-	local boundMaxY = viewportRect.Max.Y - GRABBER_MARGIN * scaleOS.Y
+	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN * scaleOS.Y
 
 	local minWidth = math.min(MIN_CAPTURE_WIDTH * scaleOS.X, boundMaxX - boundMinX)
 	local minHeight = math.min(MIN_CAPTURE_HEIGHT * scaleOS.Y, boundMaxY - boundMinY)
