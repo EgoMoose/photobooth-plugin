@@ -7,11 +7,7 @@
 /assets/icons/asphalt/processed
 /.vscode/settings.json
 
-/lune/create-wally-bindings/src
-/lune/create-wally-bindings/LICENSE
-/lune/create-wally-bindings/Packages
-/lune/create-wally-bindings/DevPackages
-/lune/create-wally-bindings/ServerPackages
+/bindings-package
 
 *.rbxm
 globalTypes.d.lua
