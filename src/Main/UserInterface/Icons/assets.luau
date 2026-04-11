@@ -40,7 +40,7 @@ local assets = {
 		blue = "rbxassetid://123403130151217",
 		green = "rbxassetid://113114545252619",
 		red = "rbxassetid://120852760080312",
-		white = "rbxassetid://78794694520178",
+		white = "rbxassetid://120365773250610",
 	},
 }
 
