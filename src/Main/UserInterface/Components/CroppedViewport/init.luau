@@ -1,4 +1,5 @@
 --!strict
+local UserInputService = game:GetService("UserInputService")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
@@ -20,6 +21,13 @@ local IsKeyDownTracker = require(script.IsKeyDownTracker)
 local CROP_MODE_KEYCODE_SET = {
 	[Enum.KeyCode.LeftShift] = true,
 	[Enum.KeyCode.RightShift] = true,
+}
+
+local MAINTAIN_ASPECT_KEYCODE_SET = {
+	[Enum.KeyCode.LeftControl] = true,
+	[Enum.KeyCode.RightControl] = true,
+	[Enum.KeyCode.LeftMeta] = true,
+	[Enum.KeyCode.RightMeta] = true,
 }
 
 local GRABBERS = {
@@ -206,8 +214,12 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 
 	local isCropMode, setIsCropMode = React.useState(false)
 	local isDragCropMode, setIsDragCropMode = React.useState(false)
+	local maintainAspectRef = React.useRef(nil :: Vector2?)
 
-	local dragRectRef = React.useRef(nil :: Rect?)
+	local dragStartRef = React.useRef(Vector2.zero)
+	local dragPositionRef = React.useRef(Vector2.zero)
+	local dragRectRef = React.useRef(Rect.new(0, 0, 0, 0))
+
 	local scaledViewportRect = useScaledViewportRect(props.ViewportRect, scaleOS)
 	local captureRect, setCaptureRect = useCaptureRect(props.CaptureRectRef, scaledViewportRect, scaleOS)
 
@@ -256,13 +268,30 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
-				OnDragStart = function()
+				OnDragStart = function(position)
+					dragStartRef.current = position
+					dragPositionRef.current = position
 					dragRectRef.current = captureRect
 					setIsDragCropMode(isCropMode)
 				end,
 
-				OnDrag = function(direction, delta)
-					local dragRect = dragRectRef.current :: Rect
+				OnDrag = function(position, direction)
+					dragPositionRef.current = position
+
+					local delta = position - dragStartRef.current
+					local dragRect = dragRectRef.current
+					local aspectSize = maintainAspectRef.current
+
+					if aspectSize then
+						local directionAbsSum = math.abs(direction.X) + math.abs(direction.Y)
+						local isDiagonal = directionAbsSum >= 2
+
+						if isDiagonal then
+							local projectionAxis = (aspectSize * direction).Unit
+							delta = delta:Dot(projectionAxis) * projectionAxis
+						end
+					end
+
 					setCaptureRect(dragRect, direction, delta, not (isCropMode or isDragCropMode))
 				end,
 
@@ -345,14 +374,34 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			Disabled = props.Disabled,
 		}),
 
-		IsKeyDownTracker = React.createElement(IsKeyDownTracker, {
+		CropModeTracker = React.createElement(IsKeyDownTracker, {
 			Size = UDim2.fromScale(1, 1),
 			ZIndex = 2,
 
 			KeyCodeSet = CROP_MODE_KEYCODE_SET,
 			OnKeyDownChanged = React.useCallback(function(isKeyDown)
+				dragStartRef.current = dragPositionRef.current
+				dragRectRef.current = props.CaptureRectRef.current
 				setIsCropMode(isKeyDown)
 			end, { setIsCropMode }),
+		}),
+
+		MaintainAspectTracker = React.createElement(IsKeyDownTracker, {
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 2,
+
+			KeyCodeSet = MAINTAIN_ASPECT_KEYCODE_SET,
+			OnKeyDownChanged = React.useCallback(function(isKeyDown)
+				local rect = props.CaptureRectRef.current
+				dragStartRef.current = dragPositionRef.current
+				dragRectRef.current = rect
+
+				if isKeyDown then
+					maintainAspectRef.current = Vector2.new(rect.Width, rect.Height)
+				else
+					maintainAspectRef.current = nil
+				end
+			end, {}),
 		}),
 	})
 end

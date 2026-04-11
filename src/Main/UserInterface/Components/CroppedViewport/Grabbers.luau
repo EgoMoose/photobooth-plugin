@@ -8,8 +8,8 @@ local Hooks = require(uiRoot.Hooks)
 
 -- stylua: ignore
 type OnDragCallback = (
-	direction: Vector2,
-	delta: Vector2
+	position: Vector2,
+	direction: Vector2
 ) -> ()
 
 export type Props = {
@@ -154,21 +154,16 @@ local function GrabDragger(props: GenericGrabberProps)
 		(2 * props.AnchorPoint.Y) - 1
 	)
 
-	local initialDragRef = React.useRef(nil :: Vector3?)
 	local dragger = Hooks.useMouseDrag({
 		onDragCallback = function(_rbx, input)
-			if initialDragRef.current then
-				local delta3 = input.Position - initialDragRef.current
-				local delta2 = Vector2.new(delta3.X, delta3.Y)
-				props.RootProps.OnDrag(direction, delta2)
-			end
+			local position = Vector2.new(input.Position.X, input.Position.Y)
+			props.RootProps.OnDrag(position, direction)
 		end,
 		onBeganCallback = function(_rbx, input)
-			initialDragRef.current = input.Position
-			props.RootProps.OnDragStart(direction, Vector2.zero)
+			local position = Vector2.new(input.Position.X, input.Position.Y)
+			props.RootProps.OnDragStart(position, direction)
 		end,
 		onEndedCallback = function()
-			initialDragRef.current = nil
 			props.RootProps.OnDragFinish()
 		end,
 		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart, props.RootProps.OnDragFinish },
@@ -201,21 +196,16 @@ local function TranslateDragger(props: GenericGrabberProps)
 		(2 * props.AnchorPoint.Y) - 1
 	)
 
-	local initialDragRef = React.useRef(nil :: Vector3?)
 	local dragger = Hooks.useMouseDrag({
 		onDragCallback = function(_rbx, input)
-			if initialDragRef.current then
-				local delta3 = input.Position - initialDragRef.current
-				local delta2 = Vector2.new(delta3.X, delta3.Y)
-				props.RootProps.OnDrag(direction, delta2)
-			end
+			local position = Vector2.new(input.Position.X, input.Position.Y)
+			props.RootProps.OnDrag(position, direction)
 		end,
 		onBeganCallback = function(_rbx, input)
-			initialDragRef.current = input.Position
-			props.RootProps.OnDragStart(direction, Vector2.zero)
+			local position = Vector2.new(input.Position.X, input.Position.Y)
+			props.RootProps.OnDragStart(position, direction)
 		end,
 		onEndedCallback = function()
-			initialDragRef.current = nil
 			props.RootProps.OnDragFinish()
 		end,
 		deps = { props.RootProps.OnDrag, props.RootProps.OnDragStart, props.RootProps.OnDragFinish },
