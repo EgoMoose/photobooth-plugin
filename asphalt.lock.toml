@@ -2,6 +2,9 @@
 # It is not intended for manual editing.
 version = 2
 
+[inputs.assets.0475c18b187364e38c9af1c572791ec5414393b106068818e35eeb224361b992]
+asset_id = 120365773250610
+
 [inputs.assets.08d231df96f415f4b30f1217138464a95a41fb9e47068342a42bf7f9ed5ac5ea]
 asset_id = 90379892249929
 
