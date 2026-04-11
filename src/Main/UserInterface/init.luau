@@ -17,10 +17,10 @@ local Trove = require(pluginRoot.Packages.Trove)
 local Constants = require(pluginRoot.Constants)
 local Wally = require(pluginRoot.Wally)
 
-local Camera = require(pluginRoot.Utilities.Camera)
 local State = require(pluginRoot.Main.State)
 local Photo = require(pluginRoot.Main.Photo)
 
+local RenderRect = require(pluginRoot.Main.Bindings.Interface.Helpers.RenderRect)
 local Captures = require(pluginRoot.Main.Photo.Captures)
 local UIHider = require(pluginRoot.Main.Photo.Tools.UIHider)
 
@@ -103,22 +103,8 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 		"", "Viewport"
 	)
 
-	local focusAction: PluginAction
-	local actionTrove = Trove.new()
-
 	local function onThemeChanged()
 		openButton.Icon = getIcon("camera-plugin-button")
-		actionTrove:Clean()
-
-		focusAction = actionTrove:Add(
-			plugin:CreatePluginAction(
-				"egomoose_photobooth_focus_action",
-				"Photobooth Viewport Focus",
-				"Focuses the camera to fit the selected PVInstance to the Photobooth capture viewport.",
-				getIcon("focus-plugin-action"),
-				true
-			)
-		)
 	end
 
 	onThemeChanged()
@@ -140,23 +126,22 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			return state.temporary.isFullscreen
 		end)
 
-		local initialLenseSizeRef = React.useRef(UDim2.fromScale(0.5, 0.5))
-		local focusLenseSizeRef = React.useRef(nil :: Vector2?)
+		local captureRectRef = React.useRef(RenderRect.fromViewportCenter(workspace.CurrentCamera.ViewportSize / 2))
+		local prevCaptureRectRef = React.useRef(captureRectRef.current)
+
 		local screenGuiRef = React.useRef(nil :: ScreenGui?)
 
-		local onFullscreenCallbackKey = if isFullscreen then "OnMinimize" else "OnMaximize"
-
-		local updateInitialLenseSizeRef = React.useCallback(function()
-			local focusLenseSize = focusLenseSizeRef.current
-			if not State.read().temporary.isFullscreen and focusLenseSize then
-				initialLenseSizeRef.current = UDim2.fromOffset(focusLenseSize.X, focusLenseSize.Y)
+		local updatePrevCaptureRectRef = React.useCallback(function()
+			local captureRect = captureRectRef.current
+			if not State.read().temporary.isFullscreen and captureRect then
+				prevCaptureRectRef.current = captureRect
 			end
 		end, {})
 
 		React.useEffect(function()
 			local trove = Trove.new()
 			trove:Add(openButton.Click:Connect(function()
-				updateInitialLenseSizeRef()
+				updatePrevCaptureRectRef()
 				setIsEnabled(not isEnabled)
 			end))
 
@@ -165,20 +150,35 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			end
 		end, { isEnabled })
 
-		React.useEffect(function()
-			local connection = focusAction.Triggered:Connect(function()
-				if isEnabled then
-					local focusLenseSize = focusLenseSizeRef.current
-					if focusLenseSize then
-						Camera.focus(workspace.CurrentCamera, SelectionService:Get(), focusLenseSize)
-					end
-				end
-			end)
+		local onCapture = React.useCallback(function(rect: Rect)
+			local captureTypeIndex = State.read().temporary.viewportCaptureTypeIndex
+			local captureType = assert(Captures.Viewport.Order[captureTypeIndex], "No capture type found")
 
-			return function()
-				connection:Disconnect()
+			local trove = Trove.new()
+			if screenGuiRef.current and UIHider.isViewportAppExcluded(rect) then
+				trove:Add(UIHider.addExclusion(screenGuiRef.current))
 			end
-		end, { isEnabled })
+
+			local captures, err = Photo.captureViewport({
+				rect = rect,
+				type = captureType :: Captures.ViewportCaptureTypes,
+			})
+
+			trove:Destroy()
+
+			local selection = Photo.export(captures, StarterGui)
+			SelectionService:Set(selection :: any)
+			return not err, err
+		end, {})
+
+		local onMinMax = React.useCallback(function()
+			local prevRect = prevCaptureRectRef.current
+			updatePrevCaptureRectRef()
+			captureRectRef.current = prevRect
+			State.mutate(function(state)
+				state.temporary.isFullscreen = not state.temporary.isFullscreen
+			end)
+		end, {})
 
 		openButton:SetActive(isEnabled)
 
@@ -190,37 +190,19 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ref = screenGuiRef,
 		}, {
-			Content = React.createElement(if isFullscreen then FullViewport else CroppedViewport, {
-				[onFullscreenCallbackKey] = Constants.AllowFullscreen and function()
-					updateInitialLenseSizeRef()
-					State.mutate(function(state)
-						state.temporary.isFullscreen = not state.temporary.isFullscreen
-					end)
-				end,
-				OnCapture = function(rect)
-					local captureTypeIndex = State.read().temporary.viewportCaptureTypeIndex
-					local captureType = assert(Captures.Viewport.Order[captureTypeIndex], "No capture type found")
-
-					local trove = Trove.new()
-					if screenGuiRef.current and UIHider.isViewportAppExcluded(rect) then
-						trove:Add(UIHider.addExclusion(screenGuiRef.current))
-					end
-
-					local captures, err = Photo.captureViewport({
-						rect = rect,
-						type = captureType :: Captures.ViewportCaptureTypes,
-					})
-
-					trove:Destroy()
-
-					local selection = Photo.export(captures, StarterGui)
-					SelectionService:Set(selection :: any)
-					return not err, err
-				end,
-				InitialSize = initialLenseSizeRef.current,
-				FocusLenseSizeRef = focusLenseSizeRef,
+			Fullscreen = React.createElement(FullViewport, {
+				OnMinimize = onMinMax,
+				OnCapture = onCapture,
+				Visible = isFullscreen :: boolean,
 				Disabled = isCapturing,
-			})
+			}),
+
+			Cropped = React.createElement(CroppedViewport, {
+				OnMaximize = onMinMax,
+				OnCapture = onCapture,
+				Visible = not isFullscreen :: boolean,
+				Disabled = isCapturing,
+			}),
 		})
 	end
 
@@ -233,7 +215,6 @@ function UserInterface.mountCaptureViewport(plugin: Plugin, toolbar: PluginToolb
 
 	plugin.Unloading:Connect(function()
 		coreGuiRoot:unmount()
-		actionTrove:Destroy()
 		folder:Destroy()
 	end)
 end
