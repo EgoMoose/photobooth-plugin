@@ -329,7 +329,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Disabled = props.Disabled,
 			}),
 
-			AlignButtons = React.createElement(AlignButtons, {
+			AlignButtons = not props.Disabled and React.createElement(AlignButtons, {
 				Visible = isCropMode or isDragCropMode,
 
 				OnJustify = function(jx, jy)
@@ -351,7 +351,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				end,
 
 				ZIndex = 2,
-				Disabled = props.Disabled,
+				Disabled = not not props.Disabled,
 			}),
 		}),
 
