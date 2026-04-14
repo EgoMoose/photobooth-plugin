@@ -38,6 +38,9 @@ jobs:
           path: bindings-package/photobooth-bindings-${{ github.ref_name }}.rbxm
       
       - name: Upload bindings rbxm to Release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} bindings-package/photobooth-bindings-${{ github.ref_name }}.rbxm
 
