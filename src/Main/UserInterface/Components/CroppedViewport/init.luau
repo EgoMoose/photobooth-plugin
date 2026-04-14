@@ -1,5 +1,4 @@
 --!strict
-local UserInputService = game:GetService("UserInputService")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
