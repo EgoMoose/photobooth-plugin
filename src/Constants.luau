@@ -4,7 +4,6 @@
 -- so do not use roblox data types
 
 return {
-	AllowFullscreen = true,
 	AllowExperimentalMode = true,
 
 	TileHighResImagesEnabled = true,

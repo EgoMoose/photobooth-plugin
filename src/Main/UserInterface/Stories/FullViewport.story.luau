@@ -7,8 +7,6 @@ local React = require(pluginRoot.Packages.React)
 local State = require(pluginRoot.Main.State)
 State.storybook()
 
-local Constants = require(pluginRoot.Constants)
-
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local FullViewport = require(uiRoot.Components.FullViewport)
 
@@ -17,7 +15,7 @@ local CreateStory = require(stories.Helpers.CreateStory)
 
 local function story()
 	local isDisabled, setIsDisabled = React.useState(false)
-	local focusLenseSizeRef = React.useRef(Vector2.zero)
+	local focusLenseSizeRef = React.useRef(Rect.new(0, 0, 0, 0))
 
 	return React.createElement("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -26,11 +24,9 @@ local function story()
 		BackgroundTransparency = 1,
 	}, {
 		FullViewport = React.createElement(FullViewport, {
-			OnMinimize = if Constants.AllowFullscreen
-				then function()
-					print("Minimize")
-				end
-				else nil,
+			OnMinimize = function()
+				print("Minimize")
+			end,
 
 			OnCapture = function(rect)
 				setIsDisabled(true)
@@ -46,7 +42,7 @@ local function story()
 				return true
 			end,
 
-			FocusLenseSizeRef = focusLenseSizeRef,
+			Visible = true,
 			Disabled = isDisabled,
 		}),
 	})
