@@ -8,6 +8,7 @@
 /.vscode/settings.json
 
 /bindings-package
+/.build
 
 *.rbxm
 globalTypes.d.lua
