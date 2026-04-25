@@ -1,6 +1,9 @@
 # Changelog
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [2.0.1] - 2026/04/24
+- Fix wally bindings package
+
 ### [2.0.0] - 2026/04/14
 - Add the ability to adjust the cropped viewport rect while holding the shift key and the studio viewport is focused
 - Update photobooth bindings package to better support third party uses (i.e. custom plugins)
