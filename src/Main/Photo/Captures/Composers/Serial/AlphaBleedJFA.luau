@@ -4,10 +4,14 @@
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Timeout = require(pluginRoot.Utilities.Timeout)
+local Image = require(pluginRoot.Utilities.Image)
 
 local Constants = require(pluginRoot.Constants)
 
-local function workerAction(imgBuffer: buffer, imgSize: Vector2)
+local function alphaBleedJFASerial(img: Image.Image)
+	local imgBuffer = img.buffer
+	local imgSize = img.size
+
 	local width, height = imgSize.X, imgSize.Y
 	local nPixels = width * height
 
@@ -88,8 +92,8 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 		seedRead, seedWrite = seedWrite, seedRead
 	end
 
-	local jfaBuffer = buffer.create(width * height * 4)
-	buffer.copy(jfaBuffer, 0, imgBuffer)
+	local jfaImg = img:Clone()
+	local jfaBuffer = jfaImg.buffer
 
 	for i = 1, nPixels do
 		local j = (i - 1) * 4
@@ -116,7 +120,7 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 
 	Timeout.tryYield()
 
-	return jfaBuffer
+	return jfaImg
 end
 
-return workerAction
+return alphaBleedJFASerial
