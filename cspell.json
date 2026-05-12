@@ -11,6 +11,7 @@
         "cframe",
         "codegen",
         "deque",
+        "desynchronize",
         "egomoose",
         "flipbook",
         "fromstring",
@@ -47,6 +48,7 @@
         "Topbar",
         "udim",
         "unhide",
+        "voronoi",
         "writeu32",
         "writeu8"
     ],
