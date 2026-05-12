@@ -67,8 +67,9 @@ local function worker(img: EditableImage, voronoi: EditableImage, crop: Rect, st
 		end
 	end
 
-	task.synchronize()
-	voronoi:WritePixelsBuffer(crop.Min, cropSize, seedWrite)
+	-- task.synchronize()
+	-- voronoi:WritePixelsBuffer(crop.Min, cropSize, seedWrite)
+	return seedWrite
 end
 
 return worker

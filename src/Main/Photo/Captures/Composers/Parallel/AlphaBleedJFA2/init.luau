@@ -25,22 +25,16 @@ So what are we to do? Luckily we can send an editable image which is an instance
 said editable image b/c `:ReadPixelsBuffer()` can be used in parallel.
 --]]
 
-local function getCropRegions(imgEdit: EditableImage, nRegions: number)
+local function getCropRegions(imgEdit: EditableImage, nSlices: number)
 	local imgSize = imgEdit.Size
 	local imgWidth, imgHeight = imgSize.X, imgSize.Y
 
-	local stepX = math.floor(imgWidth / nRegions)
-	local stepY = math.floor(imgHeight / nRegions)
-
 	local regions = {}
-	for dy = 1, nRegions do
-		for dx = 1, nRegions do
-			local x0 = (dx - 1) * stepX
-			local y0 = (dy - 1) * stepY
-			local x1 = if dx == nRegions then imgWidth else dx * stepX
-			local y1 = if dy == nRegions then imgHeight else dy * stepY
-			table.insert(regions, Rect.new(x0, y0, x1, y1))
-		end
+	local stepY = math.floor(imgHeight / nSlices)
+	for dy = 1, nSlices do
+		local y0 = (dy - 1) * stepY
+		local y1 = if dy == nSlices then imgHeight else dy * stepY
+		table.insert(regions, Rect.new(0, y0, imgWidth, y1))
 	end
 
 	return regions
@@ -49,21 +43,17 @@ end
 local function alphaBleedJFA(img: Image.Image)
 	local imgEdit = img:Save()
 	local voronoiEdit = img:Save()
+	local bledImg = img:Clone()
 
 	local cropRegions = getCropRegions(imgEdit, Constants.JFAActorCount)
 
-	local dt = Timeout.benchmark(function()
-		FirstPass(imgEdit, voronoiEdit, cropRegions)
-		JFAPass(imgEdit, voronoiEdit, cropRegions)
-	end)
-
-	print(dt)
-
-	local bledImg = img:Clone()
-	local bledBuffer = bledImg.buffer
+	FirstPass(imgEdit, voronoiEdit, cropRegions)
+	JFAPass(imgEdit, voronoiEdit, cropRegions)
 
 	local imgBuffer = img.buffer
+	local bledBuffer = bledImg.buffer
 	local voronoiBuffer = Image.fromEditableImage(voronoiEdit).buffer
+
 	for i = 1, img:GetNumberOfPixels() do
 		local j = (i - 1) * 4
 

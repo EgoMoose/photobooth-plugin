@@ -14,11 +14,24 @@ local scheduler = Parallel.new(Constants.JFAActorCount, {
 local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions: { Rect })
 	scheduler:WaitForReady()
 
+	local imgSize = img.Size
+	local imgWidth, imgHeight = imgSize.X, imgSize.Y
+
 	for _, crop in regions do
 		scheduler:Schedule(img, voronoi, crop)
 	end
 
-	scheduler:Work()
+	local offset = 0
+	local stitched = buffer.create(imgWidth * imgHeight * 4)
+
+	local results = scheduler:Work()
+	for i, getCropBuffer in results do
+		local cropBuffer = getCropBuffer()
+		buffer.copy(stitched, offset, cropBuffer)
+		offset = offset + buffer.len(cropBuffer)
+	end
+
+	voronoi:WritePixelsBuffer(Vector2.zero, imgSize, stitched)
 end
 
 return firstPassJFA
