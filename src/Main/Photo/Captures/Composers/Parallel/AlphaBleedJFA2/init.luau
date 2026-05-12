@@ -33,13 +33,15 @@ local function getCropRegions(imgEdit: EditableImage, nRegions: number)
 	local stepY = math.floor(imgHeight / nRegions)
 
 	local regions = {}
-	for dy = 1, stepY - 1 do
-		for dx = 1, stepX - 1 do
-			table.insert(regions, Rect.new((dx - 1) * stepX, (dy - 1) * stepY, dx * stepX, dy * stepY))
+	for dy = 1, nRegions do
+		for dx = 1, nRegions do
+			local x0 = (dx - 1) * stepX
+			local y0 = (dy - 1) * stepY
+			local x1 = if dx == nRegions then imgWidth else dx * stepX
+			local y1 = if dy == nRegions then imgHeight else dy * stepY
+			table.insert(regions, Rect.new(x0, y0, x1, y1))
 		end
 	end
-
-	table.insert(regions, Rect.new((stepX - 1) * stepX, (stepY - 1) * stepY, imgWidth, imgHeight))
 
 	return regions
 end
