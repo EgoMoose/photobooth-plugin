@@ -3,6 +3,7 @@
 local Lighting = game:GetService("Lighting") :: Lighting
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
+local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
@@ -56,15 +57,8 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 
 	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
-		local t = os.clock()
-		local _ = Composers.alphaBleed(capture, 8)
-		print(os.clock() - t)
-
-		t = os.clock()
-		capture = Composers.alphaBleedJFA(capture)
-		print(os.clock() - t)
-
-		capture = Composers.fullyOpaque(capture)
+		print("og", Timeout.benchmark(Composers.alphaBleed, capture))
+		print("jfa", Timeout.benchmark(Composers.alphaBleedJFA, capture))
 	end
 
 	return capture

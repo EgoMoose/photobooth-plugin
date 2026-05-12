@@ -12,7 +12,10 @@ local Timeout = require(pluginRoot.Utilities.Timeout)
 --   k>0  => 1-based pixelIndex of the nearest opaque pixel
 --
 -- Each pass reads from `seedRead`, writes the merged result into `seedWrite`,
--- then the two are swapped. Passes use step = maxDim/2, /4, ..., 1.
+-- then the two are swapped. Passes use step = maxDim/2, /4, ..., 1, plus one
+-- extra step=1 pass at the end (the "JFA+1" refinement: corrects rare 1-pixel
+-- seed-selection errors at certain Voronoi boundaries with one more pass over
+-- the immediate 3x3 neighborhood).
 
 local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 	local width = imgSize.X
@@ -33,8 +36,19 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 	end
 	Timeout.tryYield()
 
-	local step = maxDim // 2
-	while step >= 1 do
+	-- Build the step schedule: maxDim/2, maxDim/4, ..., 1, then one more 1
+	-- for the JFA+1 refinement pass.
+	local passSteps = {}
+	local nextStep = maxDim // 2
+	while nextStep >= 1 do
+		table.insert(passSteps, nextStep)
+		nextStep = nextStep // 2
+	end
+
+	-- uncomment for JFA + 1
+	-- table.insert(passSteps, 1)
+
+	for _, step in passSteps do
 		for y = 1, height do
 			for x = 1, width do
 				local pByteOffset = ((y - 1) * width + x - 1) * 4
@@ -89,7 +103,6 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 		end
 
 		seedRead, seedWrite = seedWrite, seedRead
-		step = step // 2
 	end
 
 	-- Compose: copy nearest-opaque RGB into each transparent pixel; keep alpha = 0.
