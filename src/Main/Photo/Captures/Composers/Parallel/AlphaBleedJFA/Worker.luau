@@ -7,7 +7,7 @@ local Timeout = require(pluginRoot.Utilities.Timeout)
 
 local Constants = require(pluginRoot.Constants)
 
-local function workerAction(imgBuffer: buffer, imgSize: Vector2)
+local function workerAction(imgBuffer: buffer, imgSize: Vector2, nBleedPixels: number?)
 	local width, height = imgSize.X, imgSize.Y
 	local nPixels = width * height
 
@@ -25,7 +25,9 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2)
 	Timeout.tryYield()
 
 	local passSteps = {}
-	local nextStep = math.floor(math.max(width, height) / 2)
+	local nextStep = if nBleedPixels
+		then math.floor(2 ^ math.ceil(math.log(nBleedPixels, 2)))
+		else math.floor(math.max(width, height) / 2)
 	while nextStep >= 1 do
 		table.insert(passSteps, nextStep)
 		nextStep = math.floor(nextStep / 2)

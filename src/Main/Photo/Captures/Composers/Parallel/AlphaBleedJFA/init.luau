@@ -11,9 +11,9 @@ local scheduler = Parallel.new(1, {
 	typecast = (nil :: any) :: WorkerAction,
 })
 
-local function alphaBleedJFA(img: Image.Image)
+local function alphaBleedJFA(img: Image.Image, nBleedPixels: number?)
 	scheduler:WaitForReady()
-	scheduler:Schedule(img.buffer, img.size)
+	scheduler:Schedule(img.buffer, img.size, nBleedPixels)
 	local packedResults = scheduler:Work()
 
 	local result = Image.fromBuffer(packedResults[1](), img.size)

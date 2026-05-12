@@ -8,7 +8,7 @@ local Image = require(pluginRoot.Utilities.Image)
 
 local Constants = require(pluginRoot.Constants)
 
-local function alphaBleedJFASerial(img: Image.Image)
+local function alphaBleedJFASerial(img: Image.Image, nBleedPixels: number?)
 	local imgBuffer = img.buffer
 	local imgSize = img.size
 
@@ -29,7 +29,9 @@ local function alphaBleedJFASerial(img: Image.Image)
 	Timeout.tryYield()
 
 	local passSteps = {}
-	local nextStep = math.floor(math.max(width, height) / 2)
+	local nextStep = if nBleedPixels
+		then math.floor(2 ^ math.ceil(math.log(nBleedPixels, 2)))
+		else math.floor(math.max(width, height) / 2)
 	while nextStep >= 1 do
 		table.insert(passSteps, nextStep)
 		nextStep = math.floor(nextStep / 2)
