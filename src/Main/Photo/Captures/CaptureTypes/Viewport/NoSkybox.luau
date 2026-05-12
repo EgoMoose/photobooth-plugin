@@ -57,7 +57,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
 		local t = os.clock()
-		local _ = Composers.alphaBleed(capture)
+		local _ = Composers.alphaBleed(capture, 8)
 		print(os.clock() - t)
 
 		t = os.clock()
