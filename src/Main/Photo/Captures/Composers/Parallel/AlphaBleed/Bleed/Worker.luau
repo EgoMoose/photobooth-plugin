@@ -4,17 +4,22 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
-local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer, pending: { number }, nPixels: number)
+local function workerAction(
+	imgBuffer: buffer,
+	imgSize: Vector2,
+	visited: buffer,
+	pending: { number },
+	nBleedPixels: number
+)
 	local img = Image.fromBuffer(imgBuffer, imgSize)
 
-	local k = 0
+	local iteration = 0
 	while #pending > 0 do
-		if k > nPixels then
+		if iteration > nBleedPixels then
 			break
 		end
 
 		local pendingNext = {}
-
 		for i = 1, #pending do
 			local index = pending[i]
 
@@ -51,7 +56,7 @@ local function workerAction(imgBuffer: buffer, imgSize: Vector2, visited: buffer
 		end
 
 		pending = pendingNext
-		k = k + 1
+		iteration = iteration + 1
 	end
 
 	return img.buffer
