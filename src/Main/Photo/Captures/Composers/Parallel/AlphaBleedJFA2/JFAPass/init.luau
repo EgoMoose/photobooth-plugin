@@ -61,7 +61,7 @@ local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions:
 	end
 
 	local total = totalWork + totalWrite
-	print(total)
+	print("TOTAL:", total)
 	print(totalWork, totalWork / total)
 	print(totalWrite, totalWrite / total)
 end
