@@ -3,7 +3,6 @@
 local Lighting = game:GetService("Lighting") :: Lighting
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 local Trove = require(pluginRoot.Packages.Trove)
 
