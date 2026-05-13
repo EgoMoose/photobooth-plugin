@@ -11,7 +11,7 @@ local scheduler = Parallel.new(Constants.JFAActorCount, {
 	typecast = (nil :: any) :: WorkerAction,
 })
 
-local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions: { Rect })
+local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: { Rect })
 	scheduler:WaitForReady()
 
 	local imgSize = img.Size
@@ -22,16 +22,20 @@ local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions:
 	end
 
 	local offset = 0
+	local invisibleCount = 0
 	local stitched = buffer.create(imgWidth * imgHeight * 4)
 
 	local results = scheduler:Work()
 	for i, getCropBuffer in results do
-		local cropBuffer = getCropBuffer()
+		local cropBuffer, count = getCropBuffer()
+		invisibleCount = invisibleCount + count
 		buffer.copy(stitched, offset, cropBuffer)
 		offset = offset + buffer.len(cropBuffer)
 	end
 
 	voronoi:WritePixelsBuffer(Vector2.zero, imgSize, stitched)
+
+	return invisibleCount
 end
 
-return firstPassJFA
+return plantSeeds

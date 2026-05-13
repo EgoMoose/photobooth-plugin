@@ -7,12 +7,12 @@ local function worker(img: EditableImage, voronoi: EditableImage, crop: Rect, st
 	local imgWidth, imgHeight = imgSize.X, imgSize.Y
 
 	local cropSize = crop.Max - crop.Min
-	local cropWidth, _cropHeight = cropSize.X, cropSize.Y
+	local cropWidth, cropHeight = cropSize.X, cropSize.Y
 	local minX, maxX = crop.Min.X, crop.Max.X
 	local minY, maxY = crop.Min.Y, crop.Max.Y
 
 	local seedRead = voronoi:ReadPixelsBuffer(Vector2.zero, imgSize)
-	local seedWrite = voronoi:ReadPixelsBuffer(crop.Min, cropSize)
+	local seedWrite = buffer.create(cropWidth * cropHeight * 4)
 
 	for y = minY + 1, maxY do
 		for x = minX + 1, maxX do
@@ -57,13 +57,13 @@ local function worker(img: EditableImage, voronoi: EditableImage, crop: Rect, st
 						end
 					end
 				end
-
-				local cx = x - minX
-				local cy = y - minY
-				local ci = cx + (cy - 1) * cropWidth
-				local cj = (ci - 1) * 4
-				buffer.writeu32(seedWrite, cj, closestSeed)
 			end
+
+			local cx = x - minX
+			local cy = y - minY
+			local ci = cx + (cy - 1) * cropWidth
+			local cj = (ci - 1) * 4
+			buffer.writeu32(seedWrite, cj, closestSeed)
 		end
 	end
 

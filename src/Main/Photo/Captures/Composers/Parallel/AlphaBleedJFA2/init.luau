@@ -6,8 +6,9 @@ local Image = require(pluginRoot.Utilities.Image)
 
 local Constants = require(pluginRoot.Constants)
 
-local FirstPass = require(script.FirstPass)
-local JFAPass = require(script.JFAPass)
+local PlantSeeds = require(script.PlantSeeds)
+local JFAPasses = require(script.JFAPasses)
+local Bleed = require(script.Bleed)
 
 --[[
 Some principals to understand about this code and how it's optimized for roblox's parallel luau system.
@@ -43,41 +44,25 @@ end
 local function alphaBleedJFA(img: Image.Image)
 	local imgEdit = img:Save()
 	local voronoiEdit = img:Save()
-	local bledImg = img:Clone()
 
 	local cropRegions = getCropRegions(imgEdit, Constants.JFAActorCount)
 
-	FirstPass(imgEdit, voronoiEdit, cropRegions)
-	JFAPass(imgEdit, voronoiEdit, cropRegions)
+	local invisiblePixelCount = PlantSeeds(imgEdit, voronoiEdit, cropRegions)
+	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions, invisiblePixelCount)
 
-	local imgBuffer = img.buffer
-	local bledBuffer = bledImg.buffer
-	local voronoiBuffer = Image.fromEditableImage(voronoiEdit).buffer
+	local resultImg = img
+	if nPasses > 0 then
+		local bledBuffer = Bleed(imgEdit, voronoiEdit, cropRegions)
 
-	for i = 1, img:GetNumberOfPixels() do
-		local j = (i - 1) * 4
-
-		local alpha = buffer.readu8(imgBuffer, j + 3)
-		if alpha > 0 then
-			continue
-		end
-
-		local seed = buffer.readu32(voronoiBuffer, j)
-		if seed == 0 then
-			continue
-		end
-
-		local k = (seed - 1) * 4
-		local r = buffer.readu8(imgBuffer, k + 0)
-		local g = buffer.readu8(imgBuffer, k + 1)
-		local b = buffer.readu8(imgBuffer, k + 2)
-
-		buffer.writeu8(bledBuffer, j + 0, r)
-		buffer.writeu8(bledBuffer, j + 1, g)
-		buffer.writeu8(bledBuffer, j + 2, b)
+		local bledImg = Image.fromBuffer(bledBuffer, img.size)
+		bledImg.templateUri = img.templateUri
+		resultImg = bledImg
 	end
 
-	return bledImg
+	imgEdit:Destroy()
+	voronoiEdit:Destroy()
+
+	return resultImg
 end
 
 return alphaBleedJFA
