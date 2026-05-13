@@ -44,13 +44,13 @@ end
 local function alphaBleedJFA(img: Image.Image)
 	local imgEdit = img:Save()
 	local voronoiEdit = img:Save()
+	local resultImg = img
 
 	local cropRegions = getCropRegions(imgEdit, Constants.JFAActorCount)
 
-	local nBleedPixels = PlantSeeds(imgEdit, voronoiEdit, cropRegions)
-	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions, nBleedPixels)
+	PlantSeeds(imgEdit, voronoiEdit, cropRegions)
+	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions)
 
-	local resultImg = img
 	if nPasses > 0 then
 		local bledBuffer = Bleed(imgEdit, voronoiEdit, cropRegions)
 
