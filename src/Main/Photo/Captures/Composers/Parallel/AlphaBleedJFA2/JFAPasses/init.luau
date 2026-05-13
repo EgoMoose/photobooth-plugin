@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
+local Parallel = require(pluginRoot.Packages.Parallel)
 
 local Constants = require(pluginRoot.Constants)
 
@@ -13,7 +13,7 @@ local scheduler = Parallel.new(Constants.JFAActorCount, {
 })
 
 local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions: { Rect }, nBleedPixels: number?)
-	scheduler:WaitForReady()
+	scheduler:waitForReady()
 
 	local imgSize = img.Size
 	local imgWidth, imgHeight = imgSize.X, imgSize.Y
@@ -37,11 +37,11 @@ local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions:
 
 	for _, step in passSteps do
 		for _, crop in regions do
-			scheduler:Schedule(img, voronoi, crop, step)
+			scheduler:schedule(img, voronoi, crop, step)
 		end
 
 		local offset = 0
-		local results = scheduler:Work()
+		local results = scheduler:workAsync()
 		for i, getCropBuffer in results do
 			local cropBuffer = getCropBuffer()
 			buffer.copy(stitched, offset, cropBuffer)

@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
+local Parallel = require(pluginRoot.Packages.Parallel)
 local Constants = require(pluginRoot.Constants)
 
 local EstimateBleedDistance = require(script.EstimateBleedDistance)
@@ -14,13 +14,13 @@ local scheduler = Parallel.new(Constants.JFAActorCount, {
 })
 
 local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: { Rect })
-	scheduler:WaitForReady()
+	scheduler:waitForReady()
 
 	local imgSize = img.Size
 	local imgWidth, imgHeight = imgSize.X, imgSize.Y
 
 	for _, crop in regions do
-		scheduler:Schedule(img, voronoi, crop)
+		scheduler:schedule(img, voronoi, crop)
 	end
 
 	local offset = 0
@@ -28,7 +28,7 @@ local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: {
 	local minTY, maxTY = math.huge, -math.huge
 	local stitched = buffer.create(imgWidth * imgHeight * 4)
 
-	local results = scheduler:Work()
+	local results = scheduler:workAsync()
 	for i, getCropBuffer in results do
 		local cropBuffer, cMinX, cMaxX, cMinY, cMaxY = getCropBuffer()
 

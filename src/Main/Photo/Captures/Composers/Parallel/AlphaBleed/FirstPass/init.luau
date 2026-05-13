@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
+local Parallel = require(pluginRoot.Packages.Parallel)
 local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
@@ -13,14 +13,14 @@ local scheduler = Parallel.new(32, {
 })
 
 local function parallelize(img: Image.Image)
-	scheduler:WaitForReady()
+	scheduler:waitForReady()
 
-	for _, chunk in img:Split(scheduler:GetActorCount(), 1) do
-		scheduler:Schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
+	for _, chunk in img:Split(scheduler:getActorCount(), 1) do
+		scheduler:schedule(chunk.buffer, chunk.size, chunk.crop, chunk.minIndex)
 		Timeout.tryYield()
 	end
 
-	local packedResults = scheduler:Work()
+	local packedResults = scheduler:workAsync()
 	Timeout.tryYield()
 
 	local pending = {}
