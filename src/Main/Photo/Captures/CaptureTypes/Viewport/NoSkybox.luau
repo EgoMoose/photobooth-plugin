@@ -56,8 +56,17 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 
 	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
-		capture = Composers.alphaBleedJFA(capture)
-		capture = Composers.fullyOpaque(capture)
+		local t = os.clock()
+		Composers.alphaBleed(capture)
+		print("OG", os.clock() - t)
+
+		t = os.clock()
+		Composers.alphaBleedJFA(capture)
+		print("JFA", os.clock() - t)
+
+		t = os.clock()
+		capture = Composers.alphaBleedJFA2(capture)
+		print("JFA2", os.clock() - t)
 	end
 
 	return capture

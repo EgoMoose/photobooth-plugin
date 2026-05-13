@@ -4,7 +4,7 @@ local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Parallel = require(pluginRoot.Utilities.Parallel)
 local Constants = require(pluginRoot.Constants)
 
-local EstimateBleedDistance = require(script.Parent.EstimateBleedDistance)
+local EstimateBleedDistance = require(script.EstimateBleedDistance)
 
 type WorkerAction = typeof(require(script.Worker))
 
@@ -43,23 +43,15 @@ local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: {
 
 	voronoi:WritePixelsBuffer(Vector2.zero, imgSize, stitched)
 
-	local nBleedPixels
+	local nBleedPixels: number?
 	if minTX > maxTX then
-		-- No transparent pixels — JFAPasses sees 0 and does nothing.
 		nBleedPixels = 0
 	elseif minTX > 1 and maxTX < imgWidth and minTY > 1 and maxTY < imgHeight then
-		-- Transparent bbox is strictly inside the image, so opaque pixels are guaranteed
-		-- to exist just outside each bbox edge — the bbox bound is sound and cheap.
 		local bboxW = maxTX - minTX + 1
 		local bboxH = maxTY - minTY + 1
 		nBleedPixels = math.ceil(math.min(bboxW, bboxH) / 2)
-	else
-		-- Bbox touches an image edge (icon-on-transparent and similar). Fall back to
-		-- a Chebyshev distance transform to get a tight, sound bound.
-		local t = os.clock()
+	elseif true then
 		nBleedPixels = EstimateBleedDistance(img)
-		print(os.clock() - t)
-		print(nBleedPixels)
 	end
 
 	return nBleedPixels
