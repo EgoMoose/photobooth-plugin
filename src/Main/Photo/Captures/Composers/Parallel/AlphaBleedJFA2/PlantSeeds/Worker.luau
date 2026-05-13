@@ -12,7 +12,8 @@ local function worker(img: EditableImage, voronoi: EditableImage, crop: Rect)
 	local minX, maxX = crop.Min.X, crop.Max.X
 	local minY, maxY = crop.Min.Y, crop.Max.Y
 
-	local invisibleCount = 0
+	local minTX, maxTX = math.huge, -math.huge
+	local minTY, maxTY = math.huge, -math.huge
 	local seedBuffer = buffer.create(cropWidth * cropHeight * 4)
 
 	for y = minY + 1, maxY do
@@ -29,12 +30,15 @@ local function worker(img: EditableImage, voronoi: EditableImage, crop: Rect)
 
 				buffer.writeu32(seedBuffer, cj, i)
 			else
-				invisibleCount = invisibleCount + 1
+				minTX = math.min(minTX, x)
+				maxTX = math.max(maxTX, x)
+				minTY = math.min(minTY, y)
+				maxTY = math.max(maxTY, y)
 			end
 		end
 	end
 
-	return seedBuffer, invisibleCount
+	return seedBuffer, minTX, maxTX, minTY, maxTY
 end
 
 return worker

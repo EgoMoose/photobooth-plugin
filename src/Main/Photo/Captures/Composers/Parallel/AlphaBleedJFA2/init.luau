@@ -47,8 +47,8 @@ local function alphaBleedJFA(img: Image.Image)
 
 	local cropRegions = getCropRegions(imgEdit, Constants.JFAActorCount)
 
-	local invisiblePixelCount = PlantSeeds(imgEdit, voronoiEdit, cropRegions)
-	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions, invisiblePixelCount)
+	local nBleedPixels = PlantSeeds(imgEdit, voronoiEdit, cropRegions)
+	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions, nBleedPixels)
 
 	local resultImg = img
 	if nPasses > 0 then
