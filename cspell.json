@@ -50,6 +50,7 @@
         "udim",
         "unhide",
         "voronoi",
+        "writei",
         "writeu32",
         "writeu8"
     ],
