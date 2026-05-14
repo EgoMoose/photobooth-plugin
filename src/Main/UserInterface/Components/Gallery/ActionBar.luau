@@ -8,9 +8,16 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
 
+local useImageControls = require(script.Parent.useImageControls)
+
 local IMPORT_ICON = assert(Lucide.GetAsset("image-up", 16))
 local RIGHT_ICON = assert(Lucide.GetAsset("chevron-right", 16))
 local LEFT_ICON = assert(Lucide.GetAsset("chevron-left", 16))
+local ZOOM_IN_ICON = assert(Lucide.GetAsset("zoom-in", 16))
+local ZOOM_OUT_ICON = assert(Lucide.GetAsset("zoom-out", 16))
+local RESET_ZOOM_ICON = assert(Lucide.GetAsset("maximize", 16))
+
+local BUTTON_ZOOM_STEP = 1.25
 
 export type Props = {
 	AnchorPoint: Vector2,
@@ -20,6 +27,8 @@ export type Props = {
 	SelectedIndex: number,
 	SetSelectedIndex: (number) -> (),
 	SelectedCount: number,
+
+	ImageControls: useImageControls.ImageControls,
 
 	OnImport: () -> (),
 
@@ -42,6 +51,14 @@ local function ActionBar(props: Props)
 		local newIndex = ((props.SelectedIndex + step - 1) % props.SelectedCount) + 1
 		props.SetSelectedIndex(newIndex)
 	end
+
+	local controls = props.ImageControls
+	local zoom = controls.zoom
+	local maxZoom = controls.maxZoom
+	local zoomEnabled = controls.hasImage and not props.Disabled
+	local zoomedOut = zoom > 1
+	local zoomedIn = zoom < maxZoom
+	local zoomPercentText = `{math.floor(zoom * 100 + 0.5)}%`
 
 	return React.createElement("Frame", {
 		AnchorPoint = props.AnchorPoint,
@@ -122,6 +139,77 @@ local function ActionBar(props: Props)
 				VerticalAlignment = Enum.VerticalAlignment.Center,
 				HorizontalAlignment = Enum.HorizontalAlignment.Right,
 				Padding = UDim.new(0, 4),
+			}),
+
+			ZoomOut = React.createElement(LucideButton, {
+				LayoutOrder = 1,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				Size = UDim2.fromOffset(ZOOM_OUT_ICON.ImageRectSize.X, ZOOM_OUT_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled,
+				Icon = ZOOM_OUT_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
+
+				OnActivated = function()
+					if zoomEnabled and zoomedOut then
+						controls.zoomBy(1 / BUTTON_ZOOM_STEP)
+					end
+				end,
+			}),
+
+			ZoomLabel = React.createElement("TextLabel", {
+				LayoutOrder = 2,
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(36, 16),
+
+				Text = zoomPercentText,
+				TextColor3 = getImageButtonColor(
+					theme,
+					if zoomEnabled
+						then Enum.StudioStyleGuideModifier.Default
+						else Enum.StudioStyleGuideModifier.Disabled
+				),
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextYAlignment = Enum.TextYAlignment.Center,
+			}),
+
+			ZoomIn = React.createElement(LucideButton, {
+				LayoutOrder = 3,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				Size = UDim2.fromOffset(ZOOM_IN_ICON.ImageRectSize.X, ZOOM_IN_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled,
+				Icon = ZOOM_IN_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
+
+				OnActivated = function()
+					if zoomEnabled and zoomedIn then
+						controls.zoomBy(BUTTON_ZOOM_STEP)
+					end
+				end,
+			}),
+
+			Reset = React.createElement(LucideButton, {
+				LayoutOrder = 4,
+				AnchorPoint = Vector2.new(0, 0.5),
+				Position = UDim2.new(0, 0, 0.5, 0),
+				Size = UDim2.fromOffset(RESET_ZOOM_ICON.ImageRectSize.X, RESET_ZOOM_ICON.ImageRectSize.Y),
+				Disabled = props.Disabled,
+				Icon = RESET_ZOOM_ICON,
+
+				GetColor = function(modifier)
+					return getImageButtonColor(theme, modifier)
+				end,
+
+				OnActivated = function()
+					controls.reset()
+				end,
 			}),
 
 			Import = false and React.createElement(StudioComponents.MainButton, {
