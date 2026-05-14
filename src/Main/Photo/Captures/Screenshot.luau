@@ -16,20 +16,25 @@ local Screenshot = {}
 -- Private
 
 local function captureEditableImage()
+	print("captureEditableImage: requesting CaptureScreenshot")
 	local contentUriFuture = Future.new() :: Future.Future<string>
 	CaptureService:CaptureScreenshot(function(contentUri: string)
 		-- this is a significant bottleneck for speed
 		-- it can take roughly 0.3 seconds to complete
+		print("captureEditableImage: CaptureScreenshot callback fired")
 		contentUriFuture:complete(contentUri)
 	end)
 
 	local contentUri = contentUriFuture:expect()
+	print("captureEditableImage: contentUri obtained, calling CreateEditableImageAsync")
 	local editImage = AssetService:CreateEditableImageAsync(Content.fromUri(contentUri)) :: EditableImage
+	print("captureEditableImage: editable image created")
 
 	return editImage, contentUri
 end
 
 local function screenshot(rect: Rect?)
+	print("screenshot: entering")
 	local editImage, contentUri = captureEditableImage()
 
 	local result

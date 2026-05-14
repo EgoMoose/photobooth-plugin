@@ -6,12 +6,12 @@ local Constants = require(pluginRoot.Constants)
 
 type WorkerAction = typeof(require(script.Worker))
 
-local scheduler = Parallel.new(Constants.JFAActorCount, {
-	script = script.Worker,
-	typecast = (nil :: any) :: WorkerAction,
-})
-
 local function bleed(img: EditableImage, voronoi: EditableImage, regions: { Rect }, workingBbox: Rect)
+	local scheduler = Parallel.new(Constants.JFAActorCount, {
+		script = script.Worker,
+		typecast = (nil :: any) :: WorkerAction,
+	})
+
 	scheduler:waitForReady()
 
 	for _, crop in regions do
@@ -22,6 +22,8 @@ local function bleed(img: EditableImage, voronoi: EditableImage, regions: { Rect
 	local stitched = buffer.create(workingBbox.Width * workingBbox.Height * 4)
 
 	local results = scheduler:workAsync()
+	scheduler:Destroy()
+
 	for i, getCropBuffer in results do
 		local cropBuffer = getCropBuffer()
 		buffer.copy(stitched, offset, cropBuffer)

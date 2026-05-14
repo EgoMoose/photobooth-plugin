@@ -7,7 +7,7 @@ return {
 	AllowExperimentalMode = true,
 
 	JFAPlusOne = false,
-	JFAActorCount = 4,
+	JFAActorCount = 32,
 
 	TileHighResImagesEnabled = true,
 	TileHighResImagesSize = { X = 1024, Y = 1024 },

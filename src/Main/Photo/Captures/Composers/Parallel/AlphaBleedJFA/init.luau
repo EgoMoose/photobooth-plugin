@@ -45,8 +45,11 @@ local function sliceIntoStrips(region: Rect, nSlices: number)
 end
 
 local function alphaBleedJFA(img: Image.Image)
+	print("alphaBleedJFA: entering")
 	local imgEdit = img:Save()
+	print("alphaBleedJFA: imgEdit saved")
 	local voronoiEdit = img:Save()
+	print("alphaBleedJFA: voronoiEdit saved")
 
 	local bledImg
 	local success, err: string? = pcall(function()
@@ -55,13 +58,16 @@ local function alphaBleedJFA(img: Image.Image)
 		local plantRegions = sliceIntoStrips(fullRegion, Constants.JFAActorCount)
 
 		local workingBbox = PlantSeeds(imgEdit, voronoiEdit, plantRegions)
+		print("Seeds planted")
 
 		if workingBbox then
 			local jfaRegions = sliceIntoStrips(workingBbox, Constants.JFAActorCount)
 			local nPasses = JFAPasses(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+			print("JFA passes done")
 
 			if nPasses > 0 then
 				Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+				print("Bled")
 
 				bledImg = Image.fromEditableImage(imgEdit)
 				bledImg.templateUri = img.templateUri
