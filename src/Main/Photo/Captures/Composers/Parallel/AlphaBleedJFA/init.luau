@@ -60,9 +60,9 @@ local function alphaBleedJFA(img: Image.Image)
 		local nPasses = JFAPasses(imgEdit, voronoiEdit, jfaRegions, workingBbox)
 
 		if nPasses > 0 then
-			local bledBuffer = Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+			Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
 
-			local bledImg = Image.fromBuffer(bledBuffer, img.size)
+			local bledImg = Image.fromEditableImage(imgEdit)
 			bledImg.templateUri = img.templateUri
 			resultImg = bledImg
 		end
