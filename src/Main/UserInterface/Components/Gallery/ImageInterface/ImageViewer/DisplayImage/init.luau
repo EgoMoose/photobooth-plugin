@@ -6,7 +6,7 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 local Icons = require(uiRoot.Icons)
 
-local useImageControls = require(script.Parent.Parent.Parent.useImageControls)
+local useImageControls = require(script.Parent.Parent.useImageControls)
 local HighResImageSplit = require(script.HighResImageSplit)
 
 local OUTLINE_THICKNESS = 2

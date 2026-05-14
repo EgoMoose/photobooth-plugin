@@ -6,7 +6,7 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
-local useImageControls = require(script.Parent.Parent.useImageControls)
+local useImageControls = require(script.Parent.useImageControls)
 
 local NoImage = require(script.NoImage)
 local DisplayImage = require(script.DisplayImage)

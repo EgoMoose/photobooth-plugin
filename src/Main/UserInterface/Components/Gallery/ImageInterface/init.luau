@@ -9,7 +9,7 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
 local Hooks = require(uiRoot.Hooks)
 
-local useImageControls = require(script.Parent.useImageControls)
+local useImageControls = require(script.useImageControls)
 
 local ToggleScrollList = require(script.ToggleScrollList)
 local ImageViewer = require(script.ImageViewer)
