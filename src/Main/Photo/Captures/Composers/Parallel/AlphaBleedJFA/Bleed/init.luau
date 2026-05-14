@@ -3,7 +3,6 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Parallel = require(pluginRoot.Packages.Parallel)
 local Constants = require(pluginRoot.Constants)
-local Image = require(pluginRoot.Utilities.Image)
 
 type WorkerAction = typeof(require(script.Worker))
 
