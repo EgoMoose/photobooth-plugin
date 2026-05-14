@@ -67,6 +67,8 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 		t = os.clock()
 		capture = Composers.alphaBleedJFA2(capture)
 		print("JFA2", os.clock() - t)
+
+		capture = Composers.fullyOpaque(capture)
 	end
 
 	return capture

@@ -1,7 +1,6 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
 local Constants = require(pluginRoot.Constants)
@@ -26,16 +25,20 @@ So what are we to do? Luckily we can send an editable image which is an instance
 said editable image b/c `:ReadPixelsBuffer()` can be used in parallel.
 --]]
 
-local function getCropRegions(imgEdit: EditableImage, nSlices: number)
-	local imgSize = imgEdit.Size
-	local imgWidth, imgHeight = imgSize.X, imgSize.Y
+local function sliceIntoStrips(region: Rect, nSlices: number)
+	local width = region.Max.X - region.Min.X
+	local height = region.Max.Y - region.Min.Y
+	local x0 = region.Min.X
+	local y0 = region.Min.Y
+
+	nSlices = math.max(1, math.min(nSlices, height))
 
 	local regions = {}
-	local stepY = math.floor(imgHeight / nSlices)
+	local stepY = math.floor(height / nSlices)
 	for dy = 1, nSlices do
-		local y0 = (dy - 1) * stepY
-		local y1 = if dy == nSlices then imgHeight else dy * stepY
-		table.insert(regions, Rect.new(0, y0, imgWidth, y1))
+		local subY0 = y0 + (dy - 1) * stepY
+		local subY1 = if dy == nSlices then y0 + height else y0 + dy * stepY
+		table.insert(regions, Rect.new(x0, subY0, x0 + width, subY1))
 	end
 
 	return regions
@@ -46,17 +49,23 @@ local function alphaBleedJFA(img: Image.Image)
 	local voronoiEdit = img:Save()
 	local resultImg = img
 
-	local cropRegions = getCropRegions(imgEdit, Constants.JFAActorCount)
+	local imgSize = imgEdit.Size
+	local fullRegion = Rect.new(0, 0, imgSize.X, imgSize.Y)
+	local plantRegions = sliceIntoStrips(fullRegion, Constants.JFAActorCount)
 
-	PlantSeeds(imgEdit, voronoiEdit, cropRegions)
-	local nPasses = JFAPasses(imgEdit, voronoiEdit, cropRegions)
+	local workingBbox = PlantSeeds(imgEdit, voronoiEdit, plantRegions)
 
-	if nPasses > 0 then
-		local bledBuffer = Bleed(imgEdit, voronoiEdit, cropRegions)
+	if workingBbox then
+		local jfaRegions = sliceIntoStrips(workingBbox, Constants.JFAActorCount)
+		local nPasses = JFAPasses(imgEdit, voronoiEdit, jfaRegions, workingBbox)
 
-		local bledImg = Image.fromBuffer(bledBuffer, img.size)
-		bledImg.templateUri = img.templateUri
-		resultImg = bledImg
+		if nPasses > 0 then
+			local bledBuffer = Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+
+			local bledImg = Image.fromBuffer(bledBuffer, img.size)
+			bledImg.templateUri = img.templateUri
+			resultImg = bledImg
+		end
 	end
 
 	imgEdit:Destroy()

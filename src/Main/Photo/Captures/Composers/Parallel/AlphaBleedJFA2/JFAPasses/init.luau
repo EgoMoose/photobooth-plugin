@@ -12,15 +12,22 @@ local scheduler = Parallel.new(Constants.JFAActorCount, {
 	typecast = (nil :: any) :: WorkerAction,
 })
 
-local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions: { Rect }, nBleedPixels: number?)
+local function firstPassJFA(
+	img: EditableImage,
+	voronoi: EditableImage,
+	regions: { Rect },
+	workingBbox: Rect,
+	nBleedPixels: number?
+)
 	scheduler:waitForReady()
 
-	local imgSize = img.Size
-	local imgWidth, imgHeight = imgSize.X, imgSize.Y
+	local bboxSize = workingBbox.Max - workingBbox.Min
+	local bboxWidth, bboxHeight = bboxSize.X, bboxSize.Y
 
+	local maxBboxDim = math.max(bboxWidth, bboxHeight)
 	local nextStep = math.min(
 		if nBleedPixels then math.floor(2 ^ math.ceil(math.log(nBleedPixels, 2))) else math.huge,
-		math.floor(math.max(imgWidth, imgHeight) / 2)
+		math.max(1, math.floor(maxBboxDim / 2))
 	)
 
 	local passSteps = {}
@@ -33,7 +40,7 @@ local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions:
 		table.insert(passSteps, 1)
 	end
 
-	local stitched = buffer.create(imgWidth * imgHeight * 4)
+	local stitched = buffer.create(bboxWidth * bboxHeight * 4)
 
 	for _, step in passSteps do
 		for _, crop in regions do
@@ -48,7 +55,7 @@ local function firstPassJFA(img: EditableImage, voronoi: EditableImage, regions:
 			offset = offset + buffer.len(cropBuffer)
 		end
 
-		voronoi:WritePixelsBuffer(Vector2.zero, imgSize, stitched)
+		voronoi:WritePixelsBuffer(workingBbox.Min, bboxSize, stitched)
 	end
 
 	return #passSteps
