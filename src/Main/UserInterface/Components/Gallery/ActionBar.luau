@@ -155,7 +155,7 @@ local function ActionBar(props: Props)
 
 				OnActivated = function()
 					if zoomEnabled and zoomedOut then
-						controls.zoomBy(1 / BUTTON_ZOOM_STEP)
+						controls.zoomBy(1 / BUTTON_ZOOM_STEP, Vector2.new(0.5, 0.5))
 					end
 				end,
 			}),
@@ -190,7 +190,7 @@ local function ActionBar(props: Props)
 
 				OnActivated = function()
 					if zoomEnabled and zoomedIn then
-						controls.zoomBy(BUTTON_ZOOM_STEP)
+						controls.zoomBy(BUTTON_ZOOM_STEP, Vector2.new(0.5, 0.5))
 					end
 				end,
 			}),
