@@ -1,7 +1,7 @@
 --!strict
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
-local Parallel = require(pluginRoot.Utilities.Parallel)
+local Parallel = require(pluginRoot.Packages.Parallel)
 local Image = require(pluginRoot.Utilities.Image)
 
 type WorkerAction = typeof(require(script.Worker))
@@ -17,18 +17,19 @@ local function parallelize(
 	onBlack: Image.Image?,
 	colorCorrection: ColorCorrectionEffect
 )
-	scheduler:WaitForReady()
+	scheduler:waitForReady()
 
-	local splitOnWhiteRetro = onWhiteRetro:Split(scheduler:GetActorCount())
-	local splitOnBlackRetro = onBlackRetro:Split(scheduler:GetActorCount())
-	local splitOnBlack = if onBlack then onBlack:Split(scheduler:GetActorCount()) else {}
+	local actorCount = scheduler:getActorCount()
+	local splitOnWhiteRetro = onWhiteRetro:Split(actorCount)
+	local splitOnBlackRetro = onBlackRetro:Split(actorCount)
+	local splitOnBlack = if onBlack then onBlack:Split(actorCount) else {}
 
 	for i = 1, #splitOnWhiteRetro do
 		local onWhiteRetroChunk = splitOnWhiteRetro[i]
 		local onBlackRetroChunk = splitOnBlackRetro[i]
 		local onBlackChunk = splitOnBlack[i]
 
-		scheduler:Schedule(
+		scheduler:schedule(
 			onWhiteRetroChunk.size,
 			colorCorrection,
 			onWhiteRetroChunk.buffer,
@@ -37,7 +38,7 @@ local function parallelize(
 		)
 	end
 
-	local packedResults = scheduler:Work()
+	local packedResults = scheduler:workAsync()
 
 	local copyIndex = 0
 	local resultBuffer = buffer.create(onWhiteRetro:GetNumberOfPixels() * 4)

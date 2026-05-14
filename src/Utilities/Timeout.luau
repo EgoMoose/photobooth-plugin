@@ -9,7 +9,7 @@ local function getStudioTimeoutLength(default: number)
 	if RunService:IsStudio() then
 		pcall(function()
 			local timeoutLength = settings().Studio.ScriptTimeoutLength - 0.1
-			if timeoutLength > 0 then
+			if timeoutLength > 0 and timeoutLength < duration then
 				duration = timeoutLength
 			end
 		end)

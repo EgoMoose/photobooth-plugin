@@ -5,7 +5,7 @@ local IntegralImage = require(pluginRoot.Utilities.IntegralImage)
 local Timeout = require(pluginRoot.Utilities.Timeout)
 local Image = require(pluginRoot.Utilities.Image)
 
-local function alphaBleedSerial(img: Image.Image)
+local function alphaBleedSerial(img: Image.Image, nBleedPixels: number?)
 	local alphaSignIntegralImg = IntegralImage.fromImage(img, function(u32)
 		return math.sign(bit32.extract(u32, 24, 8))
 	end)
@@ -35,9 +35,14 @@ local function alphaBleedSerial(img: Image.Image)
 		end
 	end
 
+	local iteration = 0
+	local nBleedPixels2 = nBleedPixels or math.huge
 	while #pending > 0 do
-		local pendingNext = {}
+		if iteration > nBleedPixels2 then
+			break
+		end
 
+		local pendingNext = {}
 		for i = 1, #pending do
 			local index = pending[i]
 
@@ -74,6 +79,7 @@ local function alphaBleedSerial(img: Image.Image)
 		end
 
 		pending = pendingNext
+		iteration = iteration + 1
 	end
 
 	return copy
