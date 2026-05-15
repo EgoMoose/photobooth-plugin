@@ -9,6 +9,8 @@ local Image = require(pluginRoot.Utilities.Image)
 local Constants = require(pluginRoot.Constants)
 local State = require(pluginRoot.Main.State)
 
+local OS_MISMATCH = "OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value."
+
 local Screenshot = {}
 
 -- Private
@@ -30,22 +32,28 @@ end
 local function screenshot(rect: Rect?)
 	local editImage, contentUri = captureEditableImage()
 
-	local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
-	local scale = editImage.Size / viewportSize
+	local result
+	local success, err: string? = pcall(function()
+		local viewportSize = workspace.CurrentCamera.ViewportSize :: Vector2
+		local scale = editImage.Size / viewportSize
 
-	if scale ~= State.read().temporary.scaleOS then
-		error("WARN: OS Scale mismatch. You may need to go into photobooth settings and refresh the OS scale value.", 0)
+		if scale ~= State.read().temporary.scaleOS then
+			error("WARN: " .. OS_MISMATCH, 0)
+		end
+
+		result = Image.fromEditableImage(editImage, rect)
+		if not rect then
+			result:SetTemplateUri(contentUri)
+		end
+	end)
+
+	editImage:Destroy()
+
+	if not success and err then
+		error(err, 0)
 	end
 
-	local img = Image.fromEditableImage(editImage, rect)
-
-	if rect then
-		editImage:Destroy()
-	else
-		img:SetTemplateUri(contentUri)
-	end
-
-	return img
+	return result
 end
 
 -- Public

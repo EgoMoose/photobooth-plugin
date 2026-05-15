@@ -80,7 +80,7 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	-- remove background & alpha bleed
 	local capture = Composers.reverseBlend(onWhiteRetro, onBlackRetro, gradedOnBlack, colorCorrection)
 	if options.alphaBleed then
-		capture = Composers.alphaBleedJFA(capture)
+		capture = Composers.alphaBleed(capture)
 	end
 
 	return capture

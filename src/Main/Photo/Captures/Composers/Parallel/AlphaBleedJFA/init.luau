@@ -47,31 +47,36 @@ end
 local function alphaBleedJFA(img: Image.Image)
 	local imgEdit = img:Save()
 	local voronoiEdit = img:Save()
-	local resultImg = img
 
-	local imgSize = imgEdit.Size
-	local fullRegion = Rect.new(0, 0, imgSize.X, imgSize.Y)
-	local plantRegions = sliceIntoStrips(fullRegion, Constants.JFAActorCount)
+	local bledImg
+	local success, err: string? = pcall(function()
+		local imgSize = imgEdit.Size
+		local fullRegion = Rect.new(0, 0, imgSize.X, imgSize.Y)
+		local plantRegions = sliceIntoStrips(fullRegion, Constants.JFAActorCount)
 
-	local workingBbox = PlantSeeds(imgEdit, voronoiEdit, plantRegions)
+		local workingBbox = PlantSeeds(imgEdit, voronoiEdit, plantRegions)
 
-	if workingBbox then
-		local jfaRegions = sliceIntoStrips(workingBbox, Constants.JFAActorCount)
-		local nPasses = JFAPasses(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+		if workingBbox then
+			local jfaRegions = sliceIntoStrips(workingBbox, Constants.JFAActorCount)
+			local nPasses = JFAPasses(imgEdit, voronoiEdit, jfaRegions, workingBbox)
 
-		if nPasses > 0 then
-			local bledBuffer = Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
+			if nPasses > 0 then
+				Bleed(imgEdit, voronoiEdit, jfaRegions, workingBbox)
 
-			local bledImg = Image.fromBuffer(bledBuffer, img.size)
-			bledImg.templateUri = img.templateUri
-			resultImg = bledImg
+				bledImg = Image.fromEditableImage(imgEdit)
+				bledImg.templateUri = img.templateUri
+			end
 		end
-	end
+	end)
 
 	imgEdit:Destroy()
 	voronoiEdit:Destroy()
 
-	return resultImg
+	if not success and err then
+		error(err, 0)
+	end
+
+	return bledImg
 end
 
 return alphaBleedJFA

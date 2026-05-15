@@ -6,12 +6,12 @@ local Constants = require(pluginRoot.Constants)
 
 type WorkerAction = typeof(require(script.Worker))
 
-local scheduler = Parallel.new(Constants.JFAActorCount, {
-	script = script.Worker,
-	typecast = (nil :: any) :: WorkerAction,
-})
-
 local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: { Rect }): Rect?
+	local scheduler = Parallel.new(Constants.JFAActorCount, {
+		script = script.Worker,
+		typecast = (nil :: any) :: WorkerAction,
+	})
+
 	scheduler:waitForReady()
 
 	local imgSize = img.Size
@@ -29,6 +29,8 @@ local function plantSeeds(img: EditableImage, voronoi: EditableImage, regions: {
 	local tXMax, tYMax = -math.huge, -math.huge
 
 	local results = scheduler:workAsync()
+	scheduler:Destroy()
+
 	for i, getCropBuffer in results do
 		local cropBuffer, chunkHasOpaque, cXMin, cYMin, cXMax, cYMax = getCropBuffer()
 		buffer.copy(stitched, offset, cropBuffer)

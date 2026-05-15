@@ -7,11 +7,6 @@ local Constants = require(pluginRoot.Constants)
 
 type WorkerAction = typeof(require(script.Worker))
 
-local scheduler = Parallel.new(Constants.JFAActorCount, {
-	script = script.Worker,
-	typecast = (nil :: any) :: WorkerAction,
-})
-
 local function firstPassJFA(
 	img: EditableImage,
 	voronoi: EditableImage,
@@ -19,6 +14,11 @@ local function firstPassJFA(
 	workingBbox: Rect,
 	nBleedPixels: number?
 )
+	local scheduler = Parallel.new(Constants.JFAActorCount, {
+		script = script.Worker,
+		typecast = (nil :: any) :: WorkerAction,
+	})
+
 	scheduler:waitForReady()
 
 	local bboxSize = workingBbox.Max - workingBbox.Min
@@ -57,6 +57,8 @@ local function firstPassJFA(
 
 		voronoi:WritePixelsBuffer(workingBbox.Min, bboxSize, stitched)
 	end
+
+	scheduler:Destroy()
 
 	return #passSteps
 end

@@ -42,7 +42,7 @@ local function operation(options: Types.CaptureUIOptions, trove: Trove.Trove)
 
 	local capture = Composers.reverseBlend(onWhite, onBlack, nil, colorCorrection)
 	if options.alphaBleed then
-		capture = Composers.alphaBleedJFA(capture)
+		capture = Composers.alphaBleed(capture)
 	end
 
 	return capture
