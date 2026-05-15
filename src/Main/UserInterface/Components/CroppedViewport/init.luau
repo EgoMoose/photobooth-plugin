@@ -335,7 +335,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 					setCaptureRect(rect, Vector2.zero, Vector2.zero, true, false)
 				end,
 
-				UseRectText = isCropMode or isDragCropMode,
+				UseRectText = isCropMode or isTranslating,
 				OnRectInput = function(rect)
 					setCaptureRect(rect, Vector2.zero, Vector2.zero, false, false)
 				end,
@@ -349,7 +349,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			}),
 
 			AlignButtons = not props.Disabled and React.createElement(AlignButtons, {
-				Visible = not isUndersized and isCropMode and not isDragCropMode,
+				Visible = not isUndersized and (isCropMode or isTranslating),
 
 				OnJustify = function(jx, jy)
 					local justifiedRect = captureRect
