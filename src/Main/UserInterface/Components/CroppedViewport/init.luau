@@ -76,17 +76,23 @@ local function clampRect(
 	scaleOS: Vector2,
 	direction: Vector2,
 	delta: Vector2,
-	mirror: boolean
+	mirror: boolean,
+	clampMin: boolean
 )
 	local boundMinX = viewportRect.Min.X + GRABBER_MARGIN * scaleOS.X
 	local boundMinY = viewportRect.Min.Y + GRABBER_MARGIN * scaleOS.Y
 	local boundMaxX = viewportRect.Max.X - GRABBER_MARGIN * scaleOS.X
 	local boundMaxY = viewportRect.Max.Y - ACTION_BAR_MARGIN * scaleOS.Y
 
-	local minWidth = math.min(MIN_CAPTURE_WIDTH * scaleOS.X, boundMaxX - boundMinX)
-	local minHeight = math.min(MIN_CAPTURE_HEIGHT * scaleOS.Y, boundMaxY - boundMinY)
 	local maxWidth = math.min(MAX_CAPTURE_WIDTH * scaleOS.X, boundMaxX - boundMinX)
 	local maxHeight = math.min(MAX_CAPTURE_HEIGHT * scaleOS.Y, boundMaxY - boundMinY)
+
+	local minWidth = 0
+	local minHeight = 0
+	if clampMin then
+		minWidth = math.min(MIN_CAPTURE_WIDTH * scaleOS.X, boundMaxX - boundMinX)
+		minHeight = math.min(MIN_CAPTURE_HEIGHT * scaleOS.Y, boundMaxY - boundMinY)
+	end
 
 	local dX, dY = direction.X, direction.Y
 	if mirror then
@@ -171,18 +177,20 @@ end
 
 local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect: Rect, scaleOS: Vector2)
 	local getClampedCaptureRect = React.useCallback(
-		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean)
-			return clampRect(rect, scaledViewportRect, scaleOS, direction, delta * scaleOS, mirror)
+		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean, clampMin: boolean)
+			return clampRect(rect, scaledViewportRect, scaleOS, direction, delta * scaleOS, mirror, clampMin)
 		end,
 		{ scaledViewportRect, scaleOS } :: { any }
 	)
 
-	local captureRect, setCaptureRect =
-		React.useState(RenderRect.fromRect(getClampedCaptureRect(captureRef.current, Vector2.zero, Vector2.zero, true)))
+	local captureRect, setCaptureRect = React.useState(
+		RenderRect.fromRect(getClampedCaptureRect(captureRef.current, Vector2.zero, Vector2.zero, true, true))
+	)
 
 	local setCaptureRectClamped = React.useCallback(
-		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean)
-			local clampedCaptureRect = RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta, mirror))
+		function(rect: Rect, direction: Vector2, delta: Vector2, mirror: boolean, clampMin: boolean)
+			local clampedCaptureRect =
+				RenderRect.fromRect(getClampedCaptureRect(rect, direction, delta, mirror, clampMin))
 			captureRef.current = clampedCaptureRect
 			setCaptureRect(clampedCaptureRect)
 		end,
@@ -192,7 +200,7 @@ local function useCaptureRect(captureRef: { current: Rect }, scaledViewportRect:
 	React.useEffect(function()
 		local newCenter = scaledViewportRect.Min + Vector2.new(scaledViewportRect.Width, scaledViewportRect.Height) / 2
 		local newCaptureRect = positionRect(captureRect, Vector2.new(0.5, 0.5), newCenter)
-		setCaptureRectClamped(newCaptureRect, Vector2.zero, Vector2.zero, true)
+		setCaptureRectClamped(newCaptureRect, Vector2.zero, Vector2.zero, true, true)
 	end, { setCaptureRectClamped })
 
 	return captureRect, setCaptureRectClamped
@@ -212,7 +220,8 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	end)
 
 	local isCropMode, setIsCropMode = React.useState(false)
-	local isDragCropMode, setIsDragCropMode = React.useState(false)
+	local isCropDragging, setIsCropDragging = React.useState(false)
+	local isCropDraggingRef = React.useRef(false)
 	local maintainAspectRef = React.useRef(nil :: Vector2?)
 
 	local dragStartRef = React.useRef(Vector2.zero)
@@ -230,6 +239,9 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			captureRect.Max.Y / scaleOS.Y
 		)
 	)
+
+	local isUndersized = renderedCaptureRect.Width < MIN_CAPTURE_WIDTH
+		or renderedCaptureRect.Height < MIN_CAPTURE_HEIGHT
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -263,7 +275,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
-				TranslateEnabled = isCropMode or isDragCropMode,
+				TranslateEnabled = isCropMode or isCropDragging,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
@@ -271,11 +283,15 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 					dragStartRef.current = position
 					dragPositionRef.current = position
 					dragRectRef.current = captureRect
-					setIsDragCropMode(isCropMode)
+					isCropDraggingRef.current = isCropMode
+					setIsCropDragging(isCropMode)
 				end,
 
 				OnDrag = function(position, direction)
 					dragPositionRef.current = position
+
+					local isMirrored = not (isCropMode or isCropDraggingRef.current)
+					local isTranslating = direction == Vector2.zero
 
 					local delta = position - dragStartRef.current
 					local dragRect = dragRectRef.current
@@ -291,11 +307,12 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 						end
 					end
 
-					setCaptureRect(dragRect, direction, delta, not (isCropMode or isDragCropMode))
+					setCaptureRect(dragRect, direction, delta, isMirrored, not isTranslating)
 				end,
 
 				OnDragFinish = function()
-					setIsDragCropMode(false)
+					isCropDraggingRef.current = false
+					setIsCropDragging(false)
 				end,
 
 				Disabled = props.Disabled,
@@ -312,12 +329,12 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				OnDimensionInput = function(dimensions)
 					local center = (captureRect.Min + captureRect.Max) / 2
 					local rect = Rect.new(center - dimensions / 2, center + dimensions / 2)
-					setCaptureRect(rect, Vector2.zero, Vector2.zero, true)
+					setCaptureRect(rect, Vector2.zero, Vector2.zero, true, false)
 				end,
 
-				UseRectText = isCropMode or isDragCropMode,
+				UseRectText = isCropMode or isCropDragging,
 				OnRectInput = function(rect)
-					setCaptureRect(rect, Vector2.zero, Vector2.zero, false)
+					setCaptureRect(rect, Vector2.zero, Vector2.zero, false, false)
 				end,
 
 				OnMaximize = props.OnMaximize,
@@ -329,7 +346,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			}),
 
 			AlignButtons = not props.Disabled and React.createElement(AlignButtons, {
-				Visible = isCropMode or isDragCropMode,
+				Visible = not isUndersized and (isCropMode or isCropDragging),
 
 				OnJustify = function(jx, jy)
 					local justifiedRect = captureRect
@@ -346,7 +363,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 							positionRect(justifiedRect, Vector2.new(0, jy), Vector2.new(justifiedRect.Min.X, positionY))
 					end
 
-					setCaptureRect(justifiedRect, Vector2.zero, Vector2.zero, false)
+					setCaptureRect(justifiedRect, Vector2.zero, Vector2.zero, false, false)
 				end,
 
 				ZIndex = 2,
