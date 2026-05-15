@@ -220,8 +220,8 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 	end)
 
 	local isCropMode, setIsCropMode = React.useState(false)
-	local isTranslating, setIsTranslating = React.useState(false)
-	local isTranslatingRef = React.useRef(false)
+	local isCropDragging, setIsCropDragging = React.useState(false)
+	local isCropDraggingRef = React.useRef(false)
 	local maintainAspectRef = React.useRef(nil :: Vector2?)
 
 	local dragStartRef = React.useRef(Vector2.zero)
@@ -275,7 +275,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 				Padding = UDim.new(0, GRABBERS.Padding),
 				Length = UDim.new(0, GRABBERS.Length),
 
-				TranslateEnabled = isCropMode or isTranslating,
+				TranslateEnabled = isCropMode or isCropDragging,
 				CornersEnabled = GRABBERS.CornersEnabled,
 				MiddlesEnabled = GRABBERS.MiddlesEnabled,
 
@@ -283,12 +283,15 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 					dragStartRef.current = position
 					dragPositionRef.current = position
 					dragRectRef.current = captureRect
-					isTranslatingRef.current = isCropMode
-					setIsTranslating(isCropMode)
+					isCropDraggingRef.current = isCropMode
+					setIsCropDragging(isCropMode)
 				end,
 
 				OnDrag = function(position, direction)
 					dragPositionRef.current = position
+
+					local isMirrored = not (isCropMode or isCropDraggingRef.current)
+					local isTranslating = direction == Vector2.zero
 
 					local delta = position - dragStartRef.current
 					local dragRect = dragRectRef.current
@@ -304,18 +307,12 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 						end
 					end
 
-					setCaptureRect(
-						dragRect,
-						direction,
-						delta,
-						not (isCropMode or isTranslatingRef.current),
-						not isTranslatingRef.current
-					)
+					setCaptureRect(dragRect, direction, delta, isMirrored, not isTranslating)
 				end,
 
 				OnDragFinish = function()
-					isTranslatingRef.current = false
-					setIsTranslating(false)
+					isCropDraggingRef.current = false
+					setIsCropDragging(false)
 				end,
 
 				Disabled = props.Disabled,
@@ -335,7 +332,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 					setCaptureRect(rect, Vector2.zero, Vector2.zero, true, false)
 				end,
 
-				UseRectText = isCropMode or isTranslating,
+				UseRectText = isCropMode or isCropDragging,
 				OnRectInput = function(rect)
 					setCaptureRect(rect, Vector2.zero, Vector2.zero, false, false)
 				end,
@@ -349,7 +346,7 @@ local function CroppedViewport(props: Props & { ViewportRect: Rect, CaptureRectR
 			}),
 
 			AlignButtons = not props.Disabled and React.createElement(AlignButtons, {
-				Visible = not isUndersized and (isCropMode or isTranslating),
+				Visible = not isUndersized and (isCropMode or isCropDragging),
 
 				OnJustify = function(jx, jy)
 					local justifiedRect = captureRect
