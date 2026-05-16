@@ -7,6 +7,8 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
+local useImageControls = require(script.ImageInterface.useImageControls)
+
 local ConfigurationWindow = require(script.ConfigurationWindow)
 local ImageInterface = require(script.ImageInterface)
 local UploadWindow = require(script.UploadWindow)
@@ -40,6 +42,10 @@ local function Gallery(props: Props)
 	local selectedIndex, setSelectedIndex = React.useState(1)
 	local uploadExclusions, setUploadExclusions = React.useState({})
 	local uploadInfos, setUploadInfos = useUploadInfos()
+
+	local viewerRef = React.useRef(nil :: GuiObject?)
+	local selectedInfo = editImageInfos[selectedIndex]
+	local imageControls = useImageControls(if selectedInfo then selectedInfo.EditableImage else nil, viewerRef)
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
@@ -130,6 +136,9 @@ local function Gallery(props: Props)
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
 
+			ImageControls = imageControls,
+			ViewerRef = viewerRef,
+
 			OnUpload = function()
 				local filteredInfos = {}
 				for _, info in editImageInfos do
@@ -153,6 +162,8 @@ local function Gallery(props: Props)
 			SelectedIndex = selectedIndex,
 			SetSelectedIndex = setSelectedIndex,
 			SelectedCount = #editImageInfos,
+
+			ImageControls = imageControls,
 
 			OnImport = props.OnImport,
 

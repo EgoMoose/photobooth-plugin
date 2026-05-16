@@ -9,6 +9,8 @@ local uiRoot = script:FindFirstAncestor("UserInterface")
 local LucideButton = require(uiRoot.Components.Shared.LucideButton)
 local Hooks = require(uiRoot.Hooks)
 
+local useImageControls = require(script.useImageControls)
+
 local ToggleScrollList = require(script.ToggleScrollList)
 local ImageViewer = require(script.ImageViewer)
 
@@ -35,6 +37,9 @@ export type Props = {
 
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
+
+	ImageControls: useImageControls.ImageControls,
+	ViewerRef: { current: GuiObject? },
 
 	OnUpload: () -> (),
 
@@ -170,6 +175,9 @@ local function ImageInterface(props: Props)
 
 				BackgroundType = props.BackgroundType,
 				SetBackgroundType = props.SetBackgroundType,
+
+				ImageControls = props.ImageControls,
+				ViewerRef = props.ViewerRef,
 			}),
 		}),
 	})

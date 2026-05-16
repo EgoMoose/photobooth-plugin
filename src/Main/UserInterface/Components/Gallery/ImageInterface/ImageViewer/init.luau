@@ -6,6 +6,8 @@ local React = require(pluginRoot.Packages.React)
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
 
+local useImageControls = require(script.Parent.useImageControls)
+
 local NoImage = require(script.NoImage)
 local DisplayImage = require(script.DisplayImage)
 
@@ -18,6 +20,9 @@ export type Props = {
 
 	BackgroundType: string,
 	SetBackgroundType: (string) -> (),
+
+	ImageControls: useImageControls.ImageControls,
+	ViewerRef: { current: GuiObject? },
 
 	Padding: {
 		PaddingTop: UDim?,
@@ -50,6 +55,9 @@ local function ImageViewer(props: Props)
 
 			BackgroundType = props.BackgroundType,
 			SetBackgroundType = props.SetBackgroundType,
+
+			ImageControls = props.ImageControls,
+			ViewerRef = props.ViewerRef,
 		}),
 	})
 end
