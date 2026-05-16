@@ -44,6 +44,16 @@ local function computeFitScale(imageSize: Vector2, viewportSize: Vector2): Vecto
 	return Vector2.new(imageAspect / viewportAspect, 1)
 end
 
+-- Clamp the image center so the image stays covering the viewport on axes where it's larger,
+-- and pin to the viewport center on axes where it's smaller.
+local function clampCenter(center: Vector2, zoomLevel: number, fitScale: Vector2): Vector2
+	local halfX = 0.5 * zoomLevel * fitScale.X
+	local halfY = 0.5 * zoomLevel * fitScale.Y
+	local x = if halfX >= 0.5 then math.clamp(center.X, 1 - halfX, halfX) else 0.5
+	local y = if halfY >= 0.5 then math.clamp(center.Y, 1 - halfY, halfY) else 0.5
+	return Vector2.new(x, y)
+end
+
 local function useImageControls(editableImage: EditableImage?, viewportRef: { current: GuiObject? }): ImageControls
 	local imageSize = if editableImage then editableImage.Size else Vector2.one
 	local maxZoom = 1
@@ -64,16 +74,21 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 	centerRef.current = imageCenter
 	local viewportSizeRef = React.useRef(viewportSize)
 	viewportSizeRef.current = viewportSize
+	local fitScaleRef = React.useRef(fitScale)
+	fitScaleRef.current = fitScale
+
+	local function setCenter(newCenter: Vector2)
+		local clamped = clampCenter(newCenter, zoomRef.current, fitScaleRef.current)
+		centerRef.current = clamped
+		setImageCenter(clamped)
+	end
 
 	local function setZoomLevel(newZoom: number)
 		local z = math.clamp(newZoom, 1, maxZoom)
 		zoomRef.current = z
 		setZoom(z)
-	end
-
-	local function setCenter(newCenter: Vector2)
-		centerRef.current = newCenter
-		setImageCenter(newCenter)
+		-- Lower zoom can leave the center outside the new bounds; re-clamp.
+		setCenter(centerRef.current)
 	end
 
 	local function reset()
@@ -86,6 +101,15 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 	React.useEffect(function()
 		reset()
 	end, { editableImage } :: { any })
+
+	-- Re-clamp when viewport resizes (fitScale changes) so the image stays in bounds.
+	React.useEffect(function()
+		local clamped = clampCenter(centerRef.current, zoomRef.current, fitScale)
+		if clamped ~= centerRef.current then
+			centerRef.current = clamped
+			setImageCenter(clamped)
+		end
+	end, { fitScale.X, fitScale.Y } :: { any })
 
 	local function zoomBy(factor: number, focalUV: Vector2?)
 		local z = zoomRef.current
@@ -102,6 +126,7 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 			--   newImageCenter = focalUV - (focalUV - imageCenter) * (newZoom / zoom)
 			newCenter = focalUV - (focalUV - centerRef.current) * (newZoom / z)
 		end
+		newCenter = clampCenter(newCenter, newZoom, fitScaleRef.current)
 
 		zoomRef.current = newZoom
 		centerRef.current = newCenter
