@@ -1,5 +1,5 @@
 local fs = require("@lune/fs")
-local run = require("@root/lune/utils/run")
+local run = require("@utils/run")
 
 run("wally", { "install" })
 for _, folderName in { "Packages", "DevPackages", "ServerPackages" } do
