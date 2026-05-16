@@ -45,12 +45,6 @@ local function operation(options: Types.CaptureViewportOptions, trove: Trove.Tro
 	-- prepare for retro scene capturing
 	trove:Add(SceneControl.applyRetroLighting())
 
-	local correctionCopy = colorCorrection:Clone()
-	correctionCopy.TintColor = Color3.new(1, 1, 1)
-	correctionCopy.Brightness = 0
-	correctionCopy.Parent = Lighting
-	trove:Add(correctionCopy)
-
 	-- capture on retro black
 	SceneControl.yieldUntilNextFrame()
 	local onBlackRetro = Screenshot.rect(options.rect)
