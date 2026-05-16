@@ -40,6 +40,10 @@ function Bindings.yieldUntilNextFrame(): ()
 	return Binding.invoke("yieldUntilNextFrame")
 end
 
+function Bindings.getMeshPart(): MeshPart
+	return Binding.invoke("getMeshPart")
+end
+
 function Bindings.captureViewport(options: CaptureViewportOptions): MeshPart?
 	return Binding.invoke("captureViewport", options)
 end
