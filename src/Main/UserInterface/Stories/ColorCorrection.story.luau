@@ -21,20 +21,6 @@ local function rgbFloat(color: Color3)
 	return color.R, color.G, color.B
 end
 
-local function srgbToLinear(c: number): number
-	if c <= 0.04045 then
-		return c / 12.92
-	end
-	return ((c + 0.055) / 1.055) ^ 2.4
-end
-
-local function linearToSrgb(c: number): number
-	if c <= 0.0031308 then
-		return 12.92 * c
-	end
-	return 1.055 * c ^ (1 / 2.4) - 0.055
-end
-
 local function applyColorCorrection(buff: buffer, colorCorrection: ColorCorrectionEffect)
 	local len = buffer.len(buff)
 	local nBuffer = buffer.create(len)
@@ -61,9 +47,9 @@ local function applyColorCorrection(buff: buffer, colorCorrection: ColorCorrecti
 			local c = channels[k]
 
 			c = c * saturation + (1 - saturation) * gray -- saturation
-			-- c = (c - 0.5) * math.max(0, contrast) + 0.5 -- contrast
-			-- c = c + brightness -- brightness
-			-- c = c * tint[k] -- tint
+			c = (c - 0.5) * math.max(0, contrast) + 0.5 -- contrast
+			c = c + brightness -- brightness
+			c = c * tint[k] -- tint
 
 			buffer.writeu8(nBuffer, j + (k - 1), math.clamp(c * 255, 0, 255))
 		end
