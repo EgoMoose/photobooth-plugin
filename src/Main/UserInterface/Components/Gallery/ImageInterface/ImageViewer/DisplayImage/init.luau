@@ -1,6 +1,7 @@
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local React = require(pluginRoot.Packages.React)
+local Constants = require(pluginRoot.Constants)
 
 local uiRoot = script:FindFirstAncestor("UserInterface")
 local Hooks = require(uiRoot.Hooks)
@@ -12,6 +13,8 @@ local HighResImageSplit = require(script.HighResImageSplit)
 local OUTLINE_THICKNESS = 2
 local DIMENSIONS_FONT_SIZE = 7
 local DIMENSIONS_FONT = Font.fromEnum(Enum.Font.Legacy)
+
+local CONTROLS_ENABLED = Constants.GalleryImageControlsEnabled
 
 export type Props = {
 	Size: UDim2,
@@ -173,9 +176,9 @@ local function DisplayImage(props: Props)
 				AutoButtonColor = false,
 				ZIndex = 2,
 
-				[React.Event.InputBegan] = controls.dragger.onInputBegan,
-				[React.Event.InputChanged] = controls.onInputChanged,
-				[React.Event.InputEnded] = controls.dragger.onInputEnded,
+				[React.Event.InputBegan] = if CONTROLS_ENABLED then controls.dragger.onInputBegan else nil,
+				[React.Event.InputChanged] = if CONTROLS_ENABLED then controls.onInputChanged else nil,
+				[React.Event.InputEnded] = if CONTROLS_ENABLED then controls.dragger.onInputEnded else nil,
 				[React.Event.MouseButton2Click] = function()
 					openMenu()
 				end,
