@@ -81,8 +81,8 @@ local function workerAction(
 
 			for i = 1, 3 do
 				local component = rgba[i]
-				component = component * saturation + (1 - saturation) * gray -- saturation
-				component = ((component - 0.5) * math.max(0, contrast)) + 0.5 -- contrast
+				-- component = component * saturation + (1 - saturation) * gray -- saturation
+				-- component = ((component - 0.5) * math.max(0, contrast)) + 0.5 -- contrast
 				component = component + brightness -- brightness
 				component = component * tint[i] -- tint
 				rgba[i] = math.clamp(component, 0, 1)
