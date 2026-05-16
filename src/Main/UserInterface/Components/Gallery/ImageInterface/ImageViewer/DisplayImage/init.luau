@@ -85,13 +85,13 @@ local function DisplayImage(props: Props)
 		BackgroundTransparency = 1,
 		Size = UDim2.fromScale(1, 1),
 		ClipsDescendants = true,
-		ref = props.ViewerRef,
 	}, {
 		Inner = React.createElement("Frame", {
 			BackgroundTransparency = 1,
 			AnchorPoint = props.AnchorPoint,
 			Position = props.Position,
 			Size = props.Size,
+			ref = props.ViewerRef,
 		}, {
 			ImageLayer = React.createElement("Frame", {
 				BackgroundTransparency = 1,

@@ -32,20 +32,30 @@ local function computeFitScale(imageSize: Vector2, viewportSize: Vector2): Vecto
 	if viewportSize.X <= 0 or viewportSize.Y <= 0 or imageSize.X <= 0 or imageSize.Y <= 0 then
 		return Vector2.new(1, 1)
 	end
+
 	local scaleX = imageSize.X / viewportSize.X
 	local scaleY = imageSize.Y / viewportSize.Y
 	local overflow = math.max(scaleX, scaleY)
+
 	if overflow <= 1 then
 		return Vector2.new(scaleX, scaleY)
 	end
+
 	return Vector2.new(scaleX / overflow, scaleY / overflow)
 end
 
 local function clampCenter(center: Vector2, zoomLevel: number, fitScale: Vector2): Vector2
 	local halfX = 0.5 * zoomLevel * fitScale.X
 	local halfY = 0.5 * zoomLevel * fitScale.Y
-	local x = if halfX >= 0.5 then math.clamp(center.X, 1 - halfX, halfX) else 0.5
-	local y = if halfY >= 0.5 then math.clamp(center.Y, 1 - halfY, halfY) else 0.5
+
+	if zoomLevel <= 1 then
+		local x = if halfX >= 0.5 then math.clamp(center.X, 1 - halfX, halfX) else 0.5
+		local y = if halfY >= 0.5 then math.clamp(center.Y, 1 - halfY, halfY) else 0.5
+		return Vector2.new(x, y)
+	end
+
+	local x = math.clamp(center.X, 0.5 - halfX, 0.5 + halfX)
+	local y = math.clamp(center.Y, 0.5 - halfY, 0.5 + halfY)
 	return Vector2.new(x, y)
 end
 
