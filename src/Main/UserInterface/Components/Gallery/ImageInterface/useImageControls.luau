@@ -28,22 +28,19 @@ export type ImageControls = {
 	onInputChanged: (GuiObject, InputObject) -> (),
 }
 
--- The image is rendered at size `zoom * fitScale` in viewport-UV. fitScale is at most 1 per axis
--- (the aspect-fit size of the image inside the viewport at zoom 1).
 local function computeFitScale(imageSize: Vector2, viewportSize: Vector2): Vector2
 	if viewportSize.X <= 0 or viewportSize.Y <= 0 or imageSize.X <= 0 or imageSize.Y <= 0 then
 		return Vector2.new(1, 1)
 	end
-	local imageAspect = imageSize.X / imageSize.Y
-	local viewportAspect = viewportSize.X / viewportSize.Y
-	if imageAspect > viewportAspect then
-		return Vector2.new(1, viewportAspect / imageAspect)
+	local scaleX = imageSize.X / viewportSize.X
+	local scaleY = imageSize.Y / viewportSize.Y
+	local overflow = math.max(scaleX, scaleY)
+	if overflow <= 1 then
+		return Vector2.new(scaleX, scaleY)
 	end
-	return Vector2.new(imageAspect / viewportAspect, 1)
+	return Vector2.new(scaleX / overflow, scaleY / overflow)
 end
 
--- Clamp the image center so the image stays covering the viewport on axes where it's larger,
--- and pin to the viewport center on axes where it's smaller.
 local function clampCenter(center: Vector2, zoomLevel: number, fitScale: Vector2): Vector2
 	local halfX = 0.5 * zoomLevel * fitScale.X
 	local halfY = 0.5 * zoomLevel * fitScale.Y
@@ -54,25 +51,28 @@ end
 
 local function useImageControls(editableImage: EditableImage?, viewportRef: { current: GuiObject? }): ImageControls
 	local imageSize = if editableImage then editableImage.Size else Vector2.one
-	local maxZoom = 1
-	if editableImage then
-		maxZoom = math.max(1, math.min(imageSize.X, imageSize.Y) / MIN_VIEW_PIXELS)
-	end
 
 	local viewportSize = Hooks.useRefProperty(viewportRef, "AbsoluteSize", Vector2.zero)
 	local fitScale = computeFitScale(imageSize, viewportSize)
 
+	local maxZoom = 1
+	if editableImage then
+		local limitX = imageSize.X / fitScale.X
+		local limitY = imageSize.Y / fitScale.Y
+		maxZoom = math.max(1, math.min(limitX, limitY) / MIN_VIEW_PIXELS)
+	end
+
 	local zoom, setZoom = React.useState(1)
 	local imageCenter, setImageCenter = React.useState(CENTER)
 
-	-- Mirror state into refs so drag/wheel callbacks read live values without re-subscribing.
 	local zoomRef = React.useRef(zoom)
-	zoomRef.current = zoom
 	local centerRef = React.useRef(imageCenter)
-	centerRef.current = imageCenter
 	local viewportSizeRef = React.useRef(viewportSize)
-	viewportSizeRef.current = viewportSize
 	local fitScaleRef = React.useRef(fitScale)
+
+	zoomRef.current = zoom
+	centerRef.current = imageCenter
+	viewportSizeRef.current = viewportSize
 	fitScaleRef.current = fitScale
 
 	local function setCenter(newCenter: Vector2)
@@ -85,7 +85,6 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 		local z = math.clamp(newZoom, 1, maxZoom)
 		zoomRef.current = z
 		setZoom(z)
-		-- Lower zoom can leave the center outside the new bounds; re-clamp.
 		setCenter(centerRef.current)
 	end
 
@@ -100,7 +99,6 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 		reset()
 	end, { editableImage } :: { any })
 
-	-- Re-clamp when viewport resizes (fitScale changes) so the image stays in bounds.
 	React.useEffect(function()
 		local clamped = clampCenter(centerRef.current, zoomRef.current, fitScale)
 		if clamped ~= centerRef.current then
@@ -118,10 +116,6 @@ local function useImageControls(editableImage: EditableImage?, viewportRef: { cu
 
 		local newCenter = centerRef.current
 		if focalUV then
-			-- Preserve the viewport-UV position of focalUV across the zoom change.
-			-- Viewport-UV of an image point P is: imageCenter + (P_imageUV - 0.5) * (zoom * fitScale).
-			-- Solving for newImageCenter so focalUV stays fixed under newZoom yields:
-			--   newImageCenter = focalUV - (focalUV - imageCenter) * (newZoom / zoom)
 			newCenter = focalUV - (focalUV - centerRef.current) * (newZoom / z)
 		end
 		newCenter = clampCenter(newCenter, newZoom, fitScaleRef.current)
