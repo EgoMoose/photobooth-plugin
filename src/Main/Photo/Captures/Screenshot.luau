@@ -1,5 +1,3 @@
---!strict
-
 local AssetService = game:GetService("AssetService") :: AssetService
 local CaptureService = game:GetService("CaptureService") :: CaptureService
 

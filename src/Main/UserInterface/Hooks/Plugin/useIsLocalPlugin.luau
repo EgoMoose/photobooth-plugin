@@ -1,5 +1,3 @@
---!strict
-
 local usePlugin = require(script.Parent.usePlugin)
 
 local function useIsLocalPlugin()

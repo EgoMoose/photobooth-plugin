@@ -1,5 +1,3 @@
---!strict
-
 local serialFolder = script.Serial
 local parallelFolder = script.Parallel
 

@@ -1,5 +1,3 @@
---!strict
-
 local CurrentVersion = require(script.V1)
 
 local SaveVersions = {}

@@ -1,5 +1,3 @@
---!strict
-
 local MarketplaceService = game:GetService("MarketplaceService") :: MarketplaceService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")

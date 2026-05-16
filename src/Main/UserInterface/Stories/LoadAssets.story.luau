@@ -1,5 +1,3 @@
---!strict
-
 local CollectionService = game:GetService("CollectionService") :: CollectionService
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")

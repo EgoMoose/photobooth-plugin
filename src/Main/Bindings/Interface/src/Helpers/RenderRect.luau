@@ -1,5 +1,3 @@
---!strict
-
 -- this module handles calculating rects as they would be rendered on a screen.
 -- since there's no such thing as half a pixel, what's actually rendered
 -- can change by a pixel or two.

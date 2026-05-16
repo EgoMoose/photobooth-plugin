@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local CargoSemver = require(pluginRoot.Packages.CargoSemver)
 local Semver = require(pluginRoot.Packages.Semver)

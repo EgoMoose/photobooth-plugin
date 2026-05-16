@@ -1,5 +1,3 @@
---!strict
-
 --[[
 	Instructions:
 		1. Copy this template to the StarterGui.

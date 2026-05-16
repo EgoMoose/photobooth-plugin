@@ -1,5 +1,3 @@
---!strict
-
 -- Generic
 local useConstant = require(script.Generic.useConstant)
 local useMouseDrag = require(script.Generic.useMouseDrag)

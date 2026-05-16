@@ -1,5 +1,3 @@
---!strict
-
 local Types = require(script.Types)
 local Wally = require(script.Wally)
 local Binding = require(script.Binding)

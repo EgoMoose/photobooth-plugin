@@ -1,5 +1,3 @@
---!strict
-
 local stdio = require("@lune/stdio")
 local process = require("@lune/process")
 

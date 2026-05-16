@@ -1,5 +1,3 @@
---!strict
-
 local Players = game:GetService("Players") :: Players
 local RunService = game:GetService("RunService") :: RunService
 

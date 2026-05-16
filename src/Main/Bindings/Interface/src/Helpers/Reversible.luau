@@ -1,5 +1,3 @@
---!strict
-
 local SelectionService = game:GetService("Selection") :: Selection
 local ChangeHistoryService = game:GetService("ChangeHistoryService") :: ChangeHistoryService
 

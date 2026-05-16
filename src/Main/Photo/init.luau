@@ -1,5 +1,3 @@
---!strict
-
 local StudioService = game:GetService("StudioService") :: StudioService
 local AssetService = game:GetService("AssetService") :: AssetService
 

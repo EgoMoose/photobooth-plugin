@@ -1,5 +1,3 @@
---!strict
-
 -- lune needs to be able to read this file
 -- so do not use roblox data types
 

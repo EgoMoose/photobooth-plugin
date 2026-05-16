@@ -1,5 +1,3 @@
---!strict
-
 local fs = require("@lune/fs")
 local run = require("@root/lune/utils/run")
 

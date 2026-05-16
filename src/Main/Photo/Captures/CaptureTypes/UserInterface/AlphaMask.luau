@@ -1,5 +1,3 @@
---!strict
-
 local CoreGui = game:GetService("CoreGui") :: CoreGui
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
