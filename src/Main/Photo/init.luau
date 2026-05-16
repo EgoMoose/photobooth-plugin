@@ -38,7 +38,7 @@ local function createIsCapturingTrove()
 end
 
 local quadFuture: Future.Future<MeshPart>
-local function getQuadMeshPart()
+local function getQuadMeshPartTemplate()
 	if not quadFuture then
 		local editMesh = AssetService:CreateEditableMesh({ FixedSize = false })
 
@@ -69,6 +69,12 @@ local function getQuadMeshPart()
 		editMesh:Destroy()
 
 		local meshPart = AssetService:CreateMeshPartAsync(Content.fromObject(fixedMesh))
+		meshPart.Anchored = true
+		meshPart.CanCollide = false
+		meshPart.CanTouch = false
+		meshPart.Transparency = 0 -- cannot be transparent
+		meshPart.Size = Vector3.new(1, 1, 0)
+
 		quadFuture = Future.completed(meshPart)
 	end
 
@@ -146,19 +152,19 @@ function Photo.captureViewport(options: Types.CaptureViewportOptions)
 	return results, err
 end
 
+function Photo.getQuadMeshPart()
+	local copy = getQuadMeshPartTemplate():Clone()
+	copy.Archivable = false
+	return copy
+end
+
 function Photo.export(imgs: { Image.Image }, parent: Instance?)
 	local results = {}
 
 	for i, img in imgs do
 		local name = `{DateTime.now():ToIsoDate()}_{i}`
-		local meshPart = getQuadMeshPart():Clone()
-		meshPart.Archivable = false
-		meshPart.Anchored = true
-		meshPart.CanCollide = false
-		meshPart.CanTouch = false
-		meshPart.Transparency = 0 -- cannot be transparent
+		local meshPart = Photo.getQuadMeshPart()
 		meshPart.Name = name
-		meshPart.Size = Vector3.new(1, 1, 0)
 		meshPart.TextureContent = Content.fromObject(img:Save())
 		meshPart.Parent = parent
 
@@ -175,14 +181,8 @@ function Photo.importFiles(parent: Instance?)
 		local content = Content.fromUri(file:GetTemporaryId())
 		local editImage = AssetService:CreateEditableImageAsync(content)
 
-		local meshPart = getQuadMeshPart():Clone()
-		meshPart.Archivable = false
-		meshPart.Anchored = true
-		meshPart.CanCollide = false
-		meshPart.CanTouch = false
-		meshPart.Transparency = 0 -- cannot be transparent
+		local meshPart = Photo.getQuadMeshPart()
 		meshPart.Name = file.Name:match("(.+)%.[^.]*$") or file.Name
-		meshPart.Size = Vector3.new(1, 1, 1)
 		meshPart.TextureContent = Content.fromObject(editImage)
 		meshPart.Parent = parent
 
