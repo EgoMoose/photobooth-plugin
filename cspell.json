@@ -6,11 +6,13 @@
     "words": [
         "__newindex",
         "Archivable",
+        "bbox",
         "cacheless",
         "cachelessly",
         "cframe",
         "codegen",
         "deque",
+        "desynchronize",
         "egomoose",
         "flipbook",
         "fromstring",
@@ -47,6 +49,8 @@
         "Topbar",
         "udim",
         "unhide",
+        "voronoi",
+        "writei",
         "writeu32",
         "writeu8"
     ],

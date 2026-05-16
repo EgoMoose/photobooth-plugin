@@ -6,6 +6,9 @@
 return {
 	AllowExperimentalMode = true,
 
+	JFAPlusOne = false,
+	JFAActorCount = 32,
+
 	TileHighResImagesEnabled = true,
 	TileHighResImagesSize = { X = 1024, Y = 1024 },
 	MaxCaptureRectSize = { X = 2048, Y = 2048 },
