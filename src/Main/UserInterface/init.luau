@@ -1,5 +1,3 @@
---!strict
-
 local CoreGui = game:GetService("CoreGui") :: CoreGui
 local StarterGui = game:GetService("StarterGui") :: StarterGui
 local HttpService = game:GetService("HttpService") :: HttpService

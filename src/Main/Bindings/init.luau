@@ -1,5 +1,3 @@
---!strict
-
 local CaptureService = game:GetService("CaptureService") :: CaptureService
 local ServerStorage = game:GetService("ServerStorage") :: ServerStorage
 

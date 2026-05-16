@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Lucide = require(pluginRoot.Packages.Lucide)
 local React = require(pluginRoot.Packages.React)

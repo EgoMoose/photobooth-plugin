@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Image = require(pluginRoot.Utilities.Image)
 

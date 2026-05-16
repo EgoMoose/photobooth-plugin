@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local IntegralImage = require(pluginRoot.Utilities.IntegralImage)
 local Timeout = require(pluginRoot.Utilities.Timeout)

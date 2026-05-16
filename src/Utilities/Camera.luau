@@ -1,5 +1,3 @@
---!strict
-
 local Camera = {}
 
 type Distortion = {

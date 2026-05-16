@@ -1,5 +1,3 @@
---!strict
-
 local _BillboardBackground = require(script.BillboardBackground)
 local MeshPartFogBackground = require(script.MeshPartFogBackground)
 

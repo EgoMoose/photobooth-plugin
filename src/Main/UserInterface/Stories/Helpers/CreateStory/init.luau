@@ -1,5 +1,3 @@
---!strict
-
 --[[
 From srcfenner's StudioComponents:
 https://github.com/sircfenner/StudioComponents

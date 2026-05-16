@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Parallel = require(pluginRoot.Packages.Parallel)
 local Timeout = require(pluginRoot.Utilities.Timeout)

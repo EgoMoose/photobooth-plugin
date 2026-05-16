@@ -1,5 +1,3 @@
---!strict
-
 local ScriptEditorService = game:GetService("ScriptEditorService") :: ScriptEditorService
 
 local CachelessRequire = {}

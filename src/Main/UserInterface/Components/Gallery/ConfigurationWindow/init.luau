@@ -1,5 +1,3 @@
---!strict
-
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local StudioComponents = require(pluginRoot.Packages.StudioComponents)
 local ReactRipple = require(pluginRoot.Packages.ReactRipple)

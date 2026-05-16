@@ -1,5 +1,3 @@
---!strict
-
 local Timeout = require(script.Parent.Timeout)
 local Image = require(script.Parent.Image)
 

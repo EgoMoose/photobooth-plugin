@@ -1,5 +1,3 @@
---!strict
-
 local Binding = {}
 local bindable = assert(script:FindFirstChild("Bindable") :: BindableFunction?)
 

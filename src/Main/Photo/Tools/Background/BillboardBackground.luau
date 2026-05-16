@@ -1,5 +1,3 @@
---!strict
-
 local BillboardBackgroundClass = {}
 BillboardBackgroundClass.__index = BillboardBackgroundClass
 BillboardBackgroundClass.ClassName = "BillboardBackground"
