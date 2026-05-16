@@ -1,5 +1,4 @@
 --!strict
-local Lighting = game:GetService("Lighting")
 
 local pluginRoot = script:FindFirstAncestor("PluginRoot")
 local Trove = require(pluginRoot.Packages.Trove)
@@ -7,6 +6,7 @@ local Trove = require(pluginRoot.Packages.Trove)
 local photoRoot = script:FindFirstAncestor("Photo")
 local UIHider = require(photoRoot.Tools.UIHider)
 
+local Lighting = game:GetService("Lighting") :: Lighting
 local RunService = game:GetService("RunService") :: RunService
 local UserInputService = game:GetService("UserInputService") :: UserInputService
 
